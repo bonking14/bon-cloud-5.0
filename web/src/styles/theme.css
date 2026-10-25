@@ -1,0 +1,449 @@
+/* ============================================================
+   BonCloud — Variables de tema (dark default, light optional)
+   ============================================================ */
+
+/* ── MODO OSCURO (default) ─────────────────────────────────── */
+:root {
+  --bg-base:       #0d0d13;
+  --bg-panel:      #0f1117;
+  --bg-hover:      #1a1f2e;
+  --bg-active:     #172035;
+  --bg-input:      #0d0d13;
+  --bg-card:       #0f1117;
+  --bg-table-row:  #13161f;
+
+  --border:        #1a1f2e;
+  --border-accent: #2a4a7f;
+
+  --text-primary:   #e2e8f0;
+  --text-secondary: #c9d1dc;
+  --text-muted:     #94a3b8;
+  --text-hint:      #64748b;
+  --text-accent:    #4a7fd4;
+  --text-accent2:   #7eb3f5;
+
+  --vendedor-bg:   #4a7f6a;
+  --comprador-bg:  #7a4f4f;
+
+  --btn-danger-bg:   #7f1d1d;
+  --btn-danger-text: #fca5a5;
+  --btn-danger-hover:#991b1b;
+
+  --scrollbar-thumb: #1a1f2e;
+  --scrollbar-hover: #243040;
+}
+
+/* ── MODO CLARO ────────────────────────────────────────────── */
+:root.light-mode, body.light-mode {
+  --bg-base:       #f8fafc;
+  --bg-panel:      #ffffff;
+  --bg-hover:      #f1f5f9;
+  --bg-active:     #e2e8f0;
+  --bg-input:      #ffffff;
+  --bg-card:       #ffffff;
+  --bg-table-row:  rgba(15, 23, 42, 0.04);
+
+  --border:        #cbd5e1;
+  --border-accent: #1d4ed8;
+
+  --text-primary:   #0f172a;
+  --text-secondary: #1e293b;
+  --text-muted:     #334155;
+  --text-hint:      #475569;
+  --text-accent:    #1d4ed8;
+  --text-accent2:   #0f172a;
+
+  --vendedor-bg:   #15803d;
+  --comprador-bg:  #b91c1c;
+
+  --btn-danger-bg:   #fee2e2;
+  --btn-danger-text: #b91c1c;
+  --btn-danger-hover:#fca5a5;
+
+  --scrollbar-thumb: #94a3b8;
+  --scrollbar-hover: #64748b;
+}
+
+/* ── APLICAR VARIABLES A LOS SELECTORES EXISTENTES ─────────── */
+
+body {
+  background: var(--bg-base);
+  color: var(--text-secondary);
+  transition: background 0.25s, color 0.25s;
+}
+
+/* Sidebar */
+.sidebar {
+  background: var(--bg-panel);
+  border-right-color: var(--border);
+}
+
+.sidebar-brand h2 {
+  color: var(--text-accent);
+}
+
+.sidebar-brand {
+  border-bottom-color: var(--border);
+}
+
+.nav-item {
+  color: var(--text-muted);
+}
+
+.nav-item:hover {
+  background: var(--bg-hover);
+  color: var(--text-secondary);
+}
+
+.nav-item.active {
+  background: var(--bg-active);
+  color: var(--text-accent);
+}
+
+.nav-subitem {
+  color: var(--text-hint);
+  border-left-color: var(--border);
+}
+
+.nav-subitem:hover {
+  background: var(--bg-hover);
+  color: var(--text-secondary);
+}
+
+.nav-subitem.active {
+  color: var(--text-accent);
+  border-left-color: var(--text-accent);
+  background: var(--bg-input);
+}
+
+.sidebar-footer {
+  border-top-color: var(--border);
+}
+
+.sidebar-footer span { color: var(--text-muted); }
+
+#btnLogout {
+  background: var(--btn-danger-bg);
+  color: var(--btn-danger-text);
+  border: none;
+  border-radius: 7px;
+  padding: 9px 14px;
+  width: 100%;
+  font-family: inherit;
+  font-size: 0.8125rem;
+  font-weight: 600;
+  text-align: left;
+  display: flex;
+  justify-content: flex-start;
+  cursor: pointer;
+}
+
+#btnLogout:hover { background: var(--btn-danger-hover); }
+
+/* Main */
+.main-content { height: 100vh; }
+
+.dashboard-header h1 { color: var(--text-primary); }
+.dashboard-header p   { color: var(--text-muted); }
+
+/* Cards */
+.card {
+  background: var(--bg-card);
+  border-color: var(--border);
+}
+
+.card:hover { border-color: var(--border-accent); }
+.card h3    { color: var(--text-secondary); }
+.card p     { color: var(--text-muted); }
+
+.btn-card {
+  background: var(--bg-active);
+  color: var(--text-accent);
+  border-color: var(--border-accent);
+}
+
+.btn-card:hover { background: var(--bg-hover); color: var(--text-accent2); }
+
+/* Filtros */
+.filtro-btn {
+  background: var(--bg-panel);
+  border-color: var(--border);
+  color: var(--text-muted);
+}
+
+.filtro-btn:hover  { border-color: var(--border-accent); color: var(--text-secondary); }
+.filtro-btn.active { background: var(--bg-active); border-color: var(--border-accent); color: var(--text-accent); }
+
+/* Formularios */
+.calc-form, .calc-resultados {
+  background: var(--bg-panel);
+  border-color: var(--border);
+}
+
+.calc-resultados h3 {
+  color: var(--text-secondary);
+  border-bottom-color: var(--border);
+}
+
+.form-field label { color: var(--text-muted); }
+
+.form-field input {
+  background: var(--bg-input);
+  border-color: var(--border);
+  color: var(--text-secondary);
+}
+
+.form-field input:focus {
+  border-color: var(--text-accent);
+}
+
+.btn-calcular {
+  background: var(--bg-active);
+  color: var(--text-accent2);
+  border-color: var(--border-accent);
+}
+
+.btn-calcular:hover { background: var(--bg-hover); color: var(--text-accent2); }
+
+/* Resultados */
+.resultado-row { border-bottom-color: var(--bg-table-row); }
+.resultado-row .label { color: var(--text-muted); }
+.resultado-row .valor { color: var(--text-secondary); }
+.resultado-row.destacado .label,
+.resultado-row.destacado .valor { color: var(--text-accent); }
+.resultado-row.total .label { color: var(--text-secondary); }
+.resultado-row.total .valor { color: var(--text-accent); }
+.resultado-row.total { border-top-color: var(--border); }
+.resultado-row.exento .valor { color: var(--vendedor-bg); }
+
+/* Modal info */
+.modal-info-bar {
+  background: var(--bg-panel);
+  border-color: var(--border);
+  color: var(--text-muted);
+}
+
+.modal-badge {
+  background: var(--bg-active);
+  color: var(--text-accent);
+}
+
+/* Buscador */
+.buscador-box {
+  background: var(--bg-panel);
+  border-color: var(--border);
+}
+
+.buscador-box:focus-within { border-color: var(--text-accent); }
+.buscador-box input { color: var(--text-secondary); }
+.buscador-box input::placeholder { color: var(--text-hint); }
+.buscador-icon { color: var(--text-muted); }
+
+/* Incoterms */
+.incoterm-card {
+  background: var(--bg-card);
+  border-color: var(--border);
+}
+
+.incoterm-card:hover { border-color: var(--border-accent); }
+.incoterm-code { background: var(--bg-active); color: var(--text-accent); }
+.incoterm-name strong { color: var(--text-secondary); }
+.incoterm-name { color: var(--text-muted); }
+.incoterm-desc { color: var(--text-muted); }
+.tag { background: var(--bg-panel); border-color: var(--border); color: var(--text-muted); }
+.resp-row { border-bottom-color: var(--bg-table-row); color: var(--text-muted); }
+.resp-vendedor { color: var(--vendedor-bg); }
+.resp-comprador { color: var(--comprador-bg); }
+
+/* Tabla incoterms */
+.tabla-scroll { border-color: var(--border); }
+.tabla-incoterms th { background: var(--bg-panel); color: var(--text-muted); border-bottom-color: var(--border); }
+.tabla-incoterms td { border-bottom-color: var(--bg-table-row); color: var(--text-muted); }
+.tabla-incoterms tr:hover td { background: var(--bg-panel); }
+.tabla-section h2 { color: var(--text-secondary); }
+.celda-v { color: var(--vendedor-bg) !important; }
+.celda-c { color: var(--comprador-bg) !important; }
+
+/* Subpartidas */
+.sp-card { background: var(--bg-panel); border-color: var(--border); }
+.sp-card:hover { border-color: var(--border-accent); }
+.sp-card-code { color: var(--text-accent); }
+.sp-card-title { color: var(--text-secondary); }
+.sp-card-desc { color: var(--text-muted); }
+.sp-arancel { background: var(--bg-active); color: var(--text-accent); }
+.sp-seccion { color: var(--text-hint); }
+
+/* Modal subpartidas */
+.sp-modal-overlay { background: rgba(0,0,0,0.65); }
+
+.sp-modal {
+  background: var(--bg-panel);
+  border-color: var(--border);
+}
+
+.sp-modal-close { color: var(--text-muted); }
+.sp-modal-close:hover { color: var(--text-secondary); }
+.modal-code { color: var(--text-accent); }
+.modal-title { color: var(--text-secondary); }
+.modal-desc { color: var(--text-muted); }
+
+.modal-stat {
+  background: var(--bg-table-row);
+  border-color: var(--border);
+}
+
+.modal-stat-label { color: var(--text-muted); }
+.modal-stat-value { color: var(--text-secondary); }
+.modal-stat-value.azul { color: var(--text-accent); }
+.modal-section-title { color: var(--text-hint); }
+.modal-tag { background: var(--bg-active); color: var(--text-accent); }
+.modal-req { color: var(--text-muted); border-bottom-color: var(--bg-table-row); }
+
+/* Vistos buenos */
+.vb-card { background: var(--bg-panel); border-color: var(--border); }
+.vb-card:hover { border-color: var(--border-accent); }
+.vb-card-title { color: var(--text-secondary); }
+.vb-card-desc { color: var(--text-muted); }
+.vb-entidad-badge { background: var(--bg-active); color: var(--text-accent); }
+.vb-chip { background: var(--bg-table-row); border-color: var(--border); color: var(--text-muted); }
+.vb-subpartidas-title, .vb-requisitos-title { color: var(--text-hint); }
+.vb-req-item { color: var(--text-muted); border-bottom-color: var(--bg-table-row); }
+
+/* Glosario */
+.glosario-card {
+  background: var(--bg-card);
+  border-color: var(--border);
+}
+.glosario-card:hover { border-color: var(--border-accent); }
+.glosario-card-title { color: var(--text-primary); }
+.glosario-card-sub { color: var(--text-muted); }
+.glosario-card-desc { color: var(--text-secondary); }
+.glosario-badge { background: var(--bg-active); color: var(--text-accent); border-color: var(--border-accent); }
+.glosario-card-footer { color: var(--text-accent); }
+
+.glosario-modal {
+  background: var(--bg-card);
+  border-color: var(--border-accent);
+}
+.glosario-modal-close { color: var(--text-muted); }
+.glosario-modal-close:hover { color: var(--text-primary); background: var(--bg-hover); }
+.relacionado-tag { background: var(--bg-panel); color: var(--text-accent); border-color: var(--border); }
+.relacionado-tag:hover { background: var(--text-accent); color: #ffffff; }
+
+.btn-filtro {
+  background: var(--bg-panel);
+  border-color: var(--border);
+  color: var(--text-muted);
+}
+.btn-filtro:hover { border-color: var(--border-accent); color: var(--text-secondary); }
+.btn-filtro.active { background: var(--bg-active); border-color: var(--border-accent); color: var(--text-accent); }
+
+/* Scrollbar */
+::-webkit-scrollbar-track { background: var(--bg-base); }
+::-webkit-scrollbar-thumb { background: var(--scrollbar-thumb); }
+::-webkit-scrollbar-thumb:hover { background: var(--scrollbar-hover); }
+
+/* Login */
+.login-container { background: var(--bg-base); }
+.login-brand h1 { color: var(--text-accent); }
+.login-brand p  { color: var(--text-muted); }
+
+.login-form {
+  background: var(--bg-panel);
+  border-color: var(--border);
+}
+
+.input-group label { color: var(--text-muted); }
+
+.input-group input {
+  background: var(--bg-input);
+  border-color: var(--border);
+  color: var(--text-secondary);
+}
+
+.input-group input:focus { border-color: var(--text-accent); }
+
+.btn-login {
+  background: var(--bg-active);
+  color: var(--text-accent2);
+  border-color: var(--border-accent);
+}
+
+.btn-login:hover { background: var(--bg-hover); color: var(--text-accent2); }
+.remember { color: var(--text-muted); }
+.login-options a { color: var(--text-accent); }
+.register-link { color: var(--text-muted); }
+.register-link a { color: var(--text-accent); }
+
+/* Botón de tema */
+.btn-theme {
+  background: var(--bg-hover);
+  color: var(--text-muted);
+  border: 1px solid var(--border);
+  padding: 7px 12px;
+  border-radius: 6px;
+  cursor: pointer;
+  font-size: 0.75rem;
+  width: 100%;
+  transition: all 0.2s;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  margin-bottom: 8px;
+}
+
+.btn-theme:hover {
+  background: var(--bg-active);
+  color: var(--text-accent);
+  border-color: var(--border-accent);
+}
+
+.theme-icon { font-size: 0.875rem; }
+
+/* Transición suave global */
+*, *::before, *::after {
+  transition: background-color 0.2s, border-color 0.2s, color 0.15s;
+}
+
+/* ========== Controles del sidebar y foco visible ========== */
+.sidebar-footer .theme-switch {
+  justify-content: flex-start;
+  width: 100%;
+  background: transparent;
+  border: none;
+  font-family: inherit;
+  font-size: 0.8125rem;
+  text-align: left;
+}
+.theme-icon { flex-shrink: 0; }
+
+:focus-visible {
+  outline: 2px solid var(--text-accent);
+  outline-offset: 2px;
+}
+
+/* ========== Tarjeta de la Ruta de Aprendizaje (dashboard) ========== */
+.ruta-card {
+  display: grid;
+  grid-template-columns: 1fr minmax(180px, 260px) auto;
+  align-items: center;
+  gap: 24px;
+  background: var(--bg-panel);
+  border: 1px solid var(--border-accent);
+  border-left: 4px solid var(--text-accent);
+  border-radius: 12px;
+  padding: 20px 24px;
+  margin-bottom: 20px;
+}
+.ruta-card h3 { color: var(--text-primary); font-size: 1rem; margin-bottom: 4px; }
+.ruta-card p { color: var(--text-muted); font-size: 0.8125rem; line-height: 1.5; }
+.ruta-card-progreso { display: flex; flex-direction: column; gap: 6px; font-size: 0.75rem; color: var(--text-muted); }
+.ruta-card-barra { height: 8px; background: var(--bg-base); border: 1px solid var(--border); border-radius: 4px; overflow: hidden; }
+.ruta-card-relleno { height: 100%; width: 0; background: var(--text-accent); border-radius: 4px; transition: width 0.9s cubic-bezier(0.4, 0, 0.2, 1); }
+.ruta-card-boton { display: inline-block; text-decoration: none; text-align: center; white-space: nowrap; padding: 8px 18px; font-size: 0.8125rem; }
+@media (max-width: 768px) {
+  .ruta-card { grid-template-columns: 1fr; gap: 14px; }
+}
+@media (prefers-reduced-motion: reduce) {
+  .ruta-card-relleno { transition: none; }
+}

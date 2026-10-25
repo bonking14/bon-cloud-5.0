@@ -1,0 +1,483 @@
+/* formularios.css */
+.grid-formularios {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+    gap: 20px;
+    margin-top: 20px;
+}
+
+.form-card {
+    background: var(--bg-card);
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    padding: 20px;
+    cursor: pointer;
+    transition: all 0.2s;
+}
+
+.form-card:hover {
+    border-color: var(--border-accent);
+    transform: translateY(-2px);
+}
+
+.form-card h3 {
+    margin-top: 0;
+    color: var(--text-secondary);
+    font-size: 1rem;
+    margin-bottom: 8px;
+}
+
+.tag-tipo {
+    display: inline-block;
+    padding: 4px 8px;
+    border-radius: 4px;
+    font-size: 0.6875rem;
+    background: var(--bg-active);
+    color: var(--text-accent);
+    font-weight: 600;
+}
+
+.search-container {
+    margin-bottom: 20px;
+}
+
+#buscador-forms {
+    width: 100%;
+    max-width: 600px;
+    padding: 12px 16px;
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    background: var(--bg-input);
+    color: var(--text-secondary);
+    font-size: 0.9375rem;
+}
+
+#buscador-forms:focus {
+    border-color: var(--text-accent);
+    outline: none;
+}
+
+/* Editor Header */
+.editor-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 20px;
+}
+.editor-actions {
+    display: flex;
+    gap: 10px;
+}
+
+/* Editor CSS - Replicando estilo DIAN */
+.dian-form-wrapper {
+    background: #ffffff; /* El fondo siempre es blanco en el formulario físico */
+    color: #000000;
+    padding: 20px;
+    border: 1px solid #cccccc;
+    margin-top: 20px;
+    font-family: Arial, sans-serif;
+    width: 100%;
+    max-width: 900px;
+    margin-left: auto;
+    margin-right: auto;
+    box-shadow: 0 4px 15px rgba(0,0,0,0.05);
+}
+
+/* Form 500 Specific Structure */
+.dian-header {
+    display: flex;
+    justify-content: space-between;
+    border: 1px solid #000;
+    margin-bottom: 10px;
+    height: 80px;
+}
+
+.dian-logo-sec {
+    width: 20%;
+    border-right: 1px solid #000;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 10px;
+    font-weight: bold;
+    font-size: 1.5rem;
+}
+
+.dian-title-sec {
+    width: 60%;
+    text-align: center;
+    padding: 10px;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+}
+
+.dian-title-sec h2 { margin: 0; font-size: 1.125rem; }
+.dian-title-sec p { margin: 0; font-size: 0.75rem; }
+
+.dian-num-sec {
+    width: 20%;
+    border-left: 1px solid #000;
+    text-align: center;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+}
+
+.dian-num-sec span { font-size: 1.5rem; font-weight: bold; }
+
+.seccion-dian {
+    border: 1px solid #000;
+    margin-bottom: 10px;
+}
+
+.seccion-titulo {
+    background: #e0e0e0;
+    border-bottom: 1px solid #000;
+    padding: 4px;
+    font-size: 0.6875rem;
+    font-weight: bold;
+}
+
+.seccion-body {
+    display: flex;
+    flex-wrap: wrap;
+}
+
+.casilla-dian {
+    border-right: 1px solid #000;
+    border-bottom: 1px solid #000;
+    padding: 2px;
+    display: flex;
+    flex-direction: column;
+    position: relative;
+    box-sizing: border-box;
+    min-height: 40px;
+}
+
+.casilla-dian.no-border-right { border-right: none; }
+.casilla-dian.no-border-bottom { border-bottom: none; }
+
+.numero-casilla {
+    font-size: 0.5625rem;
+    font-weight: bold;
+    position: absolute;
+    top: 2px; left: 2px;
+}
+
+.titulo-casilla {
+    font-size: 0.5rem;
+    text-align: center;
+    margin-top: 2px;
+    margin-bottom: 2px;
+    line-height: 1;
+    color: #333;
+}
+
+.input-dian-libre {
+    border: none;
+    outline: none;
+    width: 100%;
+    font-size: 0.6875rem;
+    background: transparent;
+    padding: 2px;
+    box-sizing: border-box;
+    color: #000;
+}
+
+.input-dian-libre:focus {
+    background: #f0f8ff;
+}
+
+.input-dian-libre[readonly] {
+    background: #f5f5f5;
+    font-weight: bold;
+    color: #333;
+}
+
+.text-center { text-align: center; }
+
+/* Grid Sizes */
+.size-10 { width: 10%; }
+.size-15 { width: 15%; }
+.size-20 { width: 20%; }
+.size-25 { width: 25%; }
+.size-30 { width: 30%; }
+.size-40 { width: 40%; }
+.size-50 { width: 50%; }
+.size-60 { width: 60%; }
+.size-70 { width: 70%; }
+.size-80 { width: 80%; }
+.size-90 { width: 90%; }
+.size-100 { width: 100%; }
+
+/* --- Estilos Simulador Logístico IA --- */
+.simulador-container {
+    max-width: 100%;
+    margin: 0 auto;
+    padding: 24px;
+}
+
+.wizard-progress {
+    display: flex;
+    justify-content: space-between;
+    margin-bottom: 32px;
+    position: relative;
+}
+
+.wizard-progress::before {
+    content: '';
+    position: absolute;
+    top: 17px;
+    left: 40px;
+    right: 40px;
+    border-top: 2px dashed var(--border);
+    z-index: 0;
+}
+
+.wizard-step {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 8px;
+    position: relative;
+    z-index: 1;
+}
+
+.step-circle {
+    width: 36px;
+    height: 36px;
+    border: 2px solid var(--border);
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background: var(--bg-card);
+    font-weight: bold;
+    font-size: 0.875rem;
+    color: var(--text-muted);
+    transition: all 0.3s;
+}
+
+.wizard-step.active .step-circle {
+    background: var(--text-accent);
+    color: #fff;
+    border-color: var(--text-accent);
+}
+
+.wizard-step small {
+    font-size: 0.6875rem;
+    color: var(--text-muted);
+}
+
+.wizard-step.active small {
+    color: var(--text-accent);
+    font-weight: 600;
+}
+
+.wizard-panel {
+    display: none;
+    animation: simFadeIn 0.3s ease;
+}
+
+.wizard-panel.active {
+    display: block;
+}
+
+.wizard-nav {
+    display: flex;
+    justify-content: space-between;
+    margin-top: 24px;
+}
+
+.toggle-group {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 12px;
+    color: var(--text-muted);
+    font-size: 0.75rem;
+}
+
+.toggle input[type="checkbox"] {
+    display: none;
+}
+
+.toggle-slider {
+    width: 44px;
+    height: 24px;
+    border-radius: 12px;
+    background: var(--border);
+    position: relative;
+    cursor: pointer;
+    transition: background 0.3s;
+    display: inline-block;
+}
+
+.toggle-slider::after {
+    content: '';
+    position: absolute;
+    top: 2px;
+    left: 2px;
+    width: 20px;
+    height: 20px;
+    background: #fff;
+    border-radius: 50%;
+    transition: transform 0.3s;
+}
+
+.toggle input[type="checkbox"]:checked + .toggle-slider {
+    background: var(--text-accent);
+}
+
+.toggle input[type="checkbox"]:checked + .toggle-slider::after {
+    transform: translateX(20px);
+}
+
+.nit-input-group {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+
+.nit-separator {
+    color: var(--text-muted);
+    font-weight: bold;
+}
+
+.nit-input-group .nit-dv-input {
+    width: 48px !important;
+    text-align: center;
+}
+
+.resultado-card {
+    background: var(--bg-card);
+    border-radius: 8px;
+    padding: 20px;
+    margin-bottom: 16px;
+    border-left: 4px solid var(--text-accent);
+    border-top: 1px solid var(--border);
+    border-right: 1px solid var(--border);
+    border-bottom: 1px solid var(--border);
+}
+
+.resultado-card h4 {
+    margin-top: 0;
+    margin-bottom: 12px;
+    color: var(--text-accent);
+}
+
+.timeline-visual {
+    display: flex;
+    overflow-x: auto;
+    gap: 0;
+    padding: 16px 0;
+}
+
+.timeline-etapa {
+    flex: 1;
+    min-width: 120px;
+    text-align: center;
+    position: relative;
+}
+
+.timeline-etapa::after {
+    content: '';
+    position: absolute;
+    top: 6px;
+    left: 50%;
+    width: 100%;
+    height: 2px;
+    background: var(--border);
+    z-index: 0;
+}
+
+.timeline-etapa:last-child::after {
+    display: none;
+}
+
+.badge-riesgo {
+    display: inline-block;
+    padding: 4px 10px;
+    border-radius: 12px;
+    font-size: 0.75rem;
+    font-weight: 600;
+}
+
+.badge-riesgo.alto { background: #fee2e2; color: #dc2626; }
+.badge-riesgo.medio { background: #fef3c7; color: #d97706; }
+.badge-riesgo.bajo { background: #dcfce7; color: #16a34a; }
+
+.btn-pdf {
+    margin-top: 24px;
+    width: 100%;
+    background: var(--text-accent);
+    color: #fff;
+    padding: 12px;
+    border-radius: 8px;
+    font-size: 1rem;
+    cursor: pointer;
+    border: none;
+    font-weight: 600;
+    transition: opacity 0.2s;
+}
+
+.btn-pdf:hover {
+    opacity: 0.9;
+}
+
+/* Estilos auxiliares conservados */
+.sim-group { margin-bottom: 16px; }
+.sim-group label { display: block; font-size: 0.75rem; color: var(--text-muted); margin-bottom: 5px; font-weight: 500; }
+.sim-group input, .sim-group select { width: 100%; background: var(--bg-input); border: 1px solid var(--border); border-radius: 7px; padding: 9px 12px; color: var(--text-secondary); font-size: 0.8125rem; transition: border-color 0.2s; box-sizing: border-box; }
+.sim-group input:focus, .sim-group select:focus { outline: none; border-color: var(--text-accent); box-shadow: 0 0 0 2px rgba(74,127,212,0.1); }
+.sim-group .sim-error { color: #f87171; font-size: 0.6875rem; margin-top: 3px; display: none; }
+.sim-group.has-error input, .sim-group.has-error select { border-color: #f87171; }
+.sim-group.has-error .sim-error { display: block; }
+.sim-row { display: grid; grid-template-columns: 1fr 1fr; gap: 14px; }
+.sim-btn { padding: 10px 22px; border-radius: 7px; font-size: 0.8125rem; font-weight: 600; cursor: pointer; transition: all 0.2s; border: 1px solid transparent; }
+.sim-btn-secondary { background: var(--bg-hover); color: var(--text-muted); border-color: var(--border); }
+.sim-btn-secondary:hover { background: var(--bg-active); color: var(--text-secondary); }
+.sim-btn-primary { background: var(--bg-active); color: var(--text-accent); border-color: var(--border-accent); }
+.sim-btn-primary:hover { background: var(--bg-hover); color: var(--text-accent); }
+.sim-btn-submit { background: linear-gradient(135deg, #16533a, #1e6b4a); color: #86efac; border-color: #22c55e40; }
+.sim-btn-submit:hover { background: linear-gradient(135deg, #1a6344, #228855); }
+.sim-loader { text-align: center; padding: 48px 20px; display: none; }
+.sim-loader.active { display: block; }
+.sim-spinner { width: 40px; height: 40px; border: 3px solid var(--border); border-top-color: var(--text-accent); border-radius: 50%; animation: simSpin 1s linear infinite; margin: 0 auto 16px; }
+@keyframes simSpin { to { transform: rotate(360deg); } }
+.sim-cost-table { width: 100%; border-collapse: collapse; font-size: 0.75rem; }
+.sim-cost-table td { padding: 7px 4px; border-bottom: 1px solid var(--bg-table-row); color: var(--text-muted); }
+.sim-cost-table td:last-child { text-align: right; color: var(--text-secondary); font-weight: 500; font-family: monospace; }
+.sim-cost-table tr:last-child td { border-bottom: none; font-weight: 700; color: var(--text-accent); font-size: 0.875rem; padding-top: 10px; border-top: 1px solid var(--border); }
+.sim-tl-dot { width: 10px; height: 10px; border-radius: 50%; background: var(--text-accent); margin: 10px auto 8px; position: relative; z-index: 1; }
+.sim-tl-name { font-size: 0.6875rem; color: var(--text-secondary); font-weight: 600; margin-bottom: 2px; }
+.sim-tl-days { font-size: 0.625rem; color: var(--text-accent); font-weight: 700; }
+.sim-tl-desc { font-size: 0.5625rem; color: var(--text-muted); margin-top: 3px; line-height: 1.3; }
+.sim-risk-desc { font-size: 0.6875rem; color: var(--text-muted); margin: 2px 0 10px 10px; line-height: 1.4; }
+.sim-doc-list { list-style: none; padding: 0; margin: 0; }
+.sim-doc-list li { display: flex; align-items: center; gap: 8px; padding: 6px 0; border-bottom: 1px solid var(--bg-table-row); font-size: 0.75rem; color: var(--text-secondary); }
+.sim-doc-list li:last-child { border-bottom: none; }
+.sim-doc-check { width: 16px; height: 16px; border-radius: 4px; display: flex; align-items: center; justify-content: center; font-size: 0.625rem; flex-shrink: 0; }
+.sim-doc-check.si { background: #14532d; color: #86efac; }
+.sim-doc-check.no { background: var(--bg-hover); color: var(--text-muted); }
+.sim-doc-optional { text-decoration: line-through; color: var(--text-muted) !important; }
+.sim-doc-entidad { margin-left: auto; font-size: 0.625rem; color: var(--text-hint); white-space: nowrap; }
+
+/* Las tarjetas ahora son <button> */
+button.form-card { font: inherit; text-align: left; width: 100%; color: inherit; cursor: pointer; }
+.form-card-desc { font-size: 0.8rem; opacity: 0.75; margin: 6px 0 10px; line-height: 1.4; }
+
+/* Simulador (antes con estilos en línea) */
+.sim-escenarios { background: var(--bg-panel); border: 1px solid var(--border); border-radius: 10px; padding: 14px; margin-bottom: 20px; }
+.sim-escenarios-titulo { font-size: 0.85rem; color: var(--text-muted); margin-bottom: 8px; font-weight: 600; }
+.sim-escenarios-lista { display: flex; gap: 8px; flex-wrap: wrap; }
+.sim-panel-titulo { color: var(--text-secondary); margin-bottom: 16px; }
+.sim-hint { font-size: 11px; color: var(--text-hint); margin-top: 4px; }
+.sim-resumen-datos { display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap: 6px 20px; background: var(--bg-panel); border: 1px solid var(--border); border-radius: 10px; padding: 16px; font-size: 12px; color: var(--text-muted); line-height: 1.8; }
+.sim-resumen-datos strong, .sim-resumen strong { color: var(--text-secondary); }
+.sim-nota { font-size: 11px; color: var(--text-muted); margin-top: 8px; }
+.sim-nota-fina { font-size: 10px; color: var(--text-hint); margin-top: 8px; }
+.sim-acciones { display: flex; gap: 10px; justify-content: center; flex-wrap: wrap; margin-top: 20px; }

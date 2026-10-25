@@ -1,0 +1,22 @@
+<!doctype html>
+<html lang="es">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>BonCloud — Comercio exterior en el Puerto de Cartagena</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Archivo+Black&family=Inter:wght@300;400;500;600;700&display=swap" />
+    <script>
+      // Aplica tema y tamaño de letra antes de pintar, para evitar el parpadeo
+      try {
+        if (localStorage.getItem('boncloud-theme') === 'light') document.documentElement.classList.add('light-mode');
+        var fs = localStorage.getItem('boncloud-fontsize');
+        if (fs) document.documentElement.style.fontSize = fs;
+      } catch (e) {}
+    </script>
+  </head>
+  <body>
+    <div id="root"></div>
+    <script type="module" src="/src/main.jsx"></script>
+  </body>
+</html>

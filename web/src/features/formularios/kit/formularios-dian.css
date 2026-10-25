@@ -1,0 +1,149 @@
+/* ============================================================
+   Formularios DIAN de práctica (001, 500, 600, DTA)
+   Antes cada formulario traía su copia de estos estilos dentro de un iframe.
+   Todo queda bajo .dian-form para no chocar con los estilos de la app.
+   ============================================================ */
+.dian-scroll { overflow-x: auto; padding: 4px 0 24px; }
+.dian-scroll > .dian-form { margin: 0 auto; }
+
+.dian-form {
+  --color-primary: #1a3a6b;
+  --border-color: #000;
+  background: #fff;
+  width: 794px;
+  box-sizing: border-box;
+  padding: 8mm;
+  box-shadow: 0 0 10px rgba(0, 0, 0, 0.5);
+  position: relative;
+  font-family: 'Inter', Arial, sans-serif;
+  color: #000;
+  line-height: normal;
+}
+.dian-form * { box-sizing: border-box; }
+.dian-form + .dian-form { margin-top: 24px; }
+
+/* Cabecera */
+.dian-form .hdr-dian { display: flex; align-items: stretch; justify-content: space-between; border: 1px solid #1a3a6b; background: #fff; margin-bottom: 5px; }
+.dian-form .dian-brand { display: flex; flex-direction: column; justify-content: center; padding: 6px 8px; border-right: 1px solid #1a3a6b; width: 80px; }
+.dian-form .dian-logo-box { font-size: 1.375rem; font-weight: 700; color: #2db0d6; letter-spacing: 1px; display: flex; align-items: center; line-height: 1.1; font-family: Arial, sans-serif; }
+.dian-form .dian-logo-box span { font-weight: 700; color: #6bb96a; font-size: 0.875rem; }
+.dian-form .dian-sub { font-size: 0.3438rem; color: #333; line-height: 1.1; letter-spacing: 0.3px; margin-top: 1px; font-weight: 600; font-family: Arial, sans-serif; }
+.dian-form .hdr-center { flex: 1; display: flex; flex-direction: column; justify-content: space-between; }
+.dian-form .hdr-title { font-size: 0.875rem; font-weight: 700; text-align: center; color: #000; padding: 6px 8px 4px; font-family: Arial, sans-serif; letter-spacing: 0.5px; text-transform: uppercase; }
+.dian-form .hdr-campos { display: flex; border-bottom: 1px solid #1a3a6b; border-top: 1px solid #1a3a6b; }
+.dian-form .hdr-campos > div { padding: 2px 4px; }
+.dian-form .hdr-campos > div:first-child { border-right: 1px solid #1a3a6b; }
+.dian-form .hdr-campos > div:last-child { flex: 1; }
+.dian-form .nota-lea { font-size: 0.4375rem; color: #000; text-align: center; padding: 3px; font-weight: 600; font-family: Arial, sans-serif; }
+.dian-form .big-num { font-size: 3rem; font-weight: 900; color: #fff; line-height: 0.9; background: #5078b5; padding: 8px 16px; display: flex; align-items: center; justify-content: center; border-left: 1px solid #1a3a6b; font-family: Arial, sans-serif; }
+.dian-form .cl { font-size: 0.4688rem; color: #1a3a6b; line-height: 1.3; display: block; margin-bottom: 1px; font-family: Arial, sans-serif; font-weight: 500; }
+.dian-form .cl-num { font-size: 0.4375rem; color: #1a3a6b; font-style: normal; font-weight: bold; font-family: Arial, sans-serif; }
+.dian-form .hdr-input { border: none; border-bottom: 1px solid transparent; background: transparent; width: 100%; font-family: Arial, sans-serif; font-size: 0.5625rem; color: #000; padding: 1px 2px; outline: none; }
+.dian-form .hdr-input:focus { background: #ffffcc; border-bottom-color: #1a3a6b; }
+
+.dian-form .aviso { font-size: 0.5rem; background: #eef2ff; border: 1px solid #c7d2fe; color: #1e3a8a; padding: 4px 6px; margin-bottom: 5px; }
+.dian-form .alerta { background: #fef3c7; border: 1px solid #f59e0b; padding: 4px 8px; margin-top: 4px; font-size: 0.5rem; color: #92400e; border-radius: 3px; }
+
+/* Secciones, filas y celdas */
+.dian-form .section-title { background-color: var(--color-primary); color: #fff; text-align: center; font-size: 0.5rem; font-weight: bold; text-transform: uppercase; padding: 2px; border: 1px solid var(--border-color); margin-top: 5px; }
+.dian-form .row { display: flex; border-left: 1px solid var(--border-color); border-right: 1px solid var(--border-color); border-bottom: 1px solid var(--border-color); }
+.dian-form .ident-row { display: flex; border: 1px solid var(--border-color); margin-bottom: 5px; }
+.dian-form .cell { border-right: 1px solid var(--border-color); padding: 2px; position: relative; display: flex; flex-direction: column; min-width: 0; }
+.dian-form .cell:last-child { border-right: none; }
+.dian-form .cell-num { font-size: 0.375rem; color: #333; position: absolute; top: 1px; left: 2px; }
+.dian-form .cell-label { font-size: 0.4375rem; margin-top: 6px; margin-bottom: 2px; color: #000; text-align: center; font-weight: bold; }
+.dian-form .cell-nota { font-size: 0.4375rem; justify-content: center; align-items: center; text-align: center; padding: 4px; color: #333; line-height: 1.3; }
+.dian-form .cell input, .dian-form .cell select, .dian-form .cell textarea { border: none; width: 100%; font-size: 0.5625rem; font-family: Arial, sans-serif; outline: none; background: transparent; color: #000; text-align: center; }
+.dian-form .cell select { font-size: 0.5rem; }
+.dian-form .cell textarea { text-align: left; resize: none; height: 40px; }
+.dian-form .cell input:focus, .dian-form .cell select:focus, .dian-form .cell textarea:focus { background: #ffffcc; }
+.dian-form .cell input[readonly] { background-color: #f5f5f5; font-weight: bold; }
+.dian-form .cell .error, .dian-form table .error { outline: 1px solid red; background-color: #ffe6e6; }
+.dian-form .cell-destacada { border-left: 2px solid var(--color-primary); }
+.dian-form .cell-destacada .cell-label { color: var(--color-primary); }
+
+/* Número de casilla con explicación: se puede enfocar con el teclado */
+.dian-form .casilla-ayuda { cursor: help; text-decoration: underline dotted #3b82f6; border-radius: 2px; }
+.dian-form .casilla-ayuda:hover, .dian-form .casilla-ayuda:focus-visible { color: #2563eb; background: rgba(59, 130, 246, 0.15); outline: none; }
+
+/* Tablas */
+.dian-form .tabla-items { width: 100%; border-collapse: collapse; border: 1px solid var(--border-color); margin-top: 4px; }
+.dian-form .tabla-items th { background-color: var(--color-primary); color: #fff; font-size: 0.4375rem; text-align: center; border: 1px solid var(--border-color); padding: 3px; }
+.dian-form .tabla-items td { border: 1px solid var(--border-color); padding: 1px; position: relative; }
+.dian-form .tabla-items td:first-child { text-align: center; font-size: 0.5rem; padding: 2px; }
+.dian-form .tabla-items input { border: none; width: 100%; font-size: 0.5rem; outline: none; background: transparent; font-family: Arial, sans-serif; }
+.dian-form .tabla-items input:focus { background: #ffffcc; }
+.dian-form .tabla-items .num { text-align: right; }
+.dian-form .tabla-items .centro { text-align: center; }
+.dian-form .tabla-items input[readonly] { font-weight: bold; }
+
+.dian-form table.liquid-table { width: 100%; border-collapse: collapse; margin-top: 5px; border: 1px solid var(--border-color); }
+.dian-form table.liquid-table th, .dian-form table.liquid-table td { border: 1px solid var(--border-color); padding: 4px; font-size: 0.5rem; text-align: center; }
+.dian-form table.liquid-table th { background-color: var(--color-primary); color: #fff; }
+.dian-form table.liquid-table td input { width: 100%; border: none; text-align: right; font-size: 0.5625rem; outline: none; background: transparent; }
+.dian-form table.liquid-table td input[readonly] { font-weight: bold; background-color: #f5f5f5; }
+.dian-form table.liquid-table td span { font-weight: normal; }
+
+.dian-form table.dian-table { width: 100%; border-collapse: collapse; margin-top: 5px; }
+.dian-form table.dian-table th, .dian-form table.dian-table td { border: 1px solid var(--border-color); padding: 2px; font-size: 0.5rem; }
+.dian-form table.dian-table th { background-color: transparent; text-align: center; }
+.dian-form table.dian-table input { border: none; width: 100%; font-size: 0.5rem; font-family: Arial, sans-serif; outline: none; background: transparent; }
+.dian-form table.dian-table .cell-num { position: static; margin-right: 3px; }
+
+/* Total a pagar */
+.dian-form .total-pagar { margin-top: 5px; border: 2px solid var(--color-primary); }
+.dian-form .total-pagar .cell:first-child { background: var(--color-primary); color: #fff; justify-content: center; text-align: center; }
+.dian-form .total-pagar strong { font-size: 0.875rem; }
+.dian-form .total-pagar small { font-size: 0.45rem; }
+.dian-form .total-pagar input { font-size: 1rem; font-weight: bold; padding: 5px; }
+
+/* Firmas */
+.dian-form .firmas { display: flex; gap: 5px; margin-top: 10px; min-height: 120px; }
+.dian-form .firma { flex: 1; border: 1px solid var(--border-color); position: relative; padding: 5px 5px 48px; font-size: 0.4375rem; line-height: 1.2; }
+.dian-form .firma-linea { position: absolute; bottom: 5px; left: 5px; right: 5px; }
+.dian-form .firma-linea::before { content: ''; display: block; border-bottom: 1px solid var(--border-color); height: 30px; }
+.dian-form .firma-linea span { display: block; font-size: 0.5rem; margin-top: 2px; font-weight: bold; }
+.dian-form .firma-campos { display: flex; margin-top: 5px; font-size: 0.5rem; gap: 6px; }
+.dian-form .firma-campos input { width: 70%; border: none; border-bottom: 1px dotted #000; outline: none; font-size: 0.5rem; background: transparent; }
+
+/* Autocompletado de subpartidas */
+.dian-form .sp-sugerencias { position: absolute; z-index: 20; top: 100%; left: 0; width: 280px; max-height: 160px; overflow-y: auto; background: #fff; border: 1px solid #1a3a6b; box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2); font-size: 0.5625rem; text-align: left; }
+.dian-form .sp-sugerencias button { display: block; width: 100%; text-align: left; padding: 5px 8px; border: none; border-bottom: 1px solid #eee; background: #fff; cursor: pointer; font: inherit; color: #555; }
+.dian-form .sp-sugerencias button:hover, .dian-form .sp-sugerencias button[aria-selected="true"] { background: #eef2ff; }
+.dian-form .sp-sugerencias strong { display: block; color: #1a3a6b; }
+.dian-form .sp-sugerencias span { font-size: 0.5rem; }
+
+/* Burbuja con la explicación de una casilla (se monta en <body>) */
+.dian-tooltip {
+  position: fixed;
+  z-index: 9999;
+  max-width: 280px;
+  padding: 10px 14px;
+  border: 1px solid #334155;
+  border-radius: 8px;
+  background: #0f172a;
+  color: #f8fafc;
+  font: 0.6875rem/1.4 'Inter', Arial, sans-serif;
+  box-shadow: 0 10px 25px rgba(0, 0, 0, 0.5);
+  pointer-events: none;
+}
+.dian-tooltip h5 { margin: 0 0 4px; color: #60a5fa; font-size: 0.75rem; }
+
+/* Barra de acciones del editor */
+.dian-mensaje { margin: 0 0 12px; padding: 10px 14px; border-radius: 8px; font-size: 0.8125rem; line-height: 1.5; white-space: pre-line; }
+.dian-mensaje.error { background: var(--btn-danger-bg); color: var(--btn-danger-text); }
+.dian-mensaje.info { background: var(--bg-active); color: var(--text-accent); }
+.dian-hojas { display: flex; gap: 8px; margin-bottom: 12px; }
+
+/* Impresión: solo el formulario, sin la interfaz de la app */
+@media print {
+  @page { size: A4 portrait; margin: 0; }
+  .no-imprimir { display: none !important; }
+  .app-shell, .main-content { display: block !important; height: auto !important; overflow: visible !important; padding: 0 !important; }
+  body { background: #fff !important; }
+  .dian-scroll { overflow: visible; padding: 0; }
+  .dian-form { box-shadow: none; margin: 0 !important; }
+  .dian-form + .dian-form { break-before: page; }
+  .dian-form.hoja-oculta { display: block !important; }
+  .dian-form input, .dian-form select, .dian-form textarea { background: transparent !important; }
+}

@@ -1,0 +1,294 @@
+/* Formulario 560 (DAV): su diseño es de tablas, distinto al resto. Todo bajo .form-560-wrapper. */
+/* ===== BASE 560 ===== */
+.form-560-wrapper {
+  font-family: Arial, 'Arial Narrow', sans-serif;
+  font-size: 0.625rem;
+  color: #000;
+  background: transparent;
+  line-height: 1.2;
+}
+.form-560-wrapper * {
+  box-sizing: border-box;
+}
+
+/* ===== PAPER ===== */
+.form-560-wrapper .paper-wrap {
+  display: flex;
+  justify-content: center;
+  padding: 24px 16px 48px;
+}
+.form-560-wrapper .paper {
+  background: #fff;
+  width: 794px;
+  min-height: 1123px;
+  box-shadow: 0 4px 32px rgba(0,0,0,.35);
+  border: 1px solid #bbb;
+  padding: 0;
+  position: relative;
+  font-family: Arial, sans-serif;
+}
+
+/* ===== FORM GLOBAL ===== */
+.form-560-wrapper .form-560 {
+  width: 100%;
+  border-collapse: collapse;
+  font-family: Arial, sans-serif;
+}
+.form-560-wrapper .form-560 td, .form-560-wrapper .form-560 th {
+  border: 1px solid #1a3a6b;
+  padding: 2px 3px;
+  vertical-align: top;
+  font-size: 0.5625rem;
+  font-family: Arial, sans-serif;
+}
+
+/* ===== CELL LABEL ===== */
+.form-560-wrapper .cl {
+  font-size: 0.4688rem;
+  color: #1a3a6b;
+  line-height: 1.3;
+  display: block;
+  margin-bottom: 1px;
+  font-family: Arial, sans-serif;
+  font-weight: 500;
+}
+.form-560-wrapper .cl-num {
+  font-size: 0.4375rem;
+  color: #1a3a6b;
+  font-style: normal;
+  font-weight: bold;
+  font-family: Arial, sans-serif;
+}
+
+/* ===== EDITABLE INPUTS ===== */
+.form-560-wrapper input[type="text"], .form-560-wrapper input[type="number"], .form-560-wrapper input[type="date"], .form-560-wrapper select, .form-560-wrapper textarea {
+  border: none;
+  border-bottom: 1px solid transparent;
+  background: transparent;
+  width: 100%;
+  font-family: Arial, sans-serif;
+  font-size: 0.5625rem;
+  color: #000;
+  padding: 1px 2px;
+  outline: none;
+  transition: background .1s;
+  font-weight: normal;
+}
+.form-560-wrapper input[type="text"]:focus, .form-560-wrapper input[type="number"]:focus, .form-560-wrapper input[type="date"]:focus, .form-560-wrapper select:focus, .form-560-wrapper textarea:focus {
+  background: #ffffcc;
+  border-bottom-color: #1a3a6b;
+}
+.form-560-wrapper input.yn {
+  width: 25px;
+  text-align: center;
+  font-weight: bold;
+  font-size: 0.5rem;
+}
+.form-560-wrapper input.small { width: 45px; }
+.form-560-wrapper input.medium { width: 75px; }
+.form-560-wrapper select { font-size: 0.5rem; }
+
+/* ===== HEADER SECTION ===== */
+.form-560-wrapper .hdr-dian {
+  display: flex;
+  align-items: stretch;
+  justify-content: space-between;
+  border-bottom: 2px solid #1a3a6b;
+  background: #fff;
+}
+.form-560-wrapper .dian-brand {
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  padding: 6px 8px;
+  border-right: 2px solid #1a3a6b;
+  width: 80px;
+}
+.form-560-wrapper .dian-logo-box {
+  font-size: 1.375rem;
+  font-weight: 700;
+  color: #2db0d6;
+  letter-spacing: 1px;
+  display: flex;
+  align-items: center;
+  line-height: 1.1;
+  font-family: Arial, sans-serif;
+}
+.form-560-wrapper .dian-logo-box span {
+  font-weight: 700;
+  color: #6bb96a;
+  font-size: 0.875rem;
+}
+.form-560-wrapper .dian-sub {
+  font-size: 0.3438rem;
+  color: #333;
+  line-height: 1.1;
+  letter-spacing: 0.3px;
+  margin-top: 1px;
+  font-weight: 600;
+  font-family: Arial, sans-serif;
+}
+.form-560-wrapper .hdr-center {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+}
+.form-560-wrapper .hdr-title {
+  font-size: 0.875rem;
+  font-weight: 700;
+  text-align: center;
+  color: #000;
+  padding: 6px 8px 4px;
+  font-family: Arial, sans-serif;
+  letter-spacing: 0.5px;
+}
+.form-560-wrapper .nota-lea {
+  font-size: 0.4375rem;
+  color: #000;
+  text-align: center;
+  padding: 3px;
+  border-bottom: 1px solid #1a3a6b;
+  font-weight: 600;
+  font-family: Arial, sans-serif;
+}
+.form-560-wrapper .big-num {
+  font-size: 3rem;
+  font-weight: 900;
+  color: #fff;
+  line-height: 0.9;
+  background: #5078b5;
+  padding: 8px 16px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-left: 2px solid #1a3a6b;
+  font-family: Arial, sans-serif;
+}
+
+/* ===== SECTION HEADERS (vertical labels) ===== */
+.form-560-wrapper .sec-label {
+  writing-mode: vertical-rl;
+  transform: rotate(180deg);
+  font-size: 0.5rem;
+  font-weight: 700;
+  text-align: center;
+  padding: 4px 2px;
+  color: #000;
+  font-family: Arial, sans-serif;
+  letter-spacing: 0.5px;
+}
+
+/* ===== DESCRIPTION TABLE ===== */
+.form-560-wrapper .desc-table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 0.5rem;
+  font-family: Arial, sans-serif;
+}
+.form-560-wrapper .desc-table th {
+  border: 1px solid #1a3a6b;
+  padding: 2px 3px;
+  font-size: 0.5rem;
+  text-align: left;
+  font-weight: 600;
+  color: #000;
+  font-family: Arial, sans-serif;
+}
+.form-560-wrapper .desc-table td {
+  border: 1px solid #1a3a6b;
+  padding: 1px 2px;
+  vertical-align: middle;
+  font-family: Arial, sans-serif;
+}
+.form-560-wrapper .desc-table input[type="text"], .form-560-wrapper .desc-table input[type="number"] {
+  width: 100%;
+  font-family: Arial, sans-serif;
+}
+.form-560-wrapper .row-num {
+  text-align: center;
+  font-size: 0.5rem;
+  color: #000;
+  padding: 2px 4px;
+  width: 18px;
+  font-family: Arial, sans-serif;
+  font-weight: 600;
+}
+
+/* ===== VALOR TABLE ===== */
+.form-560-wrapper .valor-table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 0.5rem;
+  font-family: Arial, sans-serif;
+}
+.form-560-wrapper .valor-table td {
+  border: 1px solid #1a3a6b;
+  padding: 2px 3px;
+  vertical-align: middle;
+  font-family: Arial, sans-serif;
+}
+.form-560-wrapper .valor-table .v-label {
+  font-size: 0.5rem;
+  line-height: 1.3;
+  padding: 2px 3px;
+  color: #000;
+  font-family: Arial, sans-serif;
+  font-weight: 500;
+}
+.form-560-wrapper .valor-table .v-col-head {
+  font-size: 0.4688rem;
+  font-weight: 700;
+  text-align: center;
+  color: #000;
+  padding: 2px;
+  font-family: Arial, sans-serif;
+}
+.form-560-wrapper .valor-table .v-total {
+  font-weight: 700;
+  font-size: 0.5rem;
+  font-family: Arial, sans-serif;
+}
+.form-560-wrapper .casilla-num {
+  font-size: 0.4375rem;
+  color: #000;
+  font-weight: bold;
+  display: inline-block;
+  margin-right: 4px;
+  font-family: Arial, sans-serif;
+}
+
+
+/* FIRMA */
+.form-560-wrapper .firma-row {
+  border-top: 2px solid #1a3a6b;
+  padding: 4px 0;
+  font-size: 0.5rem;
+  font-family: Arial, sans-serif;
+}
+.form-560-wrapper .firma-line {
+  border-top: 1px solid #1a3a6b;
+  margin-top: 14px;
+  padding-top: 2px;
+  font-size: 0.4375rem;
+  color: #000;
+  font-family: Arial, sans-serif;
+  font-weight: 500;
+}
+
+.form-560-wrapper .paper-wrap { padding: 4px 0 24px; overflow-x: auto; justify-content: flex-start; }
+.form-560-wrapper .paper { margin: 0 auto; }
+.form-560-wrapper .paper.p2 { margin-top: 0; }
+.form-560-wrapper .casilla-ayuda { cursor: help; text-decoration: underline dotted #3b82f6; border-radius: 2px; }
+.form-560-wrapper .casilla-ayuda:hover, .form-560-wrapper .casilla-ayuda:focus-visible { color: #2563eb; background: rgba(59, 130, 246, 0.15); outline: none; }
+.form-560-wrapper .error { background: #ffe6e6 !important; }
+.form-560-wrapper .yn-bordeado { border: 1px solid #1a3a6b !important; }
+.form-560-wrapper .gris { background: #e8ecf5; }
+.form-560-wrapper .pie { padding: 6px; font-size: 0.5rem; color: #888; text-align: right; }
+
+@media print {
+  .form-560-wrapper .paper { box-shadow: none; border: none; width: 100%; padding: 8mm; }
+  .form-560-wrapper .paper-wrap { padding: 0; overflow: visible; }
+  .form-560-wrapper .paper-wrap + .paper-wrap { break-before: page; }
+  .form-560-wrapper input, .form-560-wrapper select, .form-560-wrapper textarea { border-bottom: none !important; background: transparent !important; }
+}
