@@ -2,6 +2,7 @@ import { createContext, useCallback, useContext, useEffect, useMemo, useState } 
 import { useAuth } from '../auth/AuthContext.jsx';
 import { pedir } from '../auth/api.js';
 import { lecciones } from '../data/lecciones.js';
+import { claveProgreso, guardarProgreso, leerProgreso, migrarProgresoCompartido } from '../lib/progresoLocal.js';
 
 const porId = new Map(lecciones.map((l) => [l.id, l]));
 // La primera lección de cada módulo está siempre disponible; las demás se
@@ -12,37 +13,30 @@ const anteriorEnModulo = (id) => {
   return previas.length ? previas[previas.length - 1].id : null;
 };
 
-// v2: el orden de las lecciones cambió (vistos buenos pasó a la lección 4),
-// así que el progreso anterior no es compatible.
-const CLAVE = 'boncloud_progreso_curso_v2';
 const TOTAL = lecciones.length;
 const valida = (n) => Number.isInteger(n) && n >= 1 && n <= TOTAL;
-
-function leerLocal() {
-  try {
-    const data = JSON.parse(localStorage.getItem(CLAVE));
-    return Array.isArray(data?.leccionesCompletadas) ? data.leccionesCompletadas.filter(valida) : [];
-  } catch {
-    return [];
-  }
-}
-
-function guardarLocal(completadas) {
-  try {
-    localStorage.setItem(CLAVE, JSON.stringify({ leccionesCompletadas: completadas }));
-    return true;
-  } catch {
-    return false;
-  }
-}
 
 const ProgresoContext = createContext(null);
 
 // localStorage responde al instante; si hay sesión real, el progreso también se
 // sincroniza con /api/progreso para que siga al usuario entre dispositivos.
 export function ProgresoProvider({ children }) {
-  const { tokenApi } = useAuth();
-  const [completadas, setCompletadas] = useState(leerLocal);
+  const { tokenApi, usuario } = useAuth();
+  // Cada persona (o el invitado) tiene su propio progreso en el navegador
+  const clave = claveProgreso(usuario);
+  const [estado, setEstado] = useState(() => {
+    migrarProgresoCompartido(clave);
+    return { clave, completadas: leerProgreso(clave, valida) };
+  });
+  // Al cambiar de usuario se carga su progreso en el mismo render, sin mostrar el del anterior
+  if (estado.clave !== clave) {
+    migrarProgresoCompartido(clave);
+    setEstado({ clave, completadas: leerProgreso(clave, valida) });
+  }
+  const completadas = estado.clave === clave ? estado.completadas : leerProgreso(clave, valida);
+  const setCompletadas = useCallback((cambio) => {
+    setEstado((e) => ({ ...e, completadas: typeof cambio === 'function' ? cambio(e.completadas) : cambio }));
+  }, []);
 
   useEffect(() => {
     if (!tokenApi) return;
@@ -53,7 +47,7 @@ export function ProgresoProvider({ children }) {
         const remotas = (data.progreso?.leccionesCompletadas || []).filter(valida);
         setCompletadas((locales) => {
           const union = [...new Set([...locales, ...remotas])].sort((a, b) => a - b);
-          guardarLocal(union);
+          guardarProgreso(clave, union);
           if (union.length > remotas.length) {
             pedir('/progreso', { metodo: 'POST', token: tokenApi, cuerpo: { progreso: { leccionesCompletadas: union } } }).catch(() => {});
           }
@@ -62,16 +56,16 @@ export function ProgresoProvider({ children }) {
       })
       .catch(() => { /* sin conexión: se queda con lo local */ });
     return () => { vigente = false; };
-  }, [tokenApi]);
+  }, [tokenApi, clave, setCompletadas]);
 
   const persistir = useCallback((nuevas) => {
     setCompletadas(nuevas);
-    const ok = guardarLocal(nuevas);
+    const ok = guardarProgreso(clave, nuevas);
     if (tokenApi) {
       pedir('/progreso', { metodo: 'POST', token: tokenApi, cuerpo: { progreso: { leccionesCompletadas: nuevas } } }).catch(() => {});
     }
     return ok;
-  }, [tokenApi]);
+  }, [tokenApi, clave, setCompletadas]);
 
   const valor = useMemo(() => ({
     completadas,

@@ -1,5 +1,6 @@
 import { createContext, useCallback, useContext, useMemo, useState } from 'react';
 import { pedir, tokenVencido } from './api.js';
+import { borrarProgresoInvitado } from '../lib/progresoLocal.js';
 
 // Mismas claves de localStorage que el sitio anterior, para no cerrar sesiones abiertas
 const CLAVE_TOKEN = 'token';
@@ -54,11 +55,17 @@ export function AuthProvider({ children }) {
     return iniciarSesion(email, password);
   }, [iniciarSesion]);
 
+  // El invitado siempre empieza de cero y su progreso se borra al salir:
+  // en un computador compartido el siguiente invitado no hereda nada
   const entrarComoInvitado = useCallback(() => {
+    borrarProgresoInvitado();
     actualizar({ token: TOKEN_INVITADO, usuario: { nombre: 'Invitado', invitado: true } });
   }, [actualizar]);
 
-  const cerrarSesion = useCallback(() => actualizar(null), [actualizar]);
+  const cerrarSesion = useCallback(() => {
+    if (sesion?.usuario?.invitado) borrarProgresoInvitado();
+    actualizar(null);
+  }, [sesion, actualizar]);
 
   const valor = useMemo(() => ({
     sesion,
