@@ -43,7 +43,7 @@ function Form600() {
         <Celda num="30" etiqueta="Cód. Aduana" nombre="cod_aduana" />
         <Celda num="31" etiqueta="Año solicitud autorización embarque" placeholder="AAAA" />
         <Celda num="32" etiqueta="No. solicitud autorización embarque" flex={2} nombre="sae_num" />
-        <Celda num="33" etiqueta="Fecha Modificación" placeholder="AAAA-MM-DD" />
+        <Celda num="33" etiqueta="Fecha autorización embarque" placeholder="AAAA-MM-DD" />
       </Fila>
       <Fila>
         <Celda num="34" etiqueta="Modalidad Exportación" nombre="modalidad" opciones={MODALIDADES} />

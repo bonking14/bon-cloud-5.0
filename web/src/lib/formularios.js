@@ -9,25 +9,36 @@ export function totalesItems(items) {
   return { lineas, suma: lineas.reduce((t, x) => t + x, 0) };
 }
 
-// Formulario 500: valor en aduana y autoliquidación.
-// Si los ítems tienen valores, el FOB (casilla 65) se toma de su suma.
+// Formulario 500 (numeración de la cartilla DIAN): valor en aduana y autoliquidación.
+// Si los ítems tienen valores, el FOB (casilla 78) se toma de su suma.
+//   84 valor en aduana USD = 78 FOB + 82 (79 fletes + 80 seguros + 81 otros gastos) + 83 ajuste
+//   93 base arancel = 84 × 58 tasa de cambio · 98 base IVA = 93 + 94 arancel
 export function calcular500(v) {
   const { lineas, suma } = totalesItems(v.items);
   const fob = suma > 0 ? suma : n(v.v_fob);
-  const aduanaUSD = fob + n(v.v_fletes) + n(v.v_seguros) + n(v.v_otros);
+  const gastos = n(v.v_fletes) + n(v.v_seguros) + n(v.v_otros);
+  // El ajuste (casilla 83) puede ser negativo cuando es una deducción
+  const aduanaUSD = fob + gastos + n(v.v_ajuste);
   const aduanaCOP = aduanaUSD * n(v.tasa_cambio);
-  // Arancel, salvaguardia y antidumping: base = valor en aduana en pesos
+  // Arancel y medidas de defensa comercial: base = valor en aduana en pesos
   const arancel = aMiles(aduanaCOP * n(v.tasa_arancel) / 100);
   const salvaguardia = aMiles(aduanaCOP * n(v.tasa_salva) / 100);
+  const compensatorios = aMiles(aduanaCOP * n(v.tasa_comp) / 100);
   const antidumping = aMiles(aduanaCOP * n(v.tasa_anti) / 100);
   // IVA: base = valor en aduana + arancel (art. 459 E.T.). Los recargos antidumping y
   // de salvaguardia no son derechos de aduana y no se suman (Concepto DIAN 626 de 2020).
   const baseIVA = aduanaCOP + arancel;
   const iva = aMiles(baseIVA * n(v.tasa_iva) / 100);
+  const sancion = n(v.total_sancion);
+  // Cada declaración de importación ampara una sola subpartida (casilla 59)
+  const codigos = [...new Set(v.items.map((it) => String(it.subpartida || '').trim()).filter(Boolean))];
   return {
-    lineas, fobDesdeItems: suma > 0, fob, aduanaUSD, aduanaCOP,
-    arancel, salvaguardia, antidumping, baseIVA, iva,
-    total: arancel + salvaguardia + antidumping + iva + n(v.total_sancion),
+    lineas, fobDesdeItems: suma > 0, fob, gastos, aduanaUSD, aduanaCOP,
+    arancel, salvaguardia, compensatorios, antidumping, baseIVA, iva, sancion,
+    // Casilla 980: suma de los "total a pagar" de cada concepto
+    total: arancel + iva + salvaguardia + compensatorios + antidumping + sancion,
+    subpartida: codigos[0] || '',
+    variasSubpartidas: codigos.length > 1,
     requiereDAV: fob >= 5000,
   };
 }

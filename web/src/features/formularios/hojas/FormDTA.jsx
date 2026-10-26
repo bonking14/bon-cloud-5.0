@@ -7,7 +7,8 @@ function FormDTA() {
 
   return (
     <Hoja numero="DTA" titulo="Declaración de Tránsito Aduanero">
-      <Seccion>Declarante / agencia de aduanas</Seccion>
+      <div className="aviso">Simulador educativo de BonCloud: la distribución y numeración de casillas es aproximada y no tiene validez ante la DIAN. Hoy el tránsito aduanero se solicita, autoriza, ejecuta y cierra en el servicio informático electrónico de tránsito de la DIAN (Resolución DIAN 000076 de 2020).</div>
+      <Seccion>Declarante (agencia de aduanas o importador)</Seccion>
       <Fila>
         <Celda num="5" etiqueta="NIT" flex={2} nombre="dec_nit" inputMode="numeric" />
         <Celda num="6" etiqueta="DV" ancho={30} valor={digitoVerificacion(v.dec_nit)} />
@@ -15,7 +16,7 @@ function FormDTA() {
         <Celda num="8" etiqueta="Cód. Tipo Usuario" />
       </Fila>
 
-      <Seccion>Datos del transportador (empresa de transporte)</Seccion>
+      <Seccion>Empresa transportadora (inscrita ante la DIAN)</Seccion>
       <Fila>
         <Celda num="9" etiqueta="NIT Transportador" flex={2} nombre="trans_nit" inputMode="numeric" />
         <Celda num="10" etiqueta="DV" ancho={30} valor={digitoVerificacion(v.trans_nit)} />
@@ -73,7 +74,7 @@ function FormDTA() {
 
       <Firmas alto={130} firmas={[
         { texto: 'Declaro que la información contenida es exacta y veraz. Me comprometo a cumplir con la ruta y los plazos estipulados para la entrega de la mercancía amparada en este Tránsito Aduanero.', firma: 'Firma del Declarante Autorizado' },
-        { texto: 'El transportador asume la responsabilidad solidaria por la mercancía hasta su entrega en la Aduana de Destino.', firma: 'Firma del Conductor / Transportador' },
+        { texto: 'La empresa transportadora responde ante la autoridad aduanera por la finalización del tránsito dentro del plazo autorizado y por la correcta ejecución de la operación.', firma: 'Firma de la Empresa Transportadora' },
         { texto: 'Espacio exclusivo para firmas y sellos de funcionarios de la DIAN (Partida y Destino).' },
       ]} />
     </Hoja>
@@ -102,9 +103,9 @@ export default {
     }),
   },
   explicaciones: {
-    5: 'NIT del declarante del tránsito: el transportador habilitado o la agencia de aduanas.',
+    5: 'NIT del declarante: la agencia de aduanas, o el importador cuando actúa directamente (art. 32 del Decreto 1165 de 2019). El declarante responde por la información declarada y por los tributos si la mercancía no llega a la aduana de destino.',
     6: 'Dígito de verificación del NIT, calculado con el algoritmo de módulo 11.',
-    9: 'NIT de la empresa de transporte inscrita ante la DIAN para hacer tránsitos aduaneros.',
+    9: 'NIT de la empresa transportadora. El tránsito solo puede hacerse en vehículos de empresas inscritas y autorizadas por la DIAN (art. 434 del Decreto 1165 de 2019).',
     12: 'Placa del vehículo que hace el tránsito.',
     16: 'Número del manifiesto de carga con el que llegó la mercancía.',
     30: 'Código de la aduana de partida. La Dirección Seccional de Aduanas de Cartagena es 48 (Resolución DIAN 000065 de 2021).',
@@ -112,7 +113,7 @@ export default {
     35: 'Plazo que autoriza la DIAN para llegar a la aduana de destino. Si se incumple, hay sanción y se puede hacer efectiva la garantía.',
     36: 'Ruta autorizada. El vehículo no puede desviarse de ella.',
     43: 'Números de los precintos (sellos) que la DIAN verifica al salir y al llegar.',
-    50: 'Garantía que respalda los tributos suspendidos durante el tránsito.',
+    50: 'Garantía (bancaria o de compañía de seguros) que respalda el pago de los tributos suspendidos durante el tránsito.',
     61: 'Número de aceptación de la DTA que asigna la DIAN.',
   },
 };

@@ -12,7 +12,7 @@ const Cl = ({ num, children, inline }) => (
   </span>
 );
 
-const ESTADOS = [['1', '1-Nuevo'], ['2', '2-Usado'], ['3', '3-Desarmado'], ['7', '7-Reconstruido'], ['8', '8-Reacondicionado'], ['9', '9-Remanufacturado']];
+const ESTADOS = [['1', '1-Nuevo'], ['2', '2-Usado'], ['3', '3-Desarmado'], ['4', '4-Semiarmado'], ['5', '5-Siniestrado'], ['6', '6-Averiado'], ['7', '7-Reconstruido'], ['8', '8-Reacondicionado o reparado'], ['9', '9-Remanufacturado']];
 const INCOTERMS = [['EXW', 'EXW – En Fábrica'], ['FCA', 'FCA – Franco Transportista'], ['FAS', 'FAS – Franco Costado Buque'], ['FOB', 'FOB – Franco a Bordo'], ['CFR', 'CFR – Coste y Flete'], ['CIF', 'CIF – Coste, Seguro y Flete'], ['CPT', 'CPT – Transporte Pagado hasta'], ['CIP', 'CIP – Transporte y Seguro Pagados'], ['DAP', 'DAP – Entregada en Lugar'], ['DPU', 'DPU – Entregada en Lugar Descargada'], ['DDP', 'DDP – Entregada Derechos Pagados']];
 const NATURALEZA = [['11', '11 – Compraventa precio firme'], ['12', '12 – Compraventa precio revisable'], ['13', '13 – Uso exterior y posterior exp.'], ['14', '14 – Suministros gratuitos'], ['15', '15 – Reparación o transformación'], ['16', '16 – Sucursales'], ['17', '17 – Consignación'], ['18', '18 – Intercambio compensado'], ['19', '19 – Leasing'], ['20', '20 – Alquiler simple'], ['21', '21 – Sustitución devueltas'], ['22', '22 – Sustitución no devueltas'], ['28', '28 – Préstamo/Comodato'], ['29', '29 – Otras transacciones']];
 const MONEDAS = ['USD', 'EUR', 'CNY', 'GBP'];
@@ -220,7 +220,7 @@ function Form560() {
                 <td><Cl num="40">Factura No.</Cl><Entrada nombre="f_factura40" /></td>
                 <td><Cl num="41">Fecha</Cl><input type="date" /></td>
                 <td colSpan={2}><Cl num="42">Tipo contrato o documento</Cl>
-                  <Selector vacio="Seleccionar..." opciones={['Compraventa', 'Leasing', 'Reversiones', 'Comisión de compra', 'Comisión de venta/Corretaje', 'Cánones y derechos de licencia', 'Consignación', 'Otro contrato o documento']} />
+                  <Selector vacio="Seleccionar..." opciones={['Compraventa', 'Alquiler simple, arrendamiento operativo', 'Leasing', 'Reversiones', 'Comisión de compra', 'Comisión de venta/Corretaje', 'Cánones y derechos de licencia', 'Consignación', 'Otro contrato o documento']} />
                 </td>
                 <td colSpan={2}><Cl num="43">Número contrato u otro documento</Cl><input type="text" /></td>
                 <td><Cl num="44">Fecha</Cl><input type="date" /></td>
@@ -479,11 +479,11 @@ export default {
     6: 'Dígito de verificación del NIT. Se calcula solo.',
     11: 'Razón social del importador.',
     24: 'Código de la dirección seccional de aduanas donde se presenta la importación. Cartagena es 48.',
-    25: 'Número de la declaración de importación (formulario 500) a la que se asocia esta DAV.',
-    27: 'Tipo de declaración de importación a la que corresponde: inicial, anticipada, de corrección, etc.',
+    25: 'Número de aceptación de la declaración de importación (casilla 132 del formulario 500) de la que esta DAV es soporte.',
+    27: 'Tipo de la declaración de importación: 1 inicial, 2 legalización, 3 anticipada, 4 corrección, 5 modificación.',
     28: 'Nivel comercial del comprador: usuario final, distribuidor, etc.',
     30: 'Condición del vendedor: fabricante, distribuidor, etc.',
-    35: 'Naturaleza de la transacción. Una compra con precio fijo es 11 – compraventa a precio firme.',
+    35: 'Naturaleza de la transacción. Una compra con precio fijo es 11 – compraventa a precio firme. Un código distinto de 11 o 12 indica que no se puede usar el método del valor de transacción.',
     36: 'Forma de envío: si la mercancía llega en un solo envío o fraccionada, y si el valor es total o parcial.',
     37: 'Incoterm pactado. Debe coincidir con la factura. Las bombas del caso se compraron FOB.',
     38: 'Lugar convenido del Incoterm, por ejemplo el puerto de Shanghái en FOB Shanghái.',
@@ -502,11 +502,11 @@ export default {
     96: 'Pagos indirectos o descuentos retroactivos que forman parte del precio.',
     97: 'Precio realmente pagado o por pagar: suma de las casillas 94 y 96. Se calcula solo.',
     116: 'Gastos de transporte en el exterior hasta el lugar de embarque, si no están en el precio.',
-    118: 'Flete internacional desde el lugar de embarque hasta el lugar de importación en Colombia.',
-    122: 'Seguro de transporte. Se declara el costo real de la póliza.',
+    118: 'Fletes y otros gastos de transporte desde el lugar de embarque hasta el lugar de importación en Colombia.',
+    122: 'Seguro: la prima efectivamente pagada según la póliza. Si no se contrató seguro, se toma el valor de una certificación de una aseguradora con las tarifas habitualmente aplicables.',
     123: 'Total de adiciones al precio (casillas 99 a 122, columna USD). Se calcula solo.',
-    134: 'Total de deducciones: gastos posteriores a la importación que no hacen parte del valor. Se calcula solo.',
-    135: 'Valor en aduana declarado: precio pagado + adiciones − deducciones. Es la base del arancel en el formulario 500.',
+    134: 'Total de deducciones (casillas 125, 127, 129, 131 y 133): gastos posteriores a la importación, derechos e impuestos, intereses y otros conceptos incluidos en el precio que no hacen parte del valor en aduana. Se calcula solo.',
+    135: 'Valor de transacción declarado: precio pagado o por pagar (97) + total adiciones (123) − total deducciones (134). Corresponde al valor en aduana del formulario 500.',
     136: 'Si algún importe de las casillas 99, 111 o 113 es provisional, se indica aquí.',
   },
 };

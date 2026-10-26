@@ -29,7 +29,7 @@ function Hoja1({ oculta }) {
       <Identificacion />
       <Fila style={{ marginBottom: 5, borderTop: '1px solid #000' }}>
         <Celda num="2" etiqueta="Concepto" ancho={80} />
-        <div className="cell cell-nota" style={{ flex: 1, alignItems: 'flex-start', color: '#555' }}>1-Inscripción · 2-Actualización · 3-Suspensión · 4-Cancelación</div>
+        <div className="cell cell-nota" style={{ flex: 1, alignItems: 'flex-start', color: '#555' }}>Inscripción · Actualización · Cancelación</div>
       </Fila>
 
       <Seccion>Identificación</Seccion>
@@ -263,7 +263,7 @@ function Form001() {
   return (
     <>
       <div className="dian-hojas no-imprimir" role="tablist" aria-label="Hojas del RUT">
-        {[[1, 'Hoja 1 (Principal)'], [2, 'Hoja 2 (Aduanera)']].map(([n, t]) => (
+        {[[1, 'Hoja 1 (Identificación y clasificación)'], [2, 'Hoja 2 (Organización y capital)']].map(([n, t]) => (
           <button key={n} type="button" role="tab" aria-selected={hoja === n} className={`filtro-btn${hoja === n ? ' active' : ''}`} onClick={() => setHoja(n)}>{t}</button>
         ))}
       </div>
@@ -297,7 +297,7 @@ export default {
     }),
   },
   explicaciones: {
-    2: 'Concepto del trámite: inscripción, actualización, etc.',
+    2: 'Concepto del trámite: inscripción, actualización o cancelación del RUT (Resolución DIAN 8346 de 2004).',
     5: 'NIT que asigna la DIAN. En una inscripción nueva lo asigna el sistema.',
     6: 'Dígito de verificación del NIT, calculado con el algoritmo de módulo 11 de la DIAN.',
     24: 'Tipo de contribuyente: persona jurídica o persona natural.',

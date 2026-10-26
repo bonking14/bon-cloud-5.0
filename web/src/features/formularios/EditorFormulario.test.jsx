@@ -27,6 +27,15 @@ describe('formularios DIAN en React', () => {
     expect(screen.getByText(/Vistos buenos requeridos/)).toBeTruthy();
   });
 
+  it('500: avisa si se mezclan subpartidas (una declaración por subpartida)', async () => {
+    abrir('500');
+    fireEvent.click(await screen.findByText(/Cargar caso de la Ruta/, {}, ESPERA));
+    expect(screen.getByLabelText('Subpartida arancelaria').value).toBe('8413.60.90.00');
+    expect(screen.queryByText(/ampara una sola subpartida/)).toBeNull();
+    fireEvent.change(screen.getByLabelText('Subpartida del ítem 2'), { target: { value: '8517.13.00.00' } });
+    expect(screen.getByRole('alert').textContent).toMatch(/ampara una sola subpartida/);
+  });
+
   it('500: el DV del NIT se calcula al escribir', async () => {
     abrir('500');
     const nit = (await screen.findAllByRole('textbox', {}, ESPERA)).find((el) => el.name === 'imp_nit');

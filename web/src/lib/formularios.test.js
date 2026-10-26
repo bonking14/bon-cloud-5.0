@@ -36,6 +36,24 @@ describe('formulario 500', () => {
     expect(r.baseIVA).toBe(261580000 + 13079000);
     expect(r.total).toBe(13079000 + 26158000 + 5232000 + 52185000);
   });
+
+  it('el ajuste de valor (casilla 83) suma o resta al valor en aduana', () => {
+    expect(calcular500({ ...caso, v_ajuste: '200' }).aduanaUSD).toBe(64000);
+    expect(calcular500({ ...caso, v_ajuste: '-800' }).aduanaUSD).toBe(63000);
+  });
+
+  it('la DAV se exige desde USD 5.000 FOB exactos (igual o superior)', () => {
+    expect(calcular500({ ...caso, items: vacios(5), v_fob: '5000' }).requiereDAV).toBe(true);
+    expect(calcular500({ ...caso, items: vacios(5), v_fob: '4999.99' }).requiereDAV).toBe(false);
+  });
+
+  it('detecta ítems con subpartidas distintas: cada declaración ampara una sola', () => {
+    const conSp = (sp) => ({ subpartida: sp, cantidad: '1', fobUnitario: '10' });
+    expect(calcular500({ ...caso, items: [conSp('8413.60.90.00'), conSp('8413.60.90.00')] }).variasSubpartidas).toBe(false);
+    const r = calcular500({ ...caso, items: [conSp('8413.60.90.00'), conSp('8517.13.00.00')] });
+    expect(r.variasSubpartidas).toBe(true);
+    expect(r.subpartida).toBe('8413.60.90.00');
+  });
 });
 
 it('formulario 600: café FOB Cartagena, 19.250 kg × USD 6,20', () => {
