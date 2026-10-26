@@ -13,7 +13,8 @@ function barajar(arr) {
 
 // Evaluación de una lección: las opciones se barajan en cada intento,
 // cada pregunta se responde una vez y muestra su explicación.
-export default function Quiz({ leccion, total, onAprobar, onSiguiente, onConstancia }) {
+// siguiente: lección que sigue en el mismo módulo; si es null, la lección cierra el módulo.
+export default function Quiz({ leccion, siguiente, onAprobar, onSiguiente, onConstancia }) {
   const [intento, setIntento] = useState(0);
   const [respuestas, setRespuestas] = useState({});
   const seccionRef = useRef(null);
@@ -44,7 +45,6 @@ export default function Quiz({ leccion, total, onAprobar, onSiguiente, onConstan
     seccionRef.current?.scrollIntoView({ behavior: 'smooth', block: 'start' });
   };
 
-  const esUltima = leccion.id === total;
 
   return (
     <section className="leccion-block block-quiz" ref={seccionRef}>
@@ -97,9 +97,11 @@ export default function Quiz({ leccion, total, onAprobar, onSiguiente, onConstan
                 </div>
               </div>
               <div className="resultado-acciones">
-                <button type="button" className="btn btn-primary" onClick={() => (esUltima ? onConstancia() : onSiguiente(leccion.id + 1))}>
-                  {esUltima ? 'Descargar constancia (PDF)' : `Ir a la lección ${leccion.id + 1}`}
-                </button>
+                {siguiente ? (
+                  <button type="button" className="btn btn-primary" onClick={() => onSiguiente(siguiente.id)}>Ir a la lección {siguiente.orden}</button>
+                ) : (
+                  <button type="button" className="btn btn-primary" onClick={onConstancia}>Terminaste el módulo: ver mi constancia</button>
+                )}
               </div>
             </>
           )}

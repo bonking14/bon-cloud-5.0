@@ -3,6 +3,15 @@ import { useAuth } from '../auth/AuthContext.jsx';
 import { pedir } from '../auth/api.js';
 import { lecciones } from '../data/lecciones.js';
 
+const porId = new Map(lecciones.map((l) => [l.id, l]));
+// La primera lección de cada módulo está siempre disponible; las demás se
+// desbloquean al aprobar la anterior del mismo módulo.
+const anteriorEnModulo = (id) => {
+  const l = porId.get(id);
+  const previas = lecciones.filter((x) => x.modulo === l?.modulo && x.orden < l.orden);
+  return previas.length ? previas[previas.length - 1].id : null;
+};
+
 // v2: el orden de las lecciones cambió (vistos buenos pasó a la lección 4),
 // así que el progreso anterior no es compatible.
 const CLAVE = 'boncloud_progreso_curso_v2';
@@ -68,10 +77,14 @@ export function ProgresoProvider({ children }) {
     completadas,
     total: TOTAL,
     estaCompletada: (id) => completadas.includes(id),
-    estaDesbloqueada: (id) => id === 1 || completadas.includes(id - 1),
-    siguientePendiente: () => {
-      for (let i = 1; i <= TOTAL; i++) if (!completadas.includes(i)) return i;
-      return TOTAL;
+    estaDesbloqueada: (id) => {
+      const anterior = anteriorEnModulo(id);
+      return anterior === null || completadas.includes(anterior);
+    },
+    // Primera lección sin aprobar (de un módulo, si se indica); si no hay, la última
+    siguientePendiente: (modulo) => {
+      const lista = modulo ? lecciones.filter((l) => l.modulo === modulo) : lecciones;
+      return (lista.find((l) => !completadas.includes(l.id)) || lista[lista.length - 1]).id;
     },
     completar: (id) => (completadas.includes(id) ? true : persistir([...completadas, id].sort((a, b) => a - b))),
     reiniciar: () => persistir([]),

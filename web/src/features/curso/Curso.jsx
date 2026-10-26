@@ -1,6 +1,6 @@
 import { useEffect, useMemo, useRef, useState } from 'react';
 import { useNavigate, useSearchParams } from 'react-router-dom';
-import { lecciones } from '../../data/lecciones.js';
+import { lecciones, modulos } from '../../data/lecciones.js';
 import { useProgreso } from '../../hooks/ProgresoContext.jsx';
 import { useAuth } from '../../auth/AuthContext.jsx';
 import { useToast } from '../../components/Toast.jsx';
@@ -12,6 +12,8 @@ import MapaRuta from './MapaRuta.jsx';
 import Quiz from './Quiz.jsx';
 
 const TOTAL = lecciones.length;
+// Lección que sigue dentro del mismo módulo (null si es la última del módulo)
+const siguienteEnModulo = (lec) => lecciones.find((l) => l.modulo === lec.modulo && l.orden > lec.orden) || null;
 
 export default function Curso() {
   const progreso = useProgreso();
@@ -28,6 +30,10 @@ export default function Curso() {
   const desplazar = useRef(false);
 
   const hechas = progreso.completadas.length;
+  const leccionActual = lecciones.find((l) => l.id === actualId);
+  const modulo = modulos.find((m) => m.id === leccionActual.modulo);
+  const delModulo = lecciones.filter((l) => l.modulo === modulo.id);
+  const cambiarModulo = (id) => abrir(progreso.siguientePendiente(id), { scroll: false });
   const porcentaje = Math.round((hechas / TOTAL) * 100);
   const nombre = usuario?.nombre && !usuario.invitado ? usuario.nombre : 'Estudiante BonCloud';
 
@@ -55,6 +61,14 @@ export default function Curso() {
   };
 
   const constancia = () => descargarConstancia(nombre, TOTAL);
+  // Al cerrar un módulo: constancia si ya está todo, o paso al módulo que falta
+  const cerrarModulo = () => {
+    const pendiente = lecciones.find((l) => !progreso.completadas.includes(l.id));
+    if (!pendiente) { constancia(); return; }
+    const m = modulos.find((x) => x.id === pendiente.modulo);
+    avisar(`Para la constancia te falta el módulo ${m.id}: ${m.titulo}.`, 'info');
+    cambiarModulo(m.id);
+  };
 
   const alAprobar = (leccion) => {
     if (!progreso.completar(leccion.id)) avisar('No se pudo guardar tu progreso en este navegador.', 'warning');
@@ -65,14 +79,14 @@ export default function Curso() {
     <>
       <div className="dashboard-header" style={{ marginBottom: 20 }}>
         <h1 className="curso-titulo-pagina">Ruta de Aprendizaje de Comercio Internacional</h1>
-        <p>Aprende paso a paso siguiendo un embarque de 500 bombas de engranajes desde Shanghái hasta el Puerto de Cartagena.</p>
+        <p>Aprende paso a paso con dos casos reales de práctica: una importación desde Shanghái y una exportación de café a la Unión Europea.</p>
       </div>
 
       <section className="curso-progress-header-panel" aria-labelledby="titulo-progreso">
         <div className="curso-progress-top-info">
           <div className="curso-progress-title">
             <h3 id="titulo-progreso">Tu progreso</h3>
-            <p>Aprueba las {TOTAL} lecciones para descargar tu constancia de práctica.</p>
+            <p>Aprueba las {TOTAL} lecciones de los dos módulos para descargar tu constancia de práctica.</p>
           </div>
           <div className="curso-progress-actions">
             {hechas > 0 && <button type="button" className="curso-btn-secundario" onClick={reiniciar}>Reiniciar progreso</button>}
@@ -90,24 +104,40 @@ export default function Curso() {
         </div>
       </section>
 
+      <div className="curso-modulos" role="tablist" aria-label="Módulos de la Ruta">
+        {modulos.map((m) => {
+          const ids = lecciones.filter((l) => l.modulo === m.id).map((l) => l.id);
+          const listas = ids.filter((id) => progreso.estaCompletada(id)).length;
+          return (
+            <button key={m.id} type="button" role="tab" aria-selected={m.id === modulo.id}
+              className={`curso-modulo-tab${m.id === modulo.id ? ' activo' : ''}`} onClick={() => cambiarModulo(m.id)}>
+              <span className="curso-modulo-num">Módulo {m.id}</span>
+              <span className="curso-modulo-titulo">{m.titulo}</span>
+              <span className="curso-modulo-sub">{m.subtitulo} · {listas} de {ids.length}</span>
+            </button>
+          );
+        })}
+      </div>
+
       <section className="mapa-ruta-wrapper" aria-labelledby="titulo-mapa">
         <h3 id="titulo-mapa" className="mapa-titulo">Ruta del embarque</h3>
-        <p className="mapa-sub">El contenedor avanza cada vez que apruebas una etapa. Toca una etapa desbloqueada para ir a sus lecciones.</p>
-        <MapaRuta actualId={actualId} onAbrir={abrir} />
+        <p className="mapa-sub">{modulo.caso}. El embarque avanza cada vez que apruebas una etapa. Toca una etapa desbloqueada para ir a sus lecciones.</p>
+        <MapaRuta key={modulo.id} modulo={modulo.id} actualId={actualId} onAbrir={abrir} />
       </section>
 
       <div className="curso-grid-layout">
         <nav className="lecciones-sidebar-list" aria-label="Lecciones del curso">
-          {lecciones.map((lec) => <TarjetaLeccion key={lec.id} lec={lec} activa={lec.id === actualId} onAbrir={abrir} />)}
+          {delModulo.map((lec) => <TarjetaLeccion key={lec.id} lec={lec} activa={lec.id === actualId} onAbrir={abrir} />)}
         </nav>
         <div ref={detalleRef}>
           <DetalleLeccion
             key={actualId}
-            leccion={lecciones.find((l) => l.id === actualId)}
+            leccion={leccionActual}
+            caso={modulo.caso}
             tituloRef={tituloRef}
             onAprobar={alAprobar}
             onSiguiente={(id) => abrir(id)}
-            onConstancia={constancia}
+            onConstancia={cerrarModulo}
             onTermino={(t) => {
               const ficha = buscarTermino(t);
               if (ficha) setTermino(ficha);
@@ -148,7 +178,7 @@ function TarjetaLeccion({ lec, activa, onAbrir }) {
   );
 }
 
-function DetalleLeccion({ leccion, tituloRef, onAprobar, onSiguiente, onConstancia, onTermino }) {
+function DetalleLeccion({ leccion, caso, tituloRef, onAprobar, onSiguiente, onConstancia, onTermino }) {
   const { estaCompletada } = useProgreso();
   const navigate = useNavigate();
   const contenido = useMemo(() => ({ __html: leccion.contenido }), [leccion]);
@@ -197,7 +227,7 @@ function DetalleLeccion({ leccion, tituloRef, onAprobar, onSiguiente, onConstanc
           <span className="caso-icono" aria-hidden="true">🚢</span>
           <div>
             <h4>Qué pasa con tu embarque en esta etapa</h4>
-            <p className="caso-sub">Caso: 500 bombas de engranajes, de Shanghái al Puerto de Cartagena</p>
+            <p className="caso-sub">{caso}</p>
           </div>
         </div>
         <div className="caso-body"><p>{leccion.etapaCaso}</p></div>
@@ -221,7 +251,7 @@ function DetalleLeccion({ leccion, tituloRef, onAprobar, onSiguiente, onConstanc
         </section>
       )}
 
-      <Quiz leccion={leccion} total={TOTAL} onAprobar={onAprobar} onSiguiente={onSiguiente} onConstancia={onConstancia} />
+      <Quiz leccion={leccion} siguiente={siguienteEnModulo(leccion)} onAprobar={onAprobar} onSiguiente={onSiguiente} onConstancia={onConstancia} />
     </article>
   );
 }

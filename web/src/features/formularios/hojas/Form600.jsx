@@ -135,16 +135,16 @@ export default {
     ['pais_destino', 'País de destino (casilla 38)'],
     ['factura_num', 'No. factura comercial (casilla 39)'],
   ],
-  // Ejemplo de exportación: un contenedor de café verde desde Cartagena (datos ficticios)
+  // Caso del módulo 2 de la Ruta: café tostado de Cartagena a Hamburgo (datos ficticios)
   caso: {
-    boton: 'Llenar datos de ejemplo (DEX)',
-    mensaje: 'Se cargó un ejemplo de exportación de café FOB Cartagena: 19.250 kg × USD 6,20 = USD 119.350 FOB. Al ser FOB, fletes y seguros quedan en cero.',
+    boton: 'Cargar caso de la Ruta de Aprendizaje',
+    mensaje: 'Se cargó el caso del módulo 2: 18.000 kg de café tostado en grano × USD 9 = USD 162.000 FOB Cartagena, para un comprador en Hamburgo. Al ser FOB, fletes y seguros quedan en cero.',
     valores: () => ({
       exp_nit: '890900123', exp_razon: 'Café del Caribe Exportadores S.A.S. (empresa ficticia)', dec_nit: '890900123',
-      cod_aduana: '48', modalidad: 'definitiva', via_transporte: 'Marítimo', pais_destino: 'US',
-      comp_razon: 'Coffee Importers Inc. (comprador ficticio)', factura_num: 'EXP-2026-9901', moneda: 'USD', incoterm: 'FOB',
+      cod_aduana: '48', modalidad: 'definitiva', via_transporte: 'Marítimo', pais_destino: 'DE',
+      comp_razon: 'Kaffeehaus Handel GmbH (comprador ficticio)', factura_num: 'EXP-2026-9901', moneda: 'USD', incoterm: 'FOB',
       items: [
-        { ...itemVacio(), subpartida: '0901.11.90.00', descripcion: 'Café verde excelso, sin tostar ni descafeinar, 275 sacos de 70 kg', cantidad: '19250', fobUnitario: '6.20' },
+        { ...itemVacio(), subpartida: '0901.21.10.00', descripcion: 'Café tostado en grano, sin descafeinar, 720 sacos de 25 kg', cantidad: '18000', unidad: 'KG', fobUnitario: '9.00' },
         ...Array.from({ length: 4 }, itemVacio),
       ],
       t_fletes: '0', t_seguros: '0',

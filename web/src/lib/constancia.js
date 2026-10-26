@@ -43,7 +43,7 @@ export async function descargarConstancia(nombre, totalLecciones) {
   doc.setFont('helvetica', 'normal');
   doc.setFontSize(13);
   doc.setTextColor(71, 85, 105);
-  doc.text(doc.splitTextToSize(`completó las ${totalLecciones} lecciones de la Ruta de Aprendizaje de Comercio Internacional sobre el proceso de importación por el Puerto de Cartagena.`, 520), W / 2, 330, { align: 'center' });
+  doc.text(doc.splitTextToSize(`completó las ${totalLecciones} lecciones de la Ruta de Aprendizaje de Comercio Internacional: importación por el Puerto de Cartagena, exportación y origen de las mercancías.`, 520), W / 2, 330, { align: 'center' });
 
   doc.setFontSize(9);
   doc.setTextColor(100, 116, 139);

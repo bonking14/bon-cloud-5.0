@@ -148,7 +148,7 @@
 
 .mapa-nodos-grid {
   display: grid;
-  grid-template-columns: repeat(5, 1fr);
+  grid-template-columns: repeat(var(--nodos, 5), 1fr);
   gap: 12px;
   position: relative;
   z-index: 3;
@@ -831,3 +831,17 @@
 /* Antes con estilos en línea en curso.html */
 .mapa-titulo { color: var(--text-primary); font-size: 1.05rem; margin-bottom: 4px; }
 .mapa-sub { color: var(--text-muted); font-size: 0.82rem; margin-bottom: 12px; }
+
+/* Pestañas de módulos de la Ruta */
+.curso-modulos { display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap: 12px; margin-bottom: 20px; }
+.curso-modulo-tab {
+  display: flex; flex-direction: column; gap: 3px; text-align: left; cursor: pointer;
+  padding: 14px 16px; border-radius: 12px; border: 1px solid var(--border);
+  background: var(--bg-panel); color: inherit; font: inherit;
+  transition: border-color 0.2s, transform 0.2s, box-shadow 0.2s;
+}
+.curso-modulo-tab:hover { border-color: var(--border-accent); transform: translateY(-1px); }
+.curso-modulo-tab.activo { border-color: var(--text-accent); box-shadow: inset 0 0 0 1px var(--text-accent); background: var(--bg-active); }
+.curso-modulo-num { font-size: 0.6875rem; font-weight: 700; letter-spacing: 1px; text-transform: uppercase; color: var(--text-accent); }
+.curso-modulo-titulo { font-size: 0.9375rem; font-weight: 700; color: var(--text-primary); }
+.curso-modulo-sub { font-size: 0.75rem; color: var(--text-muted); }

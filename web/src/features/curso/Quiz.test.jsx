@@ -18,7 +18,7 @@ const responder = (texto) => fireEvent.click(screen.getByText(texto).closest('bu
 describe('Quiz', () => {
   it('aprueba con el 70% y avisa una sola vez', () => {
     const onAprobar = vi.fn();
-    render(<Quiz leccion={leccion} total={8} onAprobar={onAprobar} onSiguiente={() => {}} onConstancia={() => {}} />);
+    render(<Quiz leccion={leccion} siguiente={{ id: 2, orden: 2 }} onAprobar={onAprobar} onSiguiente={() => {}} onConstancia={() => {}} />);
     expect(screen.getByText(/Necesitas 3 respuestas/)).toBeTruthy(); // ceil(3 × 0,7)
     responder('bien1');
     responder('bien2');
@@ -30,7 +30,7 @@ describe('Quiz', () => {
 
   it('no aprueba con un error y permite reintentar', () => {
     const onAprobar = vi.fn();
-    render(<Quiz leccion={leccion} total={8} onAprobar={onAprobar} onSiguiente={() => {}} onConstancia={() => {}} />);
+    render(<Quiz leccion={leccion} siguiente={{ id: 2, orden: 2 }} onAprobar={onAprobar} onSiguiente={() => {}} onConstancia={() => {}} />);
     responder('bien1');
     responder('mal2');
     responder('bien3');
@@ -42,7 +42,7 @@ describe('Quiz', () => {
   });
 
   it('cada pregunta se responde una sola vez', () => {
-    render(<Quiz leccion={leccion} total={8} onAprobar={() => {}} onSiguiente={() => {}} onConstancia={() => {}} />);
+    render(<Quiz leccion={leccion} siguiente={null} onAprobar={() => {}} onSiguiente={() => {}} onConstancia={() => {}} />);
     responder('mal1');
     expect(screen.getByText('bien1').closest('button').disabled).toBe(true);
     expect(screen.getByText('Incorrecto')).toBeTruthy();

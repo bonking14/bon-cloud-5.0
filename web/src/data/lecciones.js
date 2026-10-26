@@ -16,11 +16,29 @@
  * Cada pregunta: `correcta` es el índice de la opción correcta. El orden se baraja al mostrarse.
  */
 
+// Módulos de la Ruta. Cada uno sigue su propio caso de práctica y su primera
+// lección está siempre disponible.
+export const modulos = [
+  {
+    id: 1,
+    titulo: 'Importación',
+    subtitulo: 'De Shanghái a la bodega en Colombia',
+    caso: 'Caso: 500 bombas de engranajes, de Shanghái al Puerto de Cartagena',
+  },
+  {
+    id: 2,
+    titulo: 'Exportación y origen',
+    subtitulo: 'De Colombia a la Unión Europea',
+    caso: 'Caso: café tostado colombiano, del Puerto de Cartagena a Hamburgo',
+  },
+];
+
 export const lecciones = [
   // ───────────────────────────────── 1
   {
     id: 1,
     orden: 1,
+    modulo: 1,
     titulo: "¿Qué es el comercio internacional y quiénes intervienen?",
     nivel: "Fundamentos",
     duracionMin: 15,
@@ -101,6 +119,7 @@ export const lecciones = [
   {
     id: 2,
     orden: 2,
+    modulo: 1,
     titulo: "Incoterms 2020 y cómo elegir uno",
     nivel: "Fundamentos",
     duracionMin: 20,
@@ -177,6 +196,7 @@ export const lecciones = [
   {
     id: 3,
     orden: 3,
+    modulo: 1,
     titulo: "Clasificación arancelaria y subpartidas",
     nivel: "Intermedio",
     duracionMin: 25,
@@ -265,6 +285,7 @@ export const lecciones = [
   {
     id: 4,
     orden: 4,
+    modulo: 1,
     titulo: "Vistos buenos y requisitos previos",
     nivel: "Intermedio",
     duracionMin: 20,
@@ -346,6 +367,7 @@ export const lecciones = [
   {
     id: 5,
     orden: 5,
+    modulo: 1,
     titulo: "Valor en aduana: FOB, flete, seguro y CIF",
     nivel: "Intermedio",
     duracionMin: 20,
@@ -429,6 +451,7 @@ export const lecciones = [
   {
     id: 6,
     orden: 6,
+    modulo: 1,
     titulo: "Tributos aduaneros: arancel e IVA",
     nivel: "Avanzado",
     duracionMin: 25,
@@ -511,6 +534,7 @@ export const lecciones = [
   {
     id: 7,
     orden: 7,
+    modulo: 1,
     titulo: "Declaración y formularios DIAN",
     nivel: "Avanzado",
     duracionMin: 30,
@@ -590,6 +614,7 @@ export const lecciones = [
   {
     id: 8,
     orden: 8,
+    modulo: 1,
     titulo: "Nacionalización, levante y retiro en el Puerto de Cartagena",
     nivel: "Avanzado",
     duracionMin: 25,
@@ -668,6 +693,268 @@ export const lecciones = [
         ],
         correcta: 2,
         explicacion: "La inspección física compara la mercancía con lo declarado. Revisar solo los documentos es la inspección documental."
+      }
+    ]
+  },
+  // ═════════════════════════════════ MÓDULO 2: EXPORTACIÓN Y ORIGEN
+
+  // ───────────────────────────────── 9
+  {
+    id: 9,
+    orden: 9,
+    modulo: 2,
+    titulo: "Exportar desde Colombia: requisitos, modalidades y beneficios",
+    nivel: "Fundamentos",
+    duracionMin: 20,
+    objetivos: [
+      "Saber qué necesita una empresa para exportar",
+      "Conocer las modalidades de exportación",
+      "Entender por qué una exportación no paga arancel ni IVA"
+    ],
+    contenido: `
+      <p>Exportar es sacar mercancías del territorio aduanero nacional hacia otro país o hacia una zona franca. Lo regula el mismo <strong>Decreto 1165 de 2019</strong> (arts. 340 y siguientes) y el declarante es el exportador o la agencia de aduanas que lo represente.</p>
+
+      <h4>Requisitos del exportador</h4>
+      <ul>
+        <li><strong>RUT</strong> con la responsabilidad 10 (usuario aduanero) y el código <strong>22, exportador</strong>, en la casilla 54.</li>
+        <li><strong>Firma digital</strong> (certificado digital de la DIAN) para firmar la declaración de exportación; quien no lo tiene la firma con asistencia de un funcionario (art. 400 de la Resolución 46 de 2019).</li>
+        <li><strong>Vistos buenos</strong> cuando el producto o el país de destino los exigen: por ejemplo, certificados sanitarios o fitosanitarios. El comprador en el exterior suele indicar cuáles pide su aduana.</li>
+        <li>Para el café hay reglas propias: solo se exporta café que cumpla los requisitos de calidad del Comité Nacional de Cafeteros, que vigila la Federación Nacional de Cafeteros (art. 418), y antes de exportar se paga la <strong>contribución cafetera</strong> (art. 414).</li>
+      </ul>
+
+      <h4>Modalidades (art. 343)</h4>
+      <p>Exportación definitiva; temporal para perfeccionamiento pasivo (por ejemplo, una reparación en el exterior); temporal para reimportación en el mismo estado (ferias o exposiciones); reexportación; reembarque; tráfico postal y envíos urgentes; muestras sin valor comercial; exportaciones temporales de viajeros; menaje; y programas especiales de exportación.</p>
+
+      <h4>Tributos y beneficios</h4>
+      <ul>
+        <li>La exportación de bienes <strong>no paga arancel</strong> en Colombia.</li>
+        <li>Los bienes que se exportan son <strong>exentos de IVA con derecho a devolución</strong> (art. 481 del Estatuto Tributario): el exportador no cobra IVA y puede pedir que le devuelvan el IVA que pagó en sus compras.</li>
+        <li>Las divisas de la venta deben <strong>canalizarse por el mercado cambiario</strong> (bancos o cuentas de compensación) dentro de los seis meses siguientes a su recibo, con la declaración de cambio (Circular DCIP-83 del Banco de la República).</li>
+      </ul>
+    `,
+    etapaCaso: "Café del Caribe Exportadores S.A.S. (empresa ficticia), en Cartagena, le vendió a un distribuidor de Hamburgo 18.000 kg de café tostado en grano (subpartida 0901.21.10.00) a USD 9 por kilo, en términos FOB Cartagena: un valor FOB de USD 162.000 (valores de práctica). Antes de embarcar revisa que su RUT tenga el código 22, que el café cumpla los requisitos de calidad y que la contribución cafetera esté pagada. La factura sale sin IVA, porque la exportación es exenta.",
+    practica: {
+      texto: "Calcula el valor FOB en pesos en la calculadora de exportación definitiva",
+      moduloUrl: "/exportacion/definitiva",
+      parametros: { fob: 162000, trm: 4100 }
+    },
+    quiz: [
+      {
+        pregunta: "¿Qué código debe tener el RUT de una empresa en la casilla 54 para exportar?",
+        opciones: [
+          "El 23, importador",
+          "El 22, exportador",
+          "El 48, impuesto sobre las ventas",
+          "Ninguno: el RUT no tiene relación con la exportación"
+        ],
+        correcta: 1,
+        explicacion: "La casilla 54 registra la calidad de usuario aduanero: 22 es exportador y 23 importador. Además debe tener la responsabilidad 10, usuario aduanero."
+      },
+      {
+        pregunta: "¿Cómo trata el IVA la venta de bienes que se exportan?",
+        opciones: [
+          "Se cobra el 19% al comprador del exterior",
+          "Se cobra el 5% por ser una exportación",
+          "Es exenta, con derecho a que le devuelvan al exportador el IVA que pagó en sus compras",
+          "Está excluida, sin derecho a devolución"
+        ],
+        correcta: 2,
+        explicacion: "El artículo 481 del Estatuto Tributario hace exentos a los bienes que se exportan, con derecho a devolución. Por eso el exportador no cobra IVA y puede recuperar el que pagó."
+      },
+      {
+        pregunta: "Una empresa envía una máquina a Alemania para que la reparen y vuelva. ¿Qué modalidad usa?",
+        opciones: [
+          "Exportación definitiva",
+          "Reembarque",
+          "Exportación temporal para perfeccionamiento pasivo",
+          "Muestras sin valor comercial"
+        ],
+        correcta: 2,
+        explicacion: "Cuando la mercancía sale para un proceso de elaboración, transformación o reparación en el exterior y luego regresa, la modalidad es exportación temporal para perfeccionamiento pasivo."
+      },
+      {
+        pregunta: "¿Qué debe hacer el exportador con los dólares que le paga el comprador del exterior?",
+        opciones: [
+          "Nada: puede dejarlos en el exterior sin informar",
+          "Canalizarlos por el mercado cambiario, con la declaración de cambio, dentro de los seis meses siguientes a su recibo",
+          "Entregarlos a la DIAN junto con la declaración de exportación",
+          "Cambiarlos en efectivo en una casa de cambio sin ningún registro"
+        ],
+        correcta: 1,
+        explicacion: "La exportación de bienes es una operación de canalización obligatoria: las divisas se canalizan por un intermediario del mercado cambiario o por una cuenta de compensación, con la declaración de cambio (Circular DCIP-83)."
+      }
+    ]
+  },
+
+  // ───────────────────────────────── 10
+  {
+    id: 10,
+    orden: 10,
+    modulo: 2,
+    titulo: "Origen de las mercancías y acuerdos comerciales (TLC)",
+    nivel: "Intermedio",
+    duracionMin: 25,
+    objetivos: [
+      "Entender cómo un acuerdo comercial baja el arancel",
+      "Distinguir las reglas de origen más comunes",
+      "Saber quién expide la prueba de origen y cuándo se presenta"
+    ],
+    contenido: `
+      <p>Un <span class="term-glosario" data-glosario="TLC">acuerdo comercial</span> da <strong>preferencias arancelarias</strong>: un arancel menor, muchas veces del 0%, para las mercancías <strong>originarias</strong> de los países que lo firmaron. Sin acuerdo, o si la mercancía no prueba su origen, se paga el arancel general de nación más favorecida.</p>
+      <p>Colombia tiene acuerdos vigentes, entre otros, con la Comunidad Andina, Mercosur, México, Chile, Estados Unidos, Canadá, la Unión Europea, la AELC (EFTA), Corea, la Alianza del Pacífico, Costa Rica, Israel y el Reino Unido. No tiene acuerdo con China ni con Japón. La lista oficial está en tlc.gov.co.</p>
+
+      <h4><span class="term-glosario" data-glosario="Reglas de Origen">Reglas de origen</span></h4>
+      <p>Cada acuerdo define cuándo una mercancía es originaria. Los criterios más comunes son:</p>
+      <ul>
+        <li><strong>Totalmente obtenida:</strong> cultivada, cosechada, extraída o criada en el país (por ejemplo, café cultivado y cosechado en Colombia).</li>
+        <li><strong>Cambio de clasificación arancelaria:</strong> los insumos importados cambian de capítulo, partida o subpartida al transformarse.</li>
+        <li><strong>Valor de contenido regional:</strong> un porcentaje mínimo del valor se agrega en los países del acuerdo.</li>
+        <li><strong>Requisitos específicos por producto:</strong> reglas propias para ciertas subpartidas.</li>
+      </ul>
+      <p>Las operaciones mínimas, como empacar, etiquetar o mezclar, no confieren origen, y la mercancía debe cumplir las condiciones de expedición directa del acuerdo.</p>
+
+      <h4><span class="term-glosario" data-glosario="Prueba de Origen">Prueba de origen</span></h4>
+      <ul>
+        <li>La expide el productor, el exportador o la autoridad competente, según el acuerdo (art. 312 del Decreto 1165 de 2019). En Colombia la autoridad competente es la <strong>DIAN</strong>, y antes de expedir la prueba se presenta la <strong>declaración juramentada de origen</strong>.</li>
+        <li>Algunos acuerdos usan certificados que expide la autoridad; otros permiten la certificación del exportador, del productor o del importador. Con la Unión Europea se usa el certificado EUR.1 o la declaración de origen de un exportador autorizado.</li>
+        <li>Al importar, la prueba de origen es un documento soporte: debe obtenerse <strong>antes</strong> de presentar la declaración de importación (arts. 177 y 313). Si después no se cumplen las normas de origen, el importador debe pagar los tributos (art. 309).</li>
+        <li>Quien la expide y quien pide la preferencia deben conservar los documentos que prueban el origen (art. 317), y la DIAN puede verificar el origen (art. 318).</li>
+      </ul>
+    `,
+    etapaCaso: "La Unión Europea cobra un arancel general del 7,5% al café tostado. Sobre un valor de USD 162.000 serían unos USD 12.150 (allá se calcula sobre su propio valor en aduana, que incluye el flete). Con el Acuerdo Comercial Colombia–UE, el café tostado colombiano entra con arancel del 0% si prueba su origen. La regla del acuerdo exige que el café se haya cultivado y cosechado en los países del acuerdo: Café del Caribe tuesta café colombiano, así que califica. Presenta ante la DIAN la declaración juramentada de origen y solicita la prueba de origen para que su cliente en Hamburgo pida la preferencia. Si tostara café importado de Vietnam, no sería originario.",
+    practica: {
+      texto: "Repasa los términos TLC, valor en aduana y subpartida en el glosario",
+      moduloUrl: "/glosario",
+      parametros: { termino: "TLC" }
+    },
+    quiz: [
+      {
+        pregunta: "¿Qué necesita una mercancía para recibir el arancel preferencial de un acuerdo comercial?",
+        opciones: [
+          "Haberse embarcado en un puerto del país del acuerdo",
+          "Cumplir las reglas de origen del acuerdo y presentar la prueba de origen",
+          "Que el vendedor sea miembro de la OMC",
+          "Que su valor FOB sea inferior a USD 5.000"
+        ],
+        correcta: 1,
+        explicacion: "La preferencia es solo para mercancías originarias. Embarcar en un país del acuerdo no basta: si el producto es de otro país, no califica (art. 309 del Decreto 1165 de 2019)."
+      },
+      {
+        pregunta: "Una empresa importa tela de un país sin acuerdo y en Colombia la convierte en camisas que exporta a un país con TLC. ¿Qué criterio de origen podría cumplir?",
+        opciones: [
+          "Totalmente obtenido",
+          "Ninguno: si un insumo es importado, nunca hay origen",
+          "Cambio de clasificación arancelaria, si el acuerdo lo permite para esa camisa",
+          "Origen automático por ser fabricada en una zona franca"
+        ],
+        correcta: 2,
+        explicacion: "Al confeccionar la camisa, el insumo cambia de clasificación. Si la regla específica del acuerdo acepta ese cambio, la camisa puede ser originaria aunque la tela sea importada."
+      },
+      {
+        pregunta: "En Colombia, ¿qué se presenta ante la DIAN antes de que expida una prueba de origen?",
+        opciones: [
+          "La declaración de importación",
+          "La declaración juramentada de origen",
+          "El registro de importación en la VUCE",
+          "La Declaración Andina del Valor"
+        ],
+        correcta: 1,
+        explicacion: "El artículo 312 del Decreto 1165 de 2019 exige como soporte la declaración juramentada de origen vigente para que la autoridad o un exportador autorizado expidan la prueba de origen."
+      },
+      {
+        pregunta: "Un importador colombiano quiere la preferencia del TLC con Estados Unidos. ¿Cuándo debe tener la prueba de origen?",
+        opciones: [
+          "Antes de presentar y aceptar la declaración de importación",
+          "Dentro del año siguiente al levante",
+          "Solo si la DIAN la pide en una inspección",
+          "Nunca: la preferencia se aplica automáticamente"
+        ],
+        correcta: 0,
+        explicacion: "La prueba de origen es un documento soporte de la declaración y debe obtenerse antes de presentarla y aceptarla (arts. 177 y 313 del Decreto 1165 de 2019)."
+      }
+    ]
+  },
+
+  // ───────────────────────────────── 11
+  {
+    id: 11,
+    orden: 11,
+    modulo: 2,
+    titulo: "El trámite de exportación: del embarque a la declaración (DEX)",
+    nivel: "Avanzado",
+    duracionMin: 25,
+    objetivos: [
+      "Seguir los pasos de la exportación en orden",
+      "Conocer la solicitud de autorización de embarque y su vigencia",
+      "Saber cuándo se presenta la declaración de exportación"
+    ],
+    contenido: `
+      <h4>Los pasos (arts. 347 a 363 del Decreto 1165 de 2019)</h4>
+      <ol>
+        <li><strong><span class="term-glosario" data-glosario="SAE">Solicitud de autorización de embarque (SAE)</span>:</strong> el exportador o su agencia la presenta en los servicios informáticos de la DIAN, ante la seccional donde está la mercancía. Puede ser un embarque único o una autorización global con embarques fraccionados, con datos definitivos o provisionales.</li>
+        <li><strong>Vigencia de un mes:</strong> dentro de ese mes la mercancía debe trasladarse e ingresar a la zona primaria (el puerto) y embarcarse. Si vence, hay que presentar una nueva SAE (art. 352).</li>
+        <li><strong>Ingreso a zona primaria y gestión de riesgo:</strong> la DIAN autoriza el embarque directamente o después de una inspección documental, física o no intrusiva.</li>
+        <li><strong>Embarque:</strong> se carga la mercancía en el medio de transporte, con la autorización de la aduana.</li>
+        <li><strong>Certificación del embarque:</strong> el transportador transmite a la DIAN el manifiesto de carga con lo embarcado (art. 362).</li>
+        <li><strong>Declaración de exportación (DEX, formulario 600):</strong> certificado el embarque, el declarante firma y presenta la declaración que generan los servicios informáticos de la DIAN, en la que se declara el valor FOB (art. 363 y art. 400 de la Resolución 46 de 2019).</li>
+      </ol>
+
+      <h4>Después de embarcar</h4>
+      <ul>
+        <li>El declarante conserva los documentos soporte (la factura u otro documento de la operación, los vistos buenos y el mandato) durante <strong>5 años</strong> desde la aceptación de la SAE (art. 349).</li>
+        <li>Canaliza las divisas por el mercado cambiario y, con la DEX, puede tramitar la devolución del IVA de sus compras.</li>
+      </ul>
+    `,
+    etapaCaso: "Café del Caribe presenta la SAE en la Dirección Seccional de Aduanas de Cartagena (48) y tiene un mes para embarcar. El contenedor con el café ingresa al terminal, la DIAN autoriza el embarque sin inspección y la carga sube al buque con destino a Hamburgo. La naviera transmite el manifiesto de carga, con lo que el embarque queda certificado, y Café del Caribe firma y presenta la DEX por USD 162.000 FOB. Luego canaliza los dólares que le gira el comprador y archiva los soportes durante 5 años.",
+    practica: {
+      texto: "Practica el diligenciamiento del formulario 600 (DEX)",
+      moduloUrl: "/formularios",
+      parametros: { form: "600" }
+    },
+    quiz: [
+      {
+        pregunta: "¿Con qué trámite empieza una exportación?",
+        opciones: [
+          "Con la declaración de exportación (DEX)",
+          "Con la solicitud de autorización de embarque",
+          "Con la certificación del embarque por el transportador",
+          "Con el pago del arancel de exportación"
+        ],
+        correcta: 1,
+        explicacion: "El artículo 347 del Decreto 1165 de 2019 dice que el trámite se inicia con la presentación y aceptación de la solicitud de autorización de embarque. La DEX se presenta al final."
+      },
+      {
+        pregunta: "¿Cuánto tiempo tiene el exportador para ingresar la mercancía a puerto y embarcarla después de aceptada la SAE?",
+        opciones: [
+          "Quince días",
+          "Un mes",
+          "Seis meses",
+          "No hay plazo"
+        ],
+        correcta: 1,
+        explicacion: "La solicitud de autorización de embarque tiene una vigencia de un mes desde su aceptación; si vence, debe tramitarse una nueva (art. 352)."
+      },
+      {
+        pregunta: "¿Quién certifica el embarque ante la DIAN?",
+        opciones: [
+          "El exportador, con la factura comercial",
+          "La sociedad portuaria",
+          "El transportador, al transmitir el manifiesto de carga",
+          "El comprador en el país de destino"
+        ],
+        correcta: 2,
+        explicacion: "El transportador transmite la información del manifiesto de carga según los embarques autorizados, y con ello el embarque queda certificado (art. 362)."
+      },
+      {
+        pregunta: "¿Qué valor se declara en la declaración de exportación?",
+        opciones: [
+          "El valor CIF en el puerto de destino",
+          "El valor FOB",
+          "El precio de venta más el IVA",
+          "El valor en aduana del país de destino"
+        ],
+        correcta: 1,
+        explicacion: "En la exportación se declara el valor FOB. Si la venta se pactó en CIF u otro término que incluya flete y seguro, esos conceptos se informan aparte."
       }
     ]
   }

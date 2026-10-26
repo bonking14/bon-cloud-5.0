@@ -40,7 +40,7 @@ describe('formularios DIAN en React', () => {
     fireEvent.click(await screen.findByText('Imprimir o guardar PDF', {}, ESPERA));
     expect(screen.getByRole('alert').textContent).toMatch(/NIT del exportador/);
     expect(imprimir).not.toHaveBeenCalled();
-    fireEvent.click(screen.getByText(/Llenar datos de ejemplo/));
+    fireEvent.click(screen.getByText(/Cargar caso de la Ruta/));
     fireEvent.click(screen.getByText('Imprimir o guardar PDF'));
     expect(imprimir).toHaveBeenCalledTimes(1);
   });

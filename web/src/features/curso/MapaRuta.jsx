@@ -1,23 +1,38 @@
 import { useEffect, useState } from 'react';
 import { useProgreso } from '../../hooks/ProgresoContext.jsx';
 
-// Etapas del embarque y las lecciones que cubre cada una
-const NODOS = [
-  { label: 'Shanghái', sub: 'Negociación y compra', icono: '🏭', lecciones: [1, 2] },
-  { label: 'Antes de embarcar', sub: 'Clasificación y requisitos', icono: '📑', lecciones: [3, 4] },
-  { label: 'Tránsito marítimo', sub: 'Valor en aduana', icono: '🚢', lecciones: [5] },
-  { label: 'DIAN', sub: 'Tributos y declaración', icono: '📋', lecciones: [6, 7] },
-  { label: 'Cartagena → bodega', sub: 'Levante y retiro', icono: '🏢', lecciones: [8] },
-];
+// Etapas del embarque de cada módulo y las lecciones que cubre cada una
+const MAPAS = {
+  1: {
+    carga: { icono: '📦', texto: '500 bombas', titulo: 'Embarque: 500 bombas de engranajes' },
+    nodos: [
+      { label: 'Shanghái', sub: 'Negociación y compra', icono: '🏭', lecciones: [1, 2] },
+      { label: 'Antes de embarcar', sub: 'Clasificación y requisitos', icono: '📑', lecciones: [3, 4] },
+      { label: 'Tránsito marítimo', sub: 'Valor en aduana', icono: '🚢', lecciones: [5] },
+      { label: 'DIAN', sub: 'Tributos y declaración', icono: '📋', lecciones: [6, 7] },
+      { label: 'Cartagena → bodega', sub: 'Levante y retiro', icono: '🏢', lecciones: [8] },
+    ],
+  },
+  2: {
+    carga: { icono: '☕', texto: '18 t de café', titulo: 'Embarque: 18.000 kg de café tostado' },
+    nodos: [
+      { label: 'Café del Caribe', sub: 'Requisitos y beneficios', icono: '🏭', lecciones: [9] },
+      { label: 'Origen', sub: 'Acuerdo con la UE', icono: '📜', lecciones: [10] },
+      { label: 'Cartagena → Hamburgo', sub: 'Embarque y DEX', icono: '🚢', lecciones: [11] },
+    ],
+  },
+};
 
-export default function MapaRuta({ actualId, onAbrir }) {
-  const { completadas, total, siguientePendiente, estaDesbloqueada } = useProgreso();
-  const terminado = completadas.length === total;
+export default function MapaRuta({ modulo, actualId, onAbrir }) {
+  const { completadas, siguientePendiente, estaDesbloqueada } = useProgreso();
+  const { nodos: NODOS, carga } = MAPAS[modulo];
+  const delModulo = NODOS.flatMap((n) => n.lecciones);
+  const terminado = delModulo.every((id) => completadas.includes(id));
   const indiceNodo = (id) => Math.max(0, NODOS.findIndex((n) => n.lecciones.includes(id)));
-  const nodoActual = terminado ? NODOS.length - 1 : indiceNodo(siguientePendiente());
+  const nodoActual = terminado ? NODOS.length - 1 : indiceNodo(siguientePendiente(modulo));
   const destino = (nodoActual / (NODOS.length - 1)) * 100;
 
-  // Al cargar, el contenedor viaja desde Shanghái hasta la etapa actual
+  // Al cargar, el contenedor viaja desde el origen hasta la etapa actual
   const [pct, setPct] = useState(() => (window.matchMedia('(prefers-reduced-motion: reduce)').matches ? destino : 0));
   useEffect(() => {
     const id = requestAnimationFrame(() => requestAnimationFrame(() => setPct(destino)));
@@ -29,11 +44,11 @@ export default function MapaRuta({ actualId, onAbrir }) {
       <div className="mapa-ruta-track" aria-hidden="true">
         <div className="mapa-ruta-linea-bg" />
         <div className="mapa-ruta-linea-fill" style={{ width: `${pct}%` }} />
-        <div className="mapa-contenedor-animado" title="Embarque: 500 bombas de engranajes" style={{ left: `${pct}%` }}>
-          <span className="contenedor-icono">📦</span><span className="contenedor-label">500 bombas</span>
+        <div className="mapa-contenedor-animado" title={carga.titulo} style={{ left: `${pct}%` }}>
+          <span className="contenedor-icono">{carga.icono}</span><span className="contenedor-label">{carga.texto}</span>
         </div>
       </div>
-      <div className="mapa-nodos-grid">
+      <div className="mapa-nodos-grid" style={{ '--nodos': NODOS.length }}>
         {NODOS.map((n) => {
           const completado = n.lecciones.every((l) => completadas.includes(l));
           const primera = Math.min(...n.lecciones);

@@ -263,12 +263,39 @@ export const glosario = [
     moduloBonCloud: "/simulador"
   },
   {
+    termino: "SAE",
+    nombreCompleto: "Solicitud de Autorización de Embarque",
+    categoria: "Operativa Aduanera",
+    definicion: "Primer trámite de una exportación: se presenta en los servicios informáticos de la DIAN ante la seccional donde está la mercancía. Tiene una vigencia de un mes, dentro del cual la mercancía debe ingresar a la zona primaria y embarcarse (arts. 347 a 352 del Decreto 1165 de 2019).",
+    ejemplo: "Café del Caribe presenta la SAE en la seccional de Cartagena; autorizado y certificado el embarque, presenta la declaración de exportación (formulario 600).",
+    relacionado: ["Formulario 600", "DIAN", "BL"],
+    moduloBonCloud: "/formularios/600"
+  },
+  {
+    termino: "Reglas de Origen",
+    nombreCompleto: "Criterios para considerar originaria una mercancía",
+    categoria: "Acuerdos Comerciales",
+    definicion: "Condiciones que fija cada acuerdo comercial para que una mercancía sea originaria y reciba la preferencia arancelaria: totalmente obtenida, cambio de clasificación arancelaria, valor de contenido regional o requisitos específicos por producto. Las operaciones mínimas, como empacar o etiquetar, no confieren origen.",
+    ejemplo: "En el acuerdo con la Unión Europea, el café tostado es originario si el café se cultivó y cosechó en los países del acuerdo; tostar en Colombia café importado de otro país no basta.",
+    relacionado: ["TLC", "Prueba de Origen", "Subpartida Arancelaria"],
+    moduloBonCloud: "/subpartidas"
+  },
+  {
+    termino: "Prueba de Origen",
+    nombreCompleto: "Certificado o declaración que acredita el origen",
+    categoria: "Acuerdos Comerciales",
+    definicion: "Documento que demuestra que la mercancía es originaria según un acuerdo comercial. La expide el productor, el exportador o la autoridad competente, según el acuerdo; en Colombia la autoridad es la DIAN y antes se presenta la declaración juramentada de origen (art. 312 del Decreto 1165 de 2019). Al importar se obtiene antes de presentar la declaración.",
+    ejemplo: "Para que su cliente en Hamburgo pague 0% de arancel, Café del Caribe solicita ante la DIAN la prueba de origen del Acuerdo Comercial con la Unión Europea.",
+    relacionado: ["TLC", "Reglas de Origen", "Formulario 500"],
+    moduloBonCloud: "/formularios/500"
+  },
+  {
     termino: "TLC",
     nombreCompleto: "Tratado de Libre Comercio",
     categoria: "Acuerdos Comerciales",
     definicion: "Acuerdo vinculante entre dos o más países para conceder preferencias arancelarias recíprocas y reducir barreras al comercio de bienes y servicios.",
     ejemplo: "Con el TLC Colombia–Estados Unidos, muchas subpartidas de maquinaria entran con 0% de arancel si se demuestra el origen. Con China no hay acuerdo, por eso las bombas del caso no tienen preferencia por origen: pagan el arancel de nación más favorecida.",
-    relacionado: ["Subpartida Arancelaria", "Arancel (Ad-Valorem)"],
+    relacionado: ["Reglas de Origen", "Prueba de Origen", "Arancel (Ad-Valorem)"],
     moduloBonCloud: "/subpartidas"
   }
 ];

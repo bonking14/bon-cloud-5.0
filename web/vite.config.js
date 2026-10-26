@@ -9,5 +9,8 @@ export default defineConfig({
   test: {
     environment: 'jsdom',
     globals: true,
+    // Los tests de formularios cargan cada hoja con import(); con la suite completa
+    // en paralelo pueden pasar de los 5 s por defecto
+    testTimeout: 20000,
   },
 });

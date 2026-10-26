@@ -61,7 +61,7 @@ function TarjetaRuta() {
     return () => cancelAnimationFrame(id);
   }, [hechas, total]);
 
-  let texto = `Sigue un embarque de práctica de Shanghái a Cartagena en ${total} lecciones.`;
+  let texto = `Dos casos de práctica, importación y exportación, en ${total} lecciones.`;
   let boton = 'Empezar';
   let destino = '/curso';
   if (hechas === total) {
