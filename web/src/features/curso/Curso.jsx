@@ -46,6 +46,15 @@ export default function Curso() {
     setActualId(id);
   };
 
+  // Si cambia ?leccion= estando ya en la Ruta (enlace o barra de direcciones), abre esa lección
+  const leccionParam = parseInt(params.get('leccion'), 10);
+  const primeraCarga = useRef(true);
+  useEffect(() => {
+    if (primeraCarga.current) { primeraCarga.current = false; return; }
+    if (leccionParam >= 1 && leccionParam <= TOTAL) abrir(leccionParam);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [leccionParam]);
+
   useEffect(() => {
     if (!desplazar.current) return;
     desplazar.current = false;

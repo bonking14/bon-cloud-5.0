@@ -24,7 +24,11 @@ export default function Landing() {
   const [cargando, setCargando] = useState(false);
   const [exito, setExito] = useState(false);
 
-  useEffect(() => iniciarEscenaPuerto(canvasRef.current, () => claroRef.current), []);
+  // Con sesión abierta la landing solo redirige y no pinta el canvas: no hay escena que iniciar
+  useEffect(() => {
+    if (!canvasRef.current) return undefined;
+    return iniciarEscenaPuerto(canvasRef.current, () => claroRef.current);
+  }, []);
 
   if (sesion && !exito) return <Navigate to={destino} replace />;
 
