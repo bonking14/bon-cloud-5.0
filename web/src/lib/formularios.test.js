@@ -1,13 +1,10 @@
 import { describe, it, expect } from 'vitest';
 import { calcular500, calcular600, calcularDAV, sumaCapital, faltantes } from './formularios.js';
 
-const item = (cantidad, fobUnitario) => ({ cantidad, fobUnitario });
-const vacios = (n) => Array.from({ length: n }, () => item('', ''));
-
 describe('formulario 500', () => {
   // Caso de la Ruta: 500 bombas × USD 120, flete 3.500, seguro 300, TRM 4.100, arancel 5%
   const caso = {
-    items: [item('500', '120'), ...vacios(4)], v_fob: '0', v_fletes: '3500', v_seguros: '300', v_otros: '0',
+    v_fob: '60000', v_fletes: '3500', v_seguros: '300', v_otros: '0',
     tasa_cambio: '4100', tasa_arancel: '5', tasa_iva: '19', tasa_salva: '0', tasa_anti: '0', total_sancion: '0',
   };
 
@@ -19,14 +16,9 @@ describe('formulario 500', () => {
     expect(r.arancel).toBe(13079000);
     expect(r.iva).toBe(52185000);
     expect(r.total).toBe(65264000);
+    expect(r.pago).toBe(65264000);
+    expect(r.totalUSD).toBeCloseTo(15918.05, 2);
     expect(r.requiereDAV).toBe(true);
-  });
-
-  it('usa el FOB escrito a mano si los ítems están vacíos', () => {
-    const r = calcular500({ ...caso, items: vacios(5), v_fob: '4000' });
-    expect(r.fobDesdeItems).toBe(false);
-    expect(r.fob).toBe(4000);
-    expect(r.requiereDAV).toBe(false);
   });
 
   it('salvaguardia y antidumping se pagan pero no entran a la base del IVA (Concepto DIAN 626 de 2020)', () => {
@@ -43,23 +35,20 @@ describe('formulario 500', () => {
   });
 
   it('la DAV se exige desde USD 5.000 FOB exactos (igual o superior)', () => {
-    expect(calcular500({ ...caso, items: vacios(5), v_fob: '5000' }).requiereDAV).toBe(true);
-    expect(calcular500({ ...caso, items: vacios(5), v_fob: '4999.99' }).requiereDAV).toBe(false);
+    expect(calcular500({ ...caso, v_fob: '5000' }).requiereDAV).toBe(true);
+    expect(calcular500({ ...caso, v_fob: '4999.99' }).requiereDAV).toBe(false);
   });
 
-  it('detecta ítems con subpartidas distintas: cada declaración ampara una sola', () => {
-    const conSp = (sp) => ({ subpartida: sp, cantidad: '1', fobUnitario: '10' });
-    expect(calcular500({ ...caso, items: [conSp('8413.60.90.00'), conSp('8413.60.90.00')] }).variasSubpartidas).toBe(false);
-    const r = calcular500({ ...caso, items: [conSp('8413.60.90.00'), conSp('8517.13.00.00')] });
-    expect(r.variasSubpartidas).toBe(true);
-    expect(r.subpartida).toBe('8413.60.90.00');
+  it('sanción y rescate se suman al total, y los pagos anteriores (127) se descuentan del pago (980)', () => {
+    const r = calcular500({ ...caso, total_sancion: '1000000', total_rescate: '500000', pagos_anteriores: '264000' });
+    expect(r.total).toBe(66764000);
+    expect(r.pago).toBe(66500000);
   });
 });
 
-it('formulario 600: café FOB Cartagena, 19.250 kg × USD 6,20', () => {
-  const r = calcular600({ items: [item('19250', '6.20'), ...vacios(4)], t_fob: '0', t_fletes: '0', t_seguros: '0', t_otros: '0' });
-  expect(r.fob).toBeCloseTo(119350, 6);
-  expect(r.valorIncoterm).toBeCloseTo(119350, 6);
+it('formulario 600: el total de exportaciones (76) suma FOB, fletes, seguros y otros gastos', () => {
+  expect(calcular600({ t_fob: '162000' })).toEqual({ fob: 162000, total: 162000 });
+  expect(calcular600({ t_fob: '162000', t_fletes: '4000', t_seguros: '500', t_otros: '100' }).total).toBe(166600);
 });
 
 it('formulario 560: precio + flete + seguro = valor en aduana USD 63.800', () => {

@@ -1101,9 +1101,9 @@ export const lecciones = [
     `,
     etapaCaso: "El contenedor con la llenadora llega al Puerto de Cartagena. En el B/L viene consignado a Andina Pack, usuario de zona franca, así que el tránsito procede (art. 433). Su agencia de aduanas presenta la DTA ante la aduana de Cartagena, que es la aduana de partida, sin ingresar la carga a depósito. La aduana verifica que los precintos del contenedor estén intactos, autoriza el tránsito y fija el plazo. Un camión de una transportadora inscrita ante la DIAN lleva el contenedor por la ruta más directa hasta la zona franca, en la jurisdicción de la aduana de Bogotá. Allí el usuario operador revisa precintos, peso y bultos contra la DTA y registra la llegada: el tránsito termina.",
     practica: {
-      texto: "Practica el diligenciamiento de la declaración de tránsito aduanero (DTA)",
+      texto: "Practica el diligenciamiento de la declaración de tránsito aduanero (formulario 650)",
       moduloUrl: "/formularios",
-      parametros: { form: "DTA" }
+      parametros: { form: "650" }
     },
     quiz: [
       {

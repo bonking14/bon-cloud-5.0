@@ -8,8 +8,11 @@ export const formularios = [
     desc: 'Soporta el valor en aduana. Obligatoria desde USD 5.000 FOB.', cargar: () => import('./hojas/Form560.jsx') },
   { id: '500', nombre: 'Formulario 500 - Declaración de Importación', tipo: 'Importación',
     desc: 'Identifica la mercancía, declara el valor en aduana y liquida arancel e IVA.', cargar: () => import('./hojas/Form500.jsx') },
-  { id: 'DTA', nombre: 'Declaración de Tránsito Aduanero (DTA)', tipo: 'Tránsito',
-    desc: 'Traslado bajo control aduanero entre aduanas, con tributos suspendidos.', cargar: () => import('./hojas/FormDTA.jsx') },
+  { id: '650', nombre: 'Formulario 650 - Declaración de Tránsito Aduanero y/o Cabotaje (DTA)', tipo: 'Tránsito',
+    desc: 'Traslado bajo control aduanero entre aduanas, con tributos suspendidos.', cargar: () => import('./hojas/Form650.jsx') },
   { id: '600', nombre: 'Formulario 600 - Declaración de Exportación (DEX)', tipo: 'Exportación',
     desc: 'Ampara la salida de mercancías; va precedida de la solicitud de autorización de embarque.', cargar: () => import('./hojas/Form600.jsx') },
 ];
+
+// Identificadores anteriores que siguen funcionando en enlaces viejos
+export const ALIAS = { DTA: '650' };

@@ -3,23 +3,17 @@ import { aMiles } from './numeros.js';
 
 const n = (v) => parseFloat(v) || 0;
 
-// Ítems de mercancía (formularios 500 y 600): total por línea = cantidad × FOB unitario
-export function totalesItems(items) {
-  const lineas = items.map((it) => n(it.cantidad) * n(it.fobUnitario));
-  return { lineas, suma: lineas.reduce((t, x) => t + x, 0) };
-}
-
-// Formulario 500 (numeración de la cartilla DIAN): valor en aduana y autoliquidación.
-// Si los ítems tienen valores, el FOB (casilla 78) se toma de su suma.
+// Formulario 500 (numeración del formulario oficial): valor en aduana y autoliquidación.
 //   84 valor en aduana USD = 78 FOB + 82 (79 fletes + 80 seguros + 81 otros gastos) + 83 ajuste
 //   93 base arancel = 84 × 58 tasa de cambio · 98 base IVA = 93 + 94 arancel
+// Cada concepto tiene: base, total liquidado, total a pagar con esta declaración y total en USD.
 export function calcular500(v) {
-  const { lineas, suma } = totalesItems(v.items);
-  const fob = suma > 0 ? suma : n(v.v_fob);
+  const fob = n(v.v_fob);
   const gastos = n(v.v_fletes) + n(v.v_seguros) + n(v.v_otros);
   // El ajuste (casilla 83) puede ser negativo cuando es una deducción
   const aduanaUSD = fob + gastos + n(v.v_ajuste);
-  const aduanaCOP = aduanaUSD * n(v.tasa_cambio);
+  const tasa = n(v.tasa_cambio);
+  const aduanaCOP = aduanaUSD * tasa;
   // Arancel y medidas de defensa comercial: base = valor en aduana en pesos
   const arancel = aMiles(aduanaCOP * n(v.tasa_arancel) / 100);
   const salvaguardia = aMiles(aduanaCOP * n(v.tasa_salva) / 100);
@@ -30,25 +24,24 @@ export function calcular500(v) {
   const baseIVA = aduanaCOP + arancel;
   const iva = aMiles(baseIVA * n(v.tasa_iva) / 100);
   const sancion = n(v.total_sancion);
-  // Cada declaración de importación ampara una sola subpartida (casilla 59)
-  const codigos = [...new Set(v.items.map((it) => String(it.subpartida || '').trim()).filter(Boolean))];
+  const rescate = n(v.total_rescate);
+  const total = arancel + iva + salvaguardia + compensatorios + antidumping + sancion + rescate;
   return {
-    lineas, fobDesdeItems: suma > 0, fob, gastos, aduanaUSD, aduanaCOP,
-    arancel, salvaguardia, compensatorios, antidumping, baseIVA, iva, sancion,
-    // Casilla 980: suma de los "total a pagar" de cada concepto
-    total: arancel + iva + salvaguardia + compensatorios + antidumping + sancion,
-    subpartida: codigos[0] || '',
-    variasSubpartidas: codigos.length > 1,
+    fob, gastos, aduanaUSD, aduanaCOP,
+    arancel, salvaguardia, compensatorios, antidumping, baseIVA, iva, sancion, rescate,
+    // Casilla 125: total liquidado · 126: su equivalente en dólares
+    total, totalUSD: tasa ? total / tasa : 0,
+    // Casilla 980: lo que se paga con esta declaración, descontados los pagos anteriores (127)
+    pago: Math.max(0, total - n(v.pagos_anteriores)),
     requiereDAV: fob >= 5000,
   };
 }
 
-// Formulario 600: en la exportación se declara el FOB; la casilla 51 es el valor
-// total de la venta según el Incoterm.
+// Formulario 600: en la exportación se declara el valor FOB (casilla 72). La casilla 76,
+// valor total de las exportaciones, le suma fletes (73), seguros (74) y otros gastos (75).
 export function calcular600(v) {
-  const { lineas, suma } = totalesItems(v.items);
-  const fob = suma > 0 ? suma : n(v.t_fob);
-  return { lineas, fobDesdeItems: suma > 0, fob, valorIncoterm: fob + n(v.t_fletes) + n(v.t_seguros) + n(v.t_otros) };
+  const fob = n(v.t_fob);
+  return { fob, total: fob + n(v.t_fletes) + n(v.t_seguros) + n(v.t_otros) };
 }
 
 // Formulario 560 (DAV), columna USD:

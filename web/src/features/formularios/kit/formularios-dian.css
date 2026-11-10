@@ -147,3 +147,34 @@
   .dian-form.hoja-oculta { display: block !important; }
   .dian-form input, .dian-form select, .dian-form textarea { background: transparent !important; }
 }
+
+/* ── Hoja oficial: trazado del PDF de la DIAN con los campos encima ── */
+.ho-envoltura { width: 980px; margin: 0 auto; }
+.ho-envoltura + .ho-envoltura { margin-top: 24px; }
+.ho-ayuda { margin: 0 0 8px; padding: 8px 12px; min-height: 2.6em; border-radius: 8px; font-size: 0.8125rem; line-height: 1.45; background: var(--bg-active); color: var(--text-primary); position: sticky; top: 0; z-index: 5; }
+.hoja-oficial { position: relative; width: 100%; background: #fff; color: #1d1d1b; box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15); container-type: inline-size; overflow: hidden; }
+.ho-trazado { position: absolute; inset: 0; width: 100%; height: 100%; display: block; }
+.ho-marca { font-size: 30px; font-weight: 700; fill: #005e93; opacity: 0.07; letter-spacing: 2px; }
+.ho-campo {
+  position: absolute; box-sizing: border-box; margin: 0; padding: 0 0.3cqw; border: 0; border-radius: 0; min-width: 0;
+  background: rgba(37, 99, 235, 0.07); color: #0b2a66; font-family: Arial, Helvetica, sans-serif;
+  font-size: 1.12cqw; line-height: 1.1; outline: none; appearance: none; resize: none;
+}
+.ho-campo:hover { background: rgba(37, 99, 235, 0.13); }
+.ho-campo:focus { background: #fff8c5; box-shadow: 0 0 0 1px #2563eb; z-index: 2; }
+.ho-campo.ho-calculado { background: rgba(16, 185, 129, 0.12); font-weight: 700; cursor: default; }
+.ho-campo.ho-error { background: #fee2e2; box-shadow: 0 0 0 1px #dc2626; }
+.ho-campo.ho-derecha { text-align: right; }
+.ho-campo.ho-centro { text-align: center; }
+.ho-campo.ho-grande { font-size: 1.5cqw; font-weight: 700; }
+select.ho-campo { padding: 0; }
+textarea.ho-campo { padding-top: 0.2cqw; line-height: 1.25; }
+.ho-alerta { margin: 10px 0 0; padding: 8px 12px; border-radius: 8px; font-size: 0.8125rem; line-height: 1.45; background: #fef3c7; border: 1px solid #f59e0b; color: #92400e; }
+.ho-nota { margin: 10px 0 0; font-size: 0.75rem; line-height: 1.5; color: var(--text-muted); }
+@media print {
+  @page { size: letter portrait; margin: 0; }
+  .ho-envoltura { width: 100%; margin: 0; }
+  .ho-envoltura + .ho-envoltura { margin-top: 0; break-before: page; }
+  .hoja-oficial { box-shadow: none; }
+  .ho-campo, .ho-campo.ho-calculado { background: transparent !important; box-shadow: none !important; color: #000; }
+}

@@ -80,7 +80,7 @@ export const glosario = [
     definicion: "Declaración con la que la mercancía se traslada bajo control aduanero de una aduana a otra dentro del país, con los tributos suspendidos mientras dura el tránsito. Se presenta ante la aduana de partida y solo procede en los casos del artículo 433 del Decreto 1165 de 2019.",
     ejemplo: "Un contenedor que llega al Puerto de Cartagena consignado a un usuario de una zona franca de la Sabana de Bogotá viaja en tránsito aduanero, amparado por la DTA.",
     relacionado: ["Tránsito Aduanero", "Zona Franca", "Usuario Operador"],
-    moduloBonCloud: "/formularios/DTA"
+    moduloBonCloud: "/formularios/650"
   },
   {
     termino: "Formulario 500",
@@ -269,7 +269,7 @@ export const glosario = [
     definicion: "Modalidad que permite transportar por tierra mercancías bajo control aduanero de una aduana a otra dentro del país (art. 432 del Decreto 1165 de 2019). Solo se autoriza en los casos del artículo 433, por ejemplo para carga consignada a un usuario de zona franca, y se hace en vehículos de transportadoras inscritas ante la DIAN.",
     ejemplo: "La llenadora del módulo 3 viaja en tránsito aduanero del Puerto de Cartagena a una zona franca de la Sabana de Bogotá; el tránsito termina cuando el usuario operador recibe la carga.",
     relacionado: ["DTA", "Zona Franca", "Usuario Operador"],
-    moduloBonCloud: "/formularios/DTA"
+    moduloBonCloud: "/formularios/650"
   },
   {
     termino: "Usuario Operador",
@@ -278,7 +278,7 @@ export const glosario = [
     definicion: "Persona jurídica autorizada para dirigir, administrar y supervisar una o varias zonas francas y para calificar a sus usuarios (art. 3 de la Ley 1004 de 2005). Autoriza todo ingreso y salida de bienes de la zona franca (art. 475 del Decreto 1165 de 2019).",
     ejemplo: "Cuando el camión con la llenadora llega a la zona franca, el usuario operador revisa precintos, peso y bultos contra la DTA y registra la llegada.",
     relacionado: ["Zona Franca", "Tránsito Aduanero", "DTA"],
-    moduloBonCloud: "/formularios/DTA"
+    moduloBonCloud: "/formularios/650"
   },
   {
     termino: "Importación Temporal",

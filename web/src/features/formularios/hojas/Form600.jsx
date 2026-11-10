@@ -1,126 +1,140 @@
+import { subpartidas } from '../../../data/subpartidas.js';
 import { calcular600 } from '../../../lib/formularios.js';
 import { digitoVerificacion } from '../../../lib/nit.js';
 import { useCampos } from '../kit/contexto.js';
-import { Celda, Fila, Seccion, Hoja, Firmas, Calculado, Entrada, dosSiempre } from '../kit/campos.jsx';
-import { TablaItems, itemVacio } from '../kit/TablaItems.jsx';
+import HojaOficial from '../kit/HojaOficial.jsx';
+import { dolares, soloDigitos } from '../kit/formato.js';
+import hoja1 from '../trazados/600-1.json';
+import hoja2 from '../trazados/600-2.json';
 
-const MODALIDADES = [['definitiva', 'Definitiva'], ['temporal', 'Temporal para reimportación en el mismo estado'], ['reexportacion', 'Reexportación'], ['muestras', 'Muestras sin valor comercial']];
-const MONEDAS = ['USD', 'EUR', 'COP', 'GBP'];
-const INCOTERMS = ['EXW', 'FCA', 'FAS', 'FOB', 'CFR', 'CIF', 'CPT', 'CIP', 'DAP', 'DPU', 'DDP'];
+// Formulario 600, Declaración de Exportación (DEX). Trazado y numeración del formulario
+// oficial de la DIAN (Formulario_600_2026.pdf): hoja 1 (principal) y hoja 2 (subpartidas
+// declaradas). Las hojas 3 a 8 del original (transporte, documentos soporte, sistemas
+// especiales y embarques fraccionados) no se incluyen.
+const TIPOS_DOCUMENTO = [['13', 'Cédula de ciudadanía'], ['22', 'Cédula de extranjería'], ['31', 'NIT'], ['41', 'Pasaporte']];
+const INCOTERMS = ['EXW', 'FCA', 'FAS', 'FOB', 'CFR', 'CIF', 'CPT', 'CIP', 'DAP', 'DPU', 'DDP'].map((t) => [t, t]);
+const ALTO_FILA = 24;
+
+// En este formulario el rótulo va arriba y el dato debajo, en filas de 24 puntos
+function debajo(c, extra = {}, alto = ALTO_FILA) {
+  const y = c.ly + 2;
+  return { caja: [c.x + 1, y, c.w - 2, Math.max(c.y + alto - y - 1.2, 8)], ...extra };
+}
+// Recuadro «Cód.» a la derecha de una casilla, hasta x1
+const codigo = (c, x1, nombre, etiqueta) => ({ casilla: undefined, nombre, etiqueta, centro: true, caja: [c.x + c.w + 1, c.y + 11.5, x1 - c.x - c.w - 2, 11] });
+const marca = (x, y, etiqueta, nombre) => ({ nombre, etiqueta, caja: [x, y, 11, 11], centro: true, max: 1 });
+const limpio = (t) => String(t || '').replace(/[.\s]/g, '');
 
 function Form600() {
-  const { valores: v } = useCampos();
+  const { valores: v, poner, ponerVarios } = useCampos();
   const r = calcular600(v);
+  const c1 = hoja1.celdas;
+  const c2 = hoja2.celdas;
+
+  const alCambiarSubpartida = (texto) => {
+    const hallada = subpartidas.find((s) => limpio(s.codigo) === limpio(texto) && limpio(texto).length === 10);
+    if (!hallada) { poner('s_subpartida', texto); return; }
+    ponerVarios({ s_subpartida: hallada.codigo, s_descripcion: v.s_descripcion?.trim() ? v.s_descripcion : hallada.titulo });
+  };
+
+  // ── Hoja 1 ──
+  const nombres1 = {
+    20: { nombre: 'exp_tipo_doc', sugerencias: TIPOS_DOCUMENTO, centro: true },
+    11: { nombre: 'exp_razon' },
+    24: { nombre: 'dec_tipo_doc', sugerencias: TIPOS_DOCUMENTO, centro: true },
+    31: { nombre: 'dec_razon' },
+    32: { nombre: 'comp_tipo_doc', centro: true }, 33: { nombre: 'comp_documento' },
+    38: { nombre: 'comp_razon' }, 39: { nombre: 'comp_domicilio' }, 40: { nombre: 'comp_ciudad' },
+    41: { nombre: 'clase_dex' }, 43: { nombre: 'tipo_diligenciamiento' }, 44: { nombre: 'tipo_despacho' },
+    49: { nombre: 'regimen' }, 50: { nombre: 'aduana_despacho' }, 51: { nombre: 'pais_tramite', centro: true },
+    53: { nombre: 'tipo_datos' }, 54: { nombre: 'tipo_embarque' }, 55: { nombre: 'naturaleza', centro: true },
+    56: { nombre: 'incoterm', sugerencias: INCOTERMS, centro: true }, 57: { nombre: 'lugar_entrega' },
+    58: { nombre: 'moneda', centro: true }, 59: { nombre: 'valor_factura', derecha: true }, 60: { nombre: 'tasa_cambio', derecha: true },
+    61: { nombre: 'forma_pago' }, 67: { nombre: 'modo_transporte' }, 68: { nombre: 'tipo_carga' },
+    69: { nombre: 'aduana_salida' }, 70: { nombre: 'pais_destino' }, 71: { nombre: 'lugar_destino' },
+    72: { nombre: 't_fob', inputMode: 'decimal', derecha: true }, 73: { nombre: 't_fletes', inputMode: 'decimal', derecha: true },
+    74: { nombre: 't_seguros', inputMode: 'decimal', derecha: true }, 75: { nombre: 't_otros', inputMode: 'decimal', derecha: true },
+    76: { valor: dolares(r.total), derecha: true }, 77: { nombre: 'valor_reintegrar', inputMode: 'decimal', derecha: true },
+    78: { nombre: 'van', derecha: true }, 79: { nombre: 'total_series', centro: true }, 80: { nombre: 'total_bultos', derecha: true }, 81: { nombre: 'total_peso', derecha: true },
+  };
+  const campos1 = {
+    1: { nombre: 'anio', caja: [55, 63, 41.5, 10.5], max: 4, centro: true, formato: soloDigitos, etiqueta: 'Año' },
+    4: { omitir: true },
+    18: { nombre: 'exp_nit', inputMode: 'numeric', formato: soloDigitos, etiqueta: 'NIT del exportador', caja: [79, 168, 149, 11] },
+    6: { valor: digitoVerificacion(v.exp_nit), caja: [229.5, 168, 17, 11], centro: true, etiqueta: 'DV del exportador' },
+    25: { nombre: 'dec_nit', inputMode: 'numeric', formato: soloDigitos, etiqueta: 'Número de identificación del declarante', caja: [78, 216.5, 127, 11] },
+    26: { valor: digitoVerificacion(v.dec_nit), caja: [207, 216.5, 21.5, 11], centro: true, etiqueta: 'DV del declarante' },
+    63: { nombre: 'fecha_pago', caja: [41, 456.5, 76, 11], etiqueta: 'Fecha del primer pago anticipado' },
+    64: { partes: [marca(134.3, 456.3, 'Mercancía a la mano con el viajero: SI'), marca(171.3, 456.3, 'Mercancía a la mano con el viajero: NO')] },
+    65: { partes: [marca(206.3, 456.3, 'Sistemas especiales: SI'), marca(243.3, 456.3, 'Sistemas especiales: NO')] },
+    66: { partes: [marca(279.7, 456.3, 'Exportación en tránsito: SI'), marca(315.3, 456.3, 'Exportación en tránsito: NO')] },
+    45: { nombre: 'tipo_correccion', caja: [191, 360.5, 119, 11], etiqueta: 'Tipo de corrección' },
+  };
+  Object.entries(c1).forEach(([num, c]) => {
+    const n = Number(num);
+    if (campos1[num]) return;
+    // Actuación aduanera (82 a 90) y firma: los llena la DIAN o van con firma digital
+    if (n >= 82) { campos1[num] = { omitir: true }; return; }
+    const alto = n >= 79 && n <= 81 ? 23 : ALTO_FILA;
+    campos1[num] = debajo(c, nombres1[num] || {}, alto);
+  });
+  campos1[61] = { ...campos1[61], caja: [334, 431.5, 141, 11] };
+  const extras1 = [
+    codigo(c1[41], 292, 'clase_dex_cod', 'Código de la clase de DEX'), codigo(c1[43], 594, 'tipo_dilig_cod', 'Código del tipo de diligenciamiento'),
+    codigo(c1[44], 190, 'tipo_despacho_cod', 'Código del tipo de despacho'), { nombre: 'tipo_correccion_cod', etiqueta: 'Código del tipo de corrección', centro: true, caja: [312, 360.5, 21.5, 11] },
+    codigo(c1[49], 237, 'regimen_cod', 'Código del régimen aduanero'), codigo(c1[50], 456, 'cod_aduana', 'Código de la aduana de despacho'),
+    codigo(c1[53], 237, 'tipo_datos_cod', 'Código del tipo de datos'), codigo(c1[54], 349, 'tipo_embarque_cod', 'Código del tipo de embarque'),
+    { nombre: 'forma_pago_cod', etiqueta: 'Código de la forma de pago', centro: true, caja: [477, 431.5, 24, 11] },
+    codigo(c1[67], 466, 'modo_transporte_cod', 'Código del modo de transporte'), codigo(c1[68], 594, 'tipo_carga_cod', 'Código del tipo de carga'),
+    codigo(c1[69], 218, 'aduana_salida_cod', 'Código de la aduana de salida'), codigo(c1[70], 382, 'pais_destino_cod', 'Código del país de destino final'),
+  ];
+
+  // ── Hoja 2: una serie (una subpartida) ──
+  const nombres2 = {
+    98: { nombre: 's_serie', centro: true }, 99: { nombre: 's_subpartida', lista: 'lista-subpartidas-600', alCambiar: alCambiarSubpartida, placeholder: '0000.00.00.00' },
+    102: { nombre: 's_unidad_fisica' }, 103: { nombre: 's_cantidad_fisica', derecha: true }, 104: { nombre: 's_unidad_comercial' },
+    105: { nombre: 's_cantidad_comercial', derecha: true }, 106: { nombre: 's_embalaje' }, 107: { nombre: 's_bultos', derecha: true },
+    108: { nombre: 's_peso_bruto', derecha: true }, 109: { nombre: 's_peso_neto', derecha: true }, 110: { nombre: 's_fob', inputMode: 'decimal', derecha: true },
+    115: { nombre: 's_pais_origen' }, 117: { nombre: 's_preferencia' },
+  };
+  const campos2 = {
+    4: { omitir: true },
+    20: { valor: v.exp_tipo_doc ?? '', centro: true, caja: [41, 168.5, 35, 10.5], etiqueta: 'Tipo de documento del exportador (hoja 2)' },
+    18: { valor: v.exp_nit ?? '', caja: [79, 168, 149, 11], etiqueta: 'NIT del exportador (hoja 2)' },
+    6: { valor: digitoVerificacion(v.exp_nit), caja: [229.5, 168, 17, 11], centro: true, etiqueta: 'DV del exportador (hoja 2)' },
+    11: { valor: v.exp_razon ?? '', caja: [41, 191.5, 552, 11], etiqueta: 'Razón social del exportador (hoja 2)' },
+    7: { omitir: true }, 8: { omitir: true }, 9: { omitir: true }, 10: { omitir: true },
+    111: { nombre: 's_marcas', multilinea: true, caja: [25, 277.5, 568, 22.5], etiqueta: 'Marcas' },
+    112: { nombre: 's_descripcion', multilinea: true, caja: [25, 313.5, 568, 370], etiqueta: 'Descripción' },
+  };
+  // Recuadros de datos de la hoja 2: [casilla, x inicial, x final, nombre del recuadro «Cód.» que lo sigue, x final del código]
+  const FILAS_2 = [
+    [98, 24, 73], [99, 73, 176], [100, 176, 225], [101, 225, 273], [102, 273, 380, 's_unidad_fisica_cod', 409], [103, 409, 457], [104, 457, 569, 's_unidad_comercial_cod', 594],
+    [105, 24, 73], [106, 73, 195.5, 's_embalaje_cod', 224], [107, 224, 273], [108, 273, 380], [109, 380, 486], [110, 486, 594],
+    [113, 24, 177, 's_plazo_cod', 206], [114, 206, 250], [115, 250, 397, 's_pais_origen_cod', 425], [116, 425, 565, 's_region_cod', 594],
+    [118, 24, 127, 's_aduana_prec_cod', 154], [119, 154, 250], [120, 250, 311], [121, 311, 410, 's_regimen_prec_cod', 440], [122, 440, 503], [123, 503, 594],
+  ];
+  const extras2 = [];
+  FILAS_2.forEach(([num, x0, x1, nombreCod, xCod]) => {
+    const c = c2[num];
+    const y = c.y + 12.3;
+    campos2[num] = { ...(nombres2[num] || {}), caja: [x0 + 1, y, x1 - x0 - 2, 10.8] };
+    if (nombreCod) extras2.push({ nombre: nombreCod, etiqueta: `Código: ${c.r.replace(/\s*Cód\.?$/, '')}`, centro: true, caja: [x1 + 1, y, xCod - x1 - 2, 10.8] });
+  });
+  campos2[117] = { nombre: 's_preferencia', caja: [25, 721.3, 539, 10.8], etiqueta: 'Preferencia arancelaria' };
+  extras2.push({ nombre: 's_preferencia_cod', etiqueta: 'Código de la preferencia arancelaria', centro: true, caja: [566, 721.3, 27, 10.8] });
 
   return (
-    <Hoja numero="600" titulo="Declaración de Exportación">
-      <div className="aviso">Simulador educativo de BonCloud: la distribución y numeración de casillas es aproximada y no tiene validez ante la DIAN. En la exportación se declara el valor FOB; la exportación de bienes no paga arancel y está exenta de IVA.</div>
-
-      <Seccion>Exportador</Seccion>
-      <Fila>
-        <Celda num="5" etiqueta="NIT" flex={2} nombre="exp_nit" inputMode="numeric" />
-        <Celda num="6" etiqueta="DV" ancho={30} valor={digitoVerificacion(v.exp_nit)} />
-        <Celda num="7" etiqueta="Primer Apellido" flex={2} />
-        <Celda num="8" etiqueta="Segundo Apellido" flex={2} />
-        <Celda num="9" etiqueta="Primer Nombre" flex={2} />
-        <Celda num="10" etiqueta="Otros Nombres" flex={2} />
-      </Fila>
-      <Fila>
-        <Celda num="11" etiqueta="Razón Social" flex={4} nombre="exp_razon" />
-        <Celda num="12" etiqueta="Cód. Dirección Seccional" />
-      </Fila>
-
-      <Seccion>Declarante</Seccion>
-      <Fila>
-        <Celda num="24" etiqueta="NIT" flex={2} nombre="dec_nit" inputMode="numeric" />
-        <Celda num="25" etiqueta="DV" ancho={30} valor={digitoVerificacion(v.dec_nit)} />
-        <Celda num="26" etiqueta="Razón Social" flex={5} />
-        <Celda num="27" etiqueta="Tipo Usuario" />
-      </Fila>
-
-      <Seccion>Datos generales de la exportación</Seccion>
-      <Fila>
-        <Celda num="30" etiqueta="Cód. Aduana" nombre="cod_aduana" />
-        <Celda num="31" etiqueta="Año solicitud autorización embarque" placeholder="AAAA" />
-        <Celda num="32" etiqueta="No. solicitud autorización embarque" flex={2} nombre="sae_num" />
-        <Celda num="33" etiqueta="Fecha autorización embarque" placeholder="AAAA-MM-DD" />
-      </Fila>
-      <Fila>
-        <Celda num="34" etiqueta="Modalidad Exportación" nombre="modalidad" opciones={MODALIDADES} />
-        <Celda num="35" etiqueta="Clase Exportación" />
-        <Celda num="36" etiqueta="Datos Anteriores" />
-        <Celda num="37" etiqueta="Cód. Vía Transporte" nombre="via_transporte" />
-        <Celda num="38" etiqueta="Cód. País Destino" nombre="pais_destino" />
-      </Fila>
-      <Fila>
-        <Celda num="40" etiqueta="Datos del Documento de Transporte" flex={2} />
-        <Celda num="41" etiqueta="Fecha Doc. Transporte" placeholder="AAAA-MM-DD" />
-        <Celda num="42" etiqueta="Cód. Unidad Medida" />
-        <Celda num="43" etiqueta="Cantidad Carga" type="number" />
-      </Fila>
-
-      <Seccion>Comprador o destinatario</Seccion>
-      <Fila>
-        <Celda num="13" etiqueta="NIT / Identificación" flex={2} nombre="comp_nit" />
-        <Celda num="14" etiqueta="Primer Apellido" flex={2} />
-        <Celda num="15" etiqueta="Segundo Apellido" flex={2} />
-        <Celda num="16" etiqueta="Primer Nombre" flex={2} />
-        <Celda num="17" etiqueta="Otros Nombres" flex={2} />
-      </Fila>
-      <Fila>
-        <Celda num="18" etiqueta="Razón Social del Comprador" flex={4} nombre="comp_razon" />
-        <Celda num="19" etiqueta="Cód. País" />
-        <Celda num="20" etiqueta="Ciudad" flex={2} />
-      </Fila>
-      <Fila>
-        <Celda num="21" etiqueta="Dirección del Comprador" flex={4} />
-        <Celda num="22" etiqueta="Teléfono" />
-        <Celda num="23" etiqueta="Correo Electrónico" flex={2} />
-      </Fila>
-
-      <Seccion>Factura comercial y condiciones</Seccion>
-      <Fila>
-        <Celda num="39" etiqueta="No. Factura Comercial" flex={2} nombre="factura_num" />
-        <Celda num="39a" etiqueta="Fecha Factura" placeholder="AAAA-MM-DD" />
-        <Celda num="39b" etiqueta="Cód. Moneda" nombre="moneda" opciones={MONEDAS} />
-        <Celda num="39c" etiqueta="Incoterm" nombre="incoterm" opciones={INCOTERMS} />
-      </Fila>
-
-      <Seccion>Descripción de mercancías</Seccion>
-      <TablaItems
-        lineas={r.lineas}
-        placeholderSubpartida="Ej: 0901.11"
-        columnas={[['Subpartida Arancelaria', 80], ['Descripción de la Mercancía'], ['Cantidad', 55], ['Unidad', 40], ['Peso Neto (Kg)', 65], ['Valor FOB Unit. (USD)', 80], ['Valor FOB Total (USD)', 80]]}
-      />
-
-      <Seccion>Totales</Seccion>
-      <Fila>
-        <Celda num="44" etiqueta="Total Peso Bruto (Kgs)" type="number" step="0.01" />
-        <Celda num="45" etiqueta="Total Peso Neto (Kgs)" type="number" step="0.01" />
-        <Celda num="46" etiqueta="Total Series Carga" type="number" />
-      </Fila>
-      <Fila style={{ backgroundColor: '#fcfcfc' }}>
-        <Celda num="47" etiqueta="Valor Total FOB (USD)">
-          {r.fobDesdeItems ? <Calculado valor={dosSiempre(r.fob)} title="Suma de los ítems" /> : <Entrada nombre="t_fob" type="number" />}
-        </Celda>
-        <Celda num="48" etiqueta="Valor Fletes (USD)" nombre="t_fletes" type="number" />
-        <Celda num="49" etiqueta="Valor Seguros (USD)" nombre="t_seguros" type="number" />
-        <Celda num="50" etiqueta="Otros Gastos (USD)" nombre="t_otros" type="number" />
-        <Celda num="51" etiqueta="Valor total según Incoterm (USD)" className="cell-destacada" valor={dosSiempre(r.valorIncoterm)} />
-      </Fila>
-
-      <Seccion style={{ marginTop: 10 }}>Datos de aceptación / certificado de embarque (exclusivo DIAN)</Seccion>
-      <Fila>
-        <Celda num="52" etiqueta="Fecha Aceptación DEX" style={{ height: 60 }}>{null}</Celda>
-        <Celda num="53" etiqueta="Número de Aceptación DEX">{null}</Celda>
-        <Celda num="54" etiqueta="Fecha Autorización de Embarque">{null}</Celda>
-      </Fila>
-
-      <Firmas firmas={[
-        { texto: 'Declaro bajo la gravedad de juramento que los datos aquí consignados son correctos, no incluyen omisiones o falsedades y que el producto exportado cumple con todos los requisitos legales vigentes correspondientes.', firma: 'Firma del Declarante' },
-        { texto: 'Espacio exclusivo para sello y firma del Funcionario Aduanero.' },
-      ]} />
-    </Hoja>
+    <>
+      <HojaOficial trazado={hoja1} numero="600" titulo="Declaración de Exportación" campos={campos1} extras={extras1} />
+      <HojaOficial trazado={hoja2} numero="600" titulo="Declaración de Exportación, hoja 2: subpartidas declaradas" campos={campos2} extras={extras2}
+        pie={(
+          <p className="ho-nota no-imprimir">Simulador educativo de BonCloud, sin validez ante la DIAN. Reproduce la hoja 1 y la hoja 2 (subpartidas declaradas) del formulario 600 oficial; las hojas 3 a 8 del original no se incluyen. La declaración real la generan los servicios informáticos de la DIAN después del embarque y se firma digitalmente (art. 363 del Decreto 1165 de 2019).</p>
+        )} />
+      <datalist id="lista-subpartidas-600">
+        {subpartidas.map((s) => <option key={s.codigo} value={s.codigo}>{s.titulo}</option>)}
+      </datalist>
+    </>
   );
 }
 
@@ -128,41 +142,69 @@ export default {
   id: '600',
   sigla: 'DEX',
   Componente: Form600,
-  inicial: () => ({ items: Array.from({ length: 5 }, itemVacio), t_fob: '0', t_fletes: '0', t_seguros: '0', t_otros: '0' }),
+  inicial: () => ({}),
   obligatorios: [
-    ['exp_nit', 'NIT del exportador (casilla 5)'],
+    ['exp_nit', 'NIT del exportador (casilla 18)'],
     ['exp_razon', 'Razón social del exportador (casilla 11)'],
-    ['pais_destino', 'País de destino (casilla 38)'],
-    ['factura_num', 'No. factura comercial (casilla 39)'],
+    ['pais_destino', 'País de destino final (casilla 70)'],
   ],
   // Caso del módulo 2 de la Ruta: café tostado de Cartagena a Hamburgo (datos ficticios)
   caso: {
     boton: 'Cargar caso de la Ruta de Aprendizaje',
     mensaje: 'Se cargó el caso del módulo 2: 18.000 kg de café tostado en grano × USD 9 = USD 162.000 FOB Cartagena, para un comprador en Hamburgo. Al ser FOB, fletes y seguros quedan en cero.',
     valores: () => ({
-      exp_nit: '890900123', exp_razon: 'Café del Caribe Exportadores S.A.S. (empresa ficticia)', dec_nit: '890900123',
-      cod_aduana: '48', modalidad: 'definitiva', via_transporte: 'Marítimo', pais_destino: 'DE',
-      comp_razon: 'Kaffeehaus Handel GmbH (comprador ficticio)', factura_num: 'EXP-2026-9901', moneda: 'USD', incoterm: 'FOB',
-      items: [
-        { ...itemVacio(), subpartida: '0901.21.10.00', descripcion: 'Café tostado en grano, sin descafeinar, 720 sacos de 25 kg', cantidad: '18000', unidad: 'KG', fobUnitario: '9.00' },
-        ...Array.from({ length: 4 }, itemVacio),
-      ],
-      t_fletes: '0', t_seguros: '0',
+      anio: String(new Date().getFullYear()),
+      exp_tipo_doc: '31', exp_nit: '890900123', exp_razon: 'Café del Caribe Exportadores S.A.S. (empresa ficticia)',
+      dec_tipo_doc: '31', dec_nit: '890900123', dec_razon: 'Café del Caribe Exportadores S.A.S. (actúa directamente)',
+      comp_razon: 'Kaffeehaus Handel GmbH (comprador ficticio)', comp_ciudad: 'Hamburgo',
+      aduana_despacho: 'Cartagena', cod_aduana: '48', aduana_salida: 'Cartagena', aduana_salida_cod: '48',
+      incoterm: 'FOB', lugar_entrega: 'Cartagena', moneda: 'USD', valor_factura: '162000',
+      modo_transporte: 'Marítimo', pais_destino: 'Alemania', pais_destino_cod: 'DE',
+      t_fob: '162000', t_fletes: '0', t_seguros: '0', t_otros: '0', valor_reintegrar: '162000',
+      total_series: '1', total_bultos: '720', total_peso: '18360',
+      s_serie: '1', s_subpartida: '0901.21.10.00', s_unidad_fisica: 'Kilogramo', s_unidad_fisica_cod: 'KG', s_cantidad_fisica: '18000',
+      s_embalaje: 'Sacos', s_bultos: '720', s_peso_bruto: '18360', s_peso_neto: '18000', s_fob: '162000',
+      s_descripcion: 'Café tostado en grano, sin descafeinar. 720 sacos de 25 kg.', s_pais_origen: 'Colombia', s_pais_origen_cod: 'CO',
     }),
   },
   explicaciones: {
-    5: 'NIT del exportador, tal como figura en su RUT, que debe tener la calidad de exportador (código 22).',
+    1: 'Año en que se presenta la declaración.',
+    4: 'Número único del formulario, asignado por la DIAN.',
     6: 'Dígito de verificación del NIT. Se calcula solo.',
-    24: 'NIT del declarante: el exportador si actúa directamente o la agencia de aduanas.',
-    30: 'Código de la dirección seccional de aduanas por donde sale la mercancía. Cartagena es 48.',
-    32: 'Número de la solicitud de autorización de embarque. La DEX se presenta después del embarque, con base en ella.',
-    34: 'Modalidad de exportación: definitiva, temporal para reimportación en el mismo estado, reexportación, muestras sin valor comercial, etc.',
-    38: 'País de destino final de la mercancía.',
-    39: 'Número de la factura comercial que ampara la venta.',
-    47: 'Valor FOB total en dólares: es el valor que se declara en la exportación. Se llena solo con la suma de los ítems.',
-    48: 'Flete internacional. Solo se escribe si la venta se pactó con un Incoterm que lo incluye (CFR, CIF, CPT, CIP...).',
-    49: 'Seguro internacional, si la venta lo incluye (por ejemplo CIF o CIP).',
-    51: 'Valor total de la venta según el Incoterm pactado: FOB + fletes + seguros + otros gastos. El valor FOB (casilla 47) es el que se declara.',
-    53: 'Número de aceptación que asigna la DIAN a la declaración de exportación.',
+    11: 'Razón social del exportador, tal como figura en su RUT.',
+    18: 'Número de identificación del exportador. Su RUT debe tener la calidad de exportador (código 22 en la casilla 54).',
+    20: 'Código del tipo de documento del exportador; 31 es NIT.',
+    25: 'Número de identificación del declarante: el exportador si actúa directamente o la agencia de aduanas.',
+    31: 'Razón social del declarante.',
+    38: 'Razón social del destinatario: el comprador en el exterior.',
+    39: 'Domicilio del destinatario en el exterior.',
+    41: 'Clase de declaración de exportación, con su código.',
+    50: 'Aduana donde se tramita la exportación, con su código. La Dirección Seccional de Aduanas de Cartagena es 48.',
+    56: 'Incoterm pactado en la venta. El café del caso se vendió FOB Cartagena.',
+    57: 'Lugar de entrega convenido según el Incoterm.',
+    58: 'Código de la moneda en que se pactó la venta.',
+    59: 'Valor de la factura en la moneda de la transacción.',
+    67: 'Modo de transporte con el que sale la mercancía, con su código.',
+    69: 'Aduana por donde sale la mercancía del país, con su código.',
+    70: 'País de destino final de la mercancía, con su código.',
+    72: 'Valor total FOB en dólares: es el valor que se declara en la exportación (art. 363 del Decreto 1165 de 2019).',
+    73: 'Fletes en dólares. Solo se escriben si la venta se pactó con un Incoterm que los incluye (CFR, CIF, CPT, CIP...).',
+    74: 'Seguros en dólares, si la venta los incluye (por ejemplo CIF o CIP).',
+    75: 'Otros gastos en dólares incluidos en la venta.',
+    76: 'Valor total de las exportaciones: FOB (72) + fletes (73) + seguros (74) + otros gastos (75). Se calcula solo.',
+    77: 'Valor en dólares que el exportador debe reintegrar, es decir, canalizar por el mercado cambiario.',
+    79: 'Número de series de la declaración: una por cada subpartida declarada en la hoja 2.',
+    80: 'Número total de bultos.',
+    81: 'Peso bruto total en kilogramos, con empaques.',
+    98: 'Número de la serie. Cada serie corresponde a una subpartida.',
+    99: 'Subpartida arancelaria a 10 dígitos de la mercancía que se exporta.',
+    103: 'Cantidad en la unidad física de la subpartida.',
+    107: 'Número de bultos de esta serie.',
+    108: 'Peso bruto de esta serie en kilogramos.',
+    109: 'Peso neto de esta serie en kilogramos, sin empaques.',
+    110: 'Valor FOB en dólares de esta serie.',
+    112: 'Descripción de la mercancía de esta serie.',
+    115: 'País de origen de la mercancía, con su código.',
+    117: 'Acuerdo comercial con el que el comprador pedirá preferencia arancelaria en destino, si aplica.',
   },
 };

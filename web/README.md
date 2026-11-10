@@ -26,9 +26,28 @@ src/
   data/        contenido: glosario, subpartidas, incoterms, vistos buenos, lecciones
   components/  piezas reutilizables: Modal, Buscador, Filtros, Calculadora, Toast...
   features/    una carpeta por página
-    formularios/kit/    piezas de los formularios DIAN (celdas, casillas con ayuda, tabla de ítems)
-    formularios/hojas/  un archivo por formulario: 001, 500, 560, 600 y DTA
+    formularios/kit/       HojaOficial (dibuja la hoja oficial y pone los campos encima) y piezas del 001
+    formularios/hojas/     un archivo por formulario: 001, 500, 560, 600 y 650 (tránsito)
+    formularios/trazados/  trazado de cada formulario oficial, extraído del PDF de la DIAN
+scripts/
+  extraer_formulario.py    genera los trazados a partir de los PDF oficiales
 ```
+
+### Formularios oficiales
+
+Los formularios 500, 560, 600 y 650 reproducen la distribución y la numeración de los PDF que
+publica la DIAN en `https://www.dian.gov.co/atencionciudadano/formulariosinstructivos/`
+(`Formularios/<año>/Formulario_<número>_<año>.pdf`; aquí se usaron los de 2026). Si la DIAN
+cambia un formulario, se descarga el PDF nuevo y se regenera su trazado:
+
+```bash
+pip install pdfplumber
+python3 scripts/extraer_formulario.py Formulario_500_2026.pdf 1 > src/features/formularios/trazados/500.json
+```
+
+Cada archivo de `hojas/` dice qué va en cada casilla (nombre del dato, valor calculado, lista
+de códigos o posición a mano). El 001 (RUT) todavía usa el diseño anterior: la DIAN no publica
+su hoja en blanco en ese catálogo.
 
 ### Dónde editar el contenido
 
