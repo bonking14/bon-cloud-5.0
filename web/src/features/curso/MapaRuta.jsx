@@ -2,7 +2,7 @@ import { useEffect, useState } from 'react';
 import { useProgreso } from '../../hooks/ProgresoContext.jsx';
 
 // Etapas del embarque de cada módulo y las lecciones que cubre cada una
-const MAPAS = {
+export const MAPAS = {
   1: {
     carga: { icono: '📦', texto: '500 bombas', titulo: 'Embarque: 500 bombas de engranajes' },
     nodos: [
@@ -19,6 +19,15 @@ const MAPAS = {
       { label: 'Café del Caribe', sub: 'Requisitos y beneficios', icono: '🏭', lecciones: [9] },
       { label: 'Origen', sub: 'Acuerdo con la UE', icono: '📜', lecciones: [10] },
       { label: 'Cartagena → Hamburgo', sub: 'Embarque y DEX', icono: '🚢', lecciones: [11] },
+    ],
+  },
+  3: {
+    carga: { icono: '⚙️', texto: 'Llenadora', titulo: 'Embarque: una máquina llenadora de demostración' },
+    nodos: [
+      { label: 'Génova', sub: 'Elegir la modalidad', icono: '🏭', lecciones: [12] },
+      { label: 'Cartagena → Bogotá', sub: 'Tránsito aduanero', icono: '🚛', lecciones: [13] },
+      { label: 'Zona franca', sub: 'Ingreso sin importación', icono: '🏢', lecciones: [14] },
+      { label: 'Feria en Bogotá', sub: 'Importación temporal', icono: '🎪', lecciones: [15] },
     ],
   },
 };

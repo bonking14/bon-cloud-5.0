@@ -88,14 +88,14 @@ export default function Curso() {
     <>
       <div className="dashboard-header" style={{ marginBottom: 20 }}>
         <h1 className="curso-titulo-pagina">Ruta de Aprendizaje de Comercio Internacional</h1>
-        <p>Aprende paso a paso con dos casos reales de práctica: una importación desde Shanghái y una exportación de café a la Unión Europea.</p>
+        <p>Aprende paso a paso con tres casos de práctica: una importación desde Shanghái, una exportación de café a la Unión Europea y una máquina que pasa por tránsito aduanero, zona franca e importación temporal.</p>
       </div>
 
       <section className="curso-progress-header-panel" aria-labelledby="titulo-progreso">
         <div className="curso-progress-top-info">
           <div className="curso-progress-title">
             <h3 id="titulo-progreso">Tu progreso</h3>
-            <p>Aprueba las {TOTAL} lecciones de los dos módulos para descargar tu constancia de práctica.</p>
+            <p>Aprueba las {TOTAL} lecciones de los {modulos.length} módulos para descargar tu constancia de práctica.</p>
           </div>
           <div className="curso-progress-actions">
             {hechas > 0 && <button type="button" className="curso-btn-secundario" onClick={reiniciar}>Reiniciar progreso</button>}

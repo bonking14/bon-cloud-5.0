@@ -2,11 +2,16 @@
  * BonCloud — Ruta de Aprendizaje de Comercio Internacional
  * Datos de las lecciones (cursos.js)
  *
- * Caso único: importación de 500 bombas de engranajes (oleohidráulicas, sin motor)
- * desde Shanghái hasta el Puerto de Cartagena.
+ * Tres casos de práctica, uno por módulo:
+ *  1. Importación de 500 bombas de engranajes (oleohidráulicas, sin motor) desde Shanghái
+ *     hasta el Puerto de Cartagena.
+ *  2. Exportación de café tostado del Puerto de Cartagena a Hamburgo.
+ *  3. Una máquina llenadora de demostración que llega a Cartagena, viaja en tránsito aduanero
+ *     a una zona franca y sale a una feria con importación temporal.
  *
- * Marco normativo: Decreto 1165 de 2019 y sus modificaciones, Resolución DIAN 000046 de 2019,
- * Decisión 571 CAN, Estatuto Tributario (art. 459), Incoterms® 2020 (ICC).
+ * Marco normativo: Decreto 1165 de 2019 y sus modificaciones (entre ellas los Decretos 360 de 2021
+ * y 659 de 2024), Resolución DIAN 000046 de 2019, Decisión 571 CAN, Estatuto Tributario (art. 459),
+ * Ley 1004 de 2005 y Decreto 2147 de 2016 (zonas francas), Incoterms® 2020 (ICC).
  *
  * Valores de práctica: el arancel (5%), el flete, el seguro, la TRM y los gastos de terminal
  * son cifras de ejemplo del caso. El arancel real de 8413.60.90.00 hoy es 0% (Decreto 272 de 2018);
@@ -30,6 +35,12 @@ export const modulos = [
     titulo: 'Exportación y origen',
     subtitulo: 'De Colombia a la Unión Europea',
     caso: 'Caso: café tostado colombiano, del Puerto de Cartagena a Hamburgo',
+  },
+  {
+    id: 3,
+    titulo: 'Regímenes especiales',
+    subtitulo: 'Tránsito, zona franca e importación temporal',
+    caso: 'Caso: una máquina llenadora de demostración, de Génova a una zona franca y a una feria en Bogotá',
   },
 ];
 
@@ -955,6 +966,371 @@ export const lecciones = [
         ],
         correcta: 1,
         explicacion: "En la exportación se declara el valor FOB. Si la venta se pactó en CIF u otro término que incluya flete y seguro, esos conceptos se informan aparte."
+      }
+    ]
+  },
+
+  // ───────────────────────────────── 12
+  {
+    id: 12,
+    orden: 12,
+    modulo: 3,
+    titulo: "Modalidades de importación: no todo es importación ordinaria",
+    nivel: "Fundamentos",
+    duracionMin: 20,
+    objetivos: [
+      "Conocer las modalidades de importación del régimen de aduanas",
+      "Distinguir entre libre disposición y disposición restringida",
+      "Elegir la modalidad según lo que va a pasar con la mercancía"
+    ],
+    contenido: `
+      <p>En el módulo 1 hiciste una <strong>importación ordinaria</strong>: la mercancía entra para quedarse de manera indefinida, paga los tributos y queda en <strong>libre disposición</strong> (art. 173 del Decreto 1165 de 2019). Pero no toda mercancía entra para quedarse, ni toda paga tributos. El artículo 172 enumera doce modalidades de importación, y el decreto regula aparte el régimen de exportación y el de tránsito.</p>
+
+      <h4>Las modalidades (art. 172)</h4>
+      <ul>
+        <li><strong>Ordinaria</strong> (art. 173): para permanecer de manera indefinida, en libre disposición, con el pago de los tributos aduaneros.</li>
+        <li><strong>Con franquicia</strong> (art. 193): un tratado, un convenio o una ley exonera total o parcialmente los tributos. La mercancía queda en disposición restringida: para venderla o cambiarle el destino hay que modificar antes la declaración y pagar los tributos exonerados (art. 195).</li>
+        <li><strong>Reimportación en el mismo estado</strong> (art. 198): vuelve sin pagar tributos la mercancía que se exportó y no se modificó en el exterior. Por regla general, la declaración se presenta dentro del año siguiente a la exportación.</li>
+        <li><strong>En cumplimiento de garantía</strong> (art. 199): entra sin tributos la mercancía que se reparó en el exterior, o la que reemplaza a una averiada o defectuosa, por la garantía del fabricante o proveedor.</li>
+        <li><strong><span class="term-glosario" data-glosario="Importación Temporal">Temporal para reexportación en el mismo estado</span></strong> (art. 200): entra con los tributos suspendidos y debe volver a salir en un plazo, sin modificaciones.</li>
+        <li><strong>Temporal para perfeccionamiento activo</strong> y <strong>transformación y/o ensamble</strong>: para reparar, procesar o ensamblar mercancías.</li>
+        <li><strong>Otras:</strong> reimportación por perfeccionamiento pasivo, tráfico postal y envíos urgentes, entregas urgentes, viajeros y muestras sin valor comercial.</li>
+      </ul>
+
+      <h4>Libre disposición o disposición restringida</h4>
+      <p>Según la modalidad, la mercancía queda en libre o en restringida disposición. En disposición restringida no se puede vender ni destinar a otro fin sin cumplir antes las condiciones de la modalidad. Salvo en la de viajeros, a todas las modalidades se les aplican las reglas de la importación ordinaria, con las excepciones propias de cada una (art. 172).</p>
+
+      <h4>Tres preguntas para elegir</h4>
+      <ul>
+        <li><strong>¿La mercancía se queda en el país o vuelve a salir?</strong> Si vuelve a salir sin cambios, una importación temporal evita pagar tributos por algo que no se va a quedar.</li>
+        <li><strong>¿Alguna norma la exonera?</strong> Si un tratado, un convenio o una ley concede la exención, procede la franquicia.</li>
+        <li><strong>¿Ya estuvo en Colombia?</strong> Si se exportó y regresa igual, o regresa reparada por garantía, hay modalidades que no pagan tributos.</li>
+      </ul>
+    `,
+    etapaCaso: "Andina Pack S.A.S. (empresa ficticia) distribuye en Colombia las máquinas del fabricante italiano Linea Pack S.r.l. (ficticio) y es usuario comercial de una zona franca de la Sabana de Bogotá. Quiere traer una máquina llenadora de botellas de demostración, de USD 80.000 FOB Génova, para mostrarla a sus clientes; todavía no sabe si se venderá en Colombia o en otro país. Con una importación ordinaria pagaría de entrada $86.951.000 de arancel e IVA (valores de práctica: flete USD 4.500, seguro USD 500, arancel de práctica del 5% y TRM de $4.100). Decide no nacionalizarla todavía: la traerá consignada a su nombre a la zona franca y, cuando haya una feria, la sacará con una importación temporal.",
+    practica: {
+      texto: "Compara la importación ordinaria, la franquicia y la temporal con los valores de la máquina",
+      moduloUrl: "/importacion/ordinaria",
+      parametros: { fob: 80000, flete: 4500, seguro: 500, arancel: 5, trm: 4100 }
+    },
+    quiz: [
+      {
+        pregunta: "¿Cuál de estas NO es una modalidad de importación del artículo 172 del Decreto 1165 de 2019?",
+        opciones: [
+          "Importación con franquicia",
+          "Reimportación en el mismo estado",
+          "Tránsito aduanero",
+          "Muestras sin valor comercial"
+        ],
+        correcta: 2,
+        explicacion: "El tránsito aduanero no es una modalidad de importación: pertenece al régimen de tránsito (art. 432). Las otras tres están en la lista del artículo 172."
+      },
+      {
+        pregunta: "Una empresa colombiana exportó temporalmente una máquina para exhibirla en una feria en Panamá y ahora regresa sin cambios. ¿Qué modalidad usa?",
+        opciones: [
+          "Reimportación en el mismo estado",
+          "Importación ordinaria, pagando arancel e IVA",
+          "Importación con franquicia",
+          "Importación en cumplimiento de garantía"
+        ],
+        correcta: 0,
+        explicacion: "La mercancía que se exportó y no se modificó en el exterior vuelve sin pagar tributos por la reimportación en el mismo estado (art. 198), si se prueba que es la misma que salió."
+      },
+      {
+        pregunta: "¿Qué significa que una mercancía quede en disposición restringida?",
+        opciones: [
+          "Que la DIAN la retiene en el puerto hasta que se paguen los tributos",
+          "Que no se puede vender ni cambiar de destino sin cumplir antes las condiciones de la modalidad",
+          "Que solo puede usarse dentro de una zona franca",
+          "Que el importador no puede usarla durante el primer año"
+        ],
+        correcta: 1,
+        explicacion: "La disposición restringida limita lo que el importador puede hacer con la mercancía. Por ejemplo, en la franquicia hay que modificar la declaración y pagar los tributos exonerados antes de venderla (art. 195)."
+      },
+      {
+        pregunta: "Andina Pack no sabe si la llenadora se quedará en Colombia. ¿Por qué no le conviene la importación ordinaria?",
+        opciones: [
+          "Porque las máquinas no se pueden importar por la modalidad ordinaria",
+          "Porque la importación ordinaria exige que el importador sea una agencia de aduanas",
+          "Porque en la ordinaria la mercancía queda en disposición restringida",
+          "Porque pagaría de entrada el arancel y el IVA de una mercancía que quizá vuelva a salir"
+        ],
+        correcta: 3,
+        explicacion: "La importación ordinaria es para mercancía que permanece de manera indefinida y exige pagar los tributos (art. 173). Si la máquina puede volver a salir, hay modalidades que no obligan a pagarlos de entrada."
+      }
+    ]
+  },
+
+  // ───────────────────────────────── 13
+  {
+    id: 13,
+    orden: 13,
+    modulo: 3,
+    titulo: "Tránsito aduanero: del puerto a otra aduana bajo control",
+    nivel: "Intermedio",
+    duracionMin: 25,
+    objetivos: [
+      "Saber qué es el tránsito aduanero y cuándo se puede pedir",
+      "Seguir los pasos de una operación de tránsito",
+      "Identificar las garantías y quién responde por la mercancía"
+    ],
+    contenido: `
+      <p>El <span class="term-glosario" data-glosario="Tránsito Aduanero">tránsito aduanero</span> permite transportar por tierra, <strong>bajo control aduanero</strong>, mercancías de una aduana a otra dentro del país (art. 432 del Decreto 1165 de 2019). La mercancía viaja sin haberse declarado en importación: por eso va precintada y el declarante garantiza los tributos.</p>
+
+      <h4>Cuándo se puede pedir (art. 433)</h4>
+      <p>No es para cualquier carga. Solo se autoriza cuando la mercancía:</p>
+      <ul>
+        <li>viene consignada o se endosa a un <strong>usuario de zona franca</strong>, al titular de un depósito privado, o a la Nación y otras entidades públicas;</li>
+        <li>se va a someter a transformación y/o ensamble o a una importación temporal para perfeccionamiento activo;</li>
+        <li>o viene consignada a un Operador Económico Autorizado (OEA) o a un usuario aduanero con trámite simplificado, casos en los que procede para cualquier modalidad de importación.</li>
+      </ul>
+
+      <h4>Los pasos</h4>
+      <ol>
+        <li><strong>Solicitud:</strong> una vez descargada la mercancía y <strong>sin ingresarla a depósito</strong> (art. 438), el declarante presenta la <span class="term-glosario" data-glosario="DTA">declaración de tránsito aduanero (DTA)</span> ante la <strong>aduana de partida</strong>, en los servicios informáticos de la DIAN (art. 439), soportada en el documento de transporte y en la factura comercial o proforma (art. 440).</li>
+        <li><strong>Transportador:</strong> el tránsito solo se hace en vehículos de empresas inscritas y autorizadas por la DIAN (art. 434).</li>
+        <li><strong>Garantías (art. 436):</strong> el declarante respalda los tributos y las sanciones. Una agencia de aduanas lo hace con su garantía global; quien no tiene garantía global constituye una específica por el <strong>40% del valor FOB</strong>. El transportador respalda con su garantía global la finalización del tránsito.</li>
+        <li><strong>Precintos:</strong> la aduana autoriza el tránsito si la unidad de carga viene sellada y precintada. En la aduana de partida no hay inspección, salvo malas condiciones exteriores, diferencias de peso o señales de que se violaron los precintos (art. 443).</li>
+        <li><strong>Plazo y ruta:</strong> la aduana fija la duración según la distancia (art. 444). El vehículo usa la ruta más directa y los precintos deben llegar intactos (art. 445).</li>
+        <li><strong>Finalización (art. 448):</strong> el tránsito termina con la entrega de la carga al depósito o al <span class="term-glosario" data-glosario="Usuario Operador">usuario operador</span> de la zona franca, que confronta cantidad, peso y estado de los bultos con la DTA. Si hay inconsistencias, elabora un acta e informa a la aduana.</li>
+      </ol>
+
+      <h4>Quién responde (art. 435)</h4>
+      <p>El declarante responde por la información de la DTA y por los tributos de la mercancía que no llegue a la aduana de destino; si es una agencia de aduanas, responde por los tributos en cualquier evento. La empresa transportadora responde por finalizar el tránsito dentro del plazo autorizado.</p>
+      <p>Cuando el traslado bajo control aduanero se hace por agua o por aire entre dos puertos o aeropuertos del país, la modalidad se llama <strong>cabotaje</strong> (art. 454).</p>
+    `,
+    etapaCaso: "El contenedor con la llenadora llega al Puerto de Cartagena. En el B/L viene consignado a Andina Pack, usuario de zona franca, así que el tránsito procede (art. 433). Su agencia de aduanas presenta la DTA ante la aduana de Cartagena, que es la aduana de partida, sin ingresar la carga a depósito. La aduana verifica que los precintos del contenedor estén intactos, autoriza el tránsito y fija el plazo. Un camión de una transportadora inscrita ante la DIAN lleva el contenedor por la ruta más directa hasta la zona franca, en la jurisdicción de la aduana de Bogotá. Allí el usuario operador revisa precintos, peso y bultos contra la DTA y registra la llegada: el tránsito termina.",
+    practica: {
+      texto: "Practica el diligenciamiento de la declaración de tránsito aduanero (DTA)",
+      moduloUrl: "/formularios",
+      parametros: { form: "DTA" }
+    },
+    quiz: [
+      {
+        pregunta: "¿Qué permite la modalidad de tránsito aduanero?",
+        opciones: [
+          "Nacionalizar la mercancía en el puerto sin pagar tributos",
+          "Transportar por tierra mercancía bajo control aduanero de una aduana a otra dentro del país",
+          "Exportar mercancía sin presentar la solicitud de autorización de embarque",
+          "Retirar la mercancía del puerto antes de que llegue el buque"
+        ],
+        correcta: 1,
+        explicacion: "El artículo 432 del Decreto 1165 de 2019 define el tránsito aduanero como el transporte terrestre de mercancías, bajo control aduanero, de una aduana a otra situadas en el territorio aduanero nacional."
+      },
+      {
+        pregunta: "Según el artículo 433, ¿cuál de estas cargas puede ir en tránsito aduanero?",
+        opciones: [
+          "Un contenedor consignado a un usuario de zona franca",
+          "Mercancía que ya obtuvo el levante en el puerto",
+          "El equipaje de un viajero",
+          "Cualquier carga, si el importador prefiere declararla en otra ciudad"
+        ],
+        correcta: 0,
+        explicacion: "El tránsito solo se autoriza en los casos del artículo 433; uno de ellos es la mercancía consignada o endosada a un usuario de zona franca. No basta con que el importador prefiera otra ciudad."
+      },
+      {
+        pregunta: "Un declarante sin garantía global pide un tránsito aduanero. ¿Por cuánto debe constituir la garantía específica?",
+        opciones: [
+          "Por el 5% del valor FOB de la mercancía",
+          "Por el 100% de los tributos aduaneros",
+          "Por el 40% del valor FOB de la mercancía",
+          "No necesita garantía: basta la del transportador"
+        ],
+        correcta: 2,
+        explicacion: "El artículo 436 exige al declarante una garantía específica equivalente al 40% del valor FOB de la mercancía cuando no cuenta con una garantía global, como la de las agencias de aduanas. La del transportador cubre otra cosa: la finalización del tránsito."
+      },
+      {
+        pregunta: "¿Con qué termina normalmente una operación de tránsito aduanero?",
+        opciones: [
+          "Con el pago de los tributos en la aduana de partida",
+          "Con la salida del camión del puerto",
+          "Con la autorización de levante en la aduana de partida",
+          "Con la entrega de la carga al depósito o al usuario operador de la zona franca de destino"
+        ],
+        correcta: 3,
+        explicacion: "El artículo 448 dice que la modalidad finaliza con la entrega de la carga al depósito o al usuario operador de la zona franca, que la confronta con la DTA y registra la información en los servicios informáticos."
+      }
+    ]
+  },
+
+  // ───────────────────────────────── 14
+  {
+    id: 14,
+    orden: 14,
+    modulo: 3,
+    titulo: "Zonas francas: dentro del país, fuera del territorio aduanero",
+    nivel: "Intermedio",
+    duracionMin: 20,
+    objetivos: [
+      "Entender qué es una zona franca y quiénes operan en ella",
+      "Distinguir las operaciones de ingreso y salida de mercancías",
+      "Saber cuándo se pagan los tributos de una mercancía que pasa por zona franca"
+    ],
+    contenido: `
+      <p>Una <span class="term-glosario" data-glosario="Zona Franca">zona franca</span> es un área geográfica delimitada dentro del territorio nacional donde se desarrollan actividades industriales de bienes y de servicios, o actividades comerciales, con reglas especiales en materia tributaria, aduanera y de comercio exterior. Las mercancías que ingresan a ella <strong>se consideran fuera del territorio aduanero nacional</strong> para efectos de los impuestos a las importaciones y a las exportaciones (art. 1 de la Ley 1004 de 2005).</p>
+
+      <h4>Clases de zonas francas (art. 3 del Decreto 2147 de 2016)</h4>
+      <ul>
+        <li><strong>Permanente:</strong> en ella se instalan múltiples usuarios industriales o comerciales.</li>
+        <li><strong>Permanente especial:</strong> se instala un único usuario industrial.</li>
+        <li><strong>Transitoria:</strong> el área donde se celebran ferias, exposiciones, congresos y seminarios de importancia para la economía o el comercio internacional.</li>
+      </ul>
+
+      <h4>Usuarios (art. 3 de la Ley 1004 de 2005)</h4>
+      <ul>
+        <li><strong><span class="term-glosario" data-glosario="Usuario Operador">Usuario operador</span>:</strong> dirige, administra y supervisa la zona franca y califica a sus usuarios. Autoriza todo ingreso y salida de bienes (art. 475 del Decreto 1165 de 2019).</li>
+        <li><strong>Usuario industrial de bienes:</strong> produce, transforma o ensambla bienes.</li>
+        <li><strong>Usuario industrial de servicios:</strong> presta servicios como logística, reparación, tecnología o salud.</li>
+        <li><strong>Usuario comercial:</strong> hace mercadeo, comercialización, almacenamiento o conservación de bienes.</li>
+      </ul>
+
+      <h4>Las cuatro operaciones (Decreto 1165 de 2019)</h4>
+      <ul>
+        <li><strong>Del exterior a la zona franca:</strong> no se considera una importación. Solo se requiere que los bienes vengan consignados en el documento de transporte a un usuario de la zona, o que el documento se endose a su favor (art. 477).</li>
+        <li><strong>De la zona franca al exterior:</strong> es una exportación, con autorización del usuario operador (art. 478).</li>
+        <li><strong>Del resto del país a la zona franca:</strong> es una exportación definitiva cuando se trata de materias primas, partes, insumos y bienes terminados nacionales o en libre disposición, a favor del usuario operador o de un usuario industrial. El envío a un usuario comercial no se considera exportación (art. 479).</li>
+        <li><strong>De la zona franca al resto del país:</strong> es una importación y sigue las reglas de las importaciones (art. 482). La mercancía extranjera almacenada se valora en el estado en que se encuentre y paga el arancel de su subpartida; a la que se fabricó en la zona franca se le descuenta del valor en aduana el valor agregado nacional (art. 483).</li>
+      </ul>
+    `,
+    etapaCaso: "La llenadora queda almacenada en la bodega de Andina Pack en la zona franca. Como vino del exterior consignada a un usuario, su ingreso no fue una importación: no se presentó declaración de importación ni se pagaron arancel ni IVA. Allí puede permanecer mientras aparece un comprador. Si la compra un cliente de otro país, saldrá de la zona franca como una exportación, sin haber pagado tributos en Colombia. Si la compra una planta de Medellín, su salida al resto del país será una importación: en ese momento se declaran y se pagan el arancel y el IVA sobre su valor en aduana.",
+    practica: {
+      texto: "Repasa el término zona franca y sus términos relacionados en el glosario",
+      moduloUrl: "/glosario",
+      parametros: { termino: "Zona Franca" }
+    },
+    quiz: [
+      {
+        pregunta: "Para efectos de los impuestos a las importaciones y a las exportaciones, ¿cómo se consideran las mercancías que ingresan a una zona franca?",
+        opciones: [
+          "Fuera del territorio aduanero nacional",
+          "Nacionalizadas y en libre disposición",
+          "En abandono legal a favor de la Nación",
+          "En tránsito aduanero permanente"
+        ],
+        correcta: 0,
+        explicacion: "El artículo 1 de la Ley 1004 de 2005 dice que las mercancías ingresadas a la zona franca se consideran fuera del territorio aduanero nacional para efectos de los impuestos a las importaciones y a las exportaciones."
+      },
+      {
+        pregunta: "¿Quién autoriza el ingreso y la salida de bienes de una zona franca?",
+        opciones: [
+          "El usuario comercial dueño de la bodega",
+          "La sociedad portuaria",
+          "El usuario operador",
+          "La naviera que trajo la carga"
+        ],
+        correcta: 2,
+        explicacion: "El usuario operador debe autorizar todo ingreso y salida de bienes de la zona franca, sin perjuicio de los demás requisitos aduaneros (art. 475 del Decreto 1165 de 2019)."
+      },
+      {
+        pregunta: "Una fábrica de Cali vende insumos nacionales a un usuario industrial de bienes de una zona franca. ¿Qué es esa operación para la fábrica?",
+        opciones: [
+          "Una importación ordinaria",
+          "Una exportación definitiva",
+          "Un tránsito aduanero",
+          "Una reimportación en el mismo estado"
+        ],
+        correcta: 1,
+        explicacion: "La introducción a zona franca de materias primas, partes, insumos y bienes terminados nacionales, a favor del usuario operador o de un usuario industrial, se considera exportación definitiva (art. 479). Si el destinatario fuera un usuario comercial, no lo sería."
+      },
+      {
+        pregunta: "Una mercancía extranjera almacenada en zona franca se vende a una empresa de Medellín. ¿Qué pasa cuando sale hacia el resto del país?",
+        opciones: [
+          "Sale libremente, porque ya estaba dentro de Colombia",
+          "Se considera una exportación y no paga tributos",
+          "Solo paga el IVA, nunca el arancel",
+          "Es una importación: se declara y paga los tributos que correspondan"
+        ],
+        correcta: 3,
+        explicacion: "La introducción al resto del territorio aduanero nacional de bienes procedentes de zona franca es una importación y se somete a las normas de las importaciones (art. 482 del Decreto 1165 de 2019)."
+      }
+    ]
+  },
+
+  // ───────────────────────────────── 15
+  {
+    id: 15,
+    orden: 15,
+    modulo: 3,
+    titulo: "Importación temporal: usar la mercancía sin nacionalizarla",
+    nivel: "Avanzado",
+    duracionMin: 25,
+    objetivos: [
+      "Distinguir la importación temporal de corto y de largo plazo",
+      "Entender la suspensión de tributos y la garantía",
+      "Saber cómo se termina la modalidad y qué pasa si se vence el plazo"
+    ],
+    contenido: `
+      <p>La <span class="term-glosario" data-glosario="Importación Temporal">importación temporal para reexportación en el mismo estado</span> permite traer mercancía con los <strong>tributos aduaneros suspendidos</strong>, para reexportarla en un plazo señalado y sin modificaciones, salvo la depreciación normal por el uso. Mientras tanto queda en disposición restringida (art. 200 del Decreto 1165 de 2019). No sirve para mercancías fungibles ni para las que no puedan identificarse plenamente.</p>
+
+      <h4>Dos clases (art. 201)</h4>
+      <ul>
+        <li><strong>De corto plazo:</strong> para una finalidad específica de corta permanencia, como exhibir mercancía en ferias y exposiciones (la lista está en el art. 232 de la Resolución 46 de 2019). El plazo máximo es de <strong>seis meses</strong> desde el levante, prorrogables por tres más. Los tributos se liquidan en la declaración, pero <strong>no se pagan</strong> (art. 202).</li>
+        <li><strong>De largo plazo:</strong> para bienes de capital, con sus piezas y accesorios. El plazo máximo es de <strong>cinco años</strong>. Los tributos se liquidan en dólares y se pagan en cuotas semestrales iguales, por semestres vencidos (art. 203).</li>
+      </ul>
+
+      <h4>Garantía (art. 205)</h4>
+      <p>La aduana exige una garantía a favor de la Nación que respalda la finalización de la modalidad, con los tributos, los intereses y la sanción a que haya lugar: por regla general es del 150% de los tributos, y en el corto plazo, del <strong>100% de los tributos</strong> que se habrían causado en una importación ordinaria. No se exige para mercancías destinadas a eventos científicos, culturales, deportivos o recreativos.</p>
+
+      <h4>Cómo termina (art. 214)</h4>
+      <ul>
+        <li>Con la <strong><span class="term-glosario" data-glosario="Reexportación">reexportación</span></strong>, que se tramita como una exportación: solicitud de autorización de embarque y declaración (arts. 380 y 381). Los bienes de capital también pueden reexportarse a una zona franca, a nombre de un usuario industrial o comercial (art. 480).</li>
+        <li>Con la <strong>importación ordinaria</strong> o con franquicia: antes de que venza el plazo se modifica la declaración, se pagan los tributos y se obtiene el levante (art. 208).</li>
+        <li>Con la modificación de oficio a importación ordinaria que hace la DIAN por incumplimiento, con la destrucción de la mercancía por fuerza mayor o caso fortuito demostrados, o con su legalización.</li>
+      </ul>
+
+      <h4>Si se vence el plazo (art. 208)</h4>
+      <p>En el corto plazo, si la mercancía no se reexporta ni se modifica la declaración a tiempo, se aprehende y la garantía se hace efectiva por los tributos y la sanción, a menos que el importador la legalice voluntariamente pagando los tributos y la sanción.</p>
+    `,
+    etapaCaso: "Andina Pack exhibirá la llenadora durante tres meses en una feria industrial en Bogotá, donde no puede venderse mientras dure el evento. Sacarla de la zona franca al resto del país es una importación, así que presenta una declaración de importación temporal de corto plazo por tres meses. En ella liquida el arancel de práctica del 5% ($17.425.000) y el IVA del 19% ($69.526.000) sobre un valor en aduana de USD 85.000 a una TRM de $4.100, pero no los paga: quedan suspendidos $86.951.000 y constituye una garantía por ese mismo valor. Al terminar la feria, antes de que venza el plazo, reexporta la máquina a la zona franca a nombre de Andina Pack, porque es un bien de capital (art. 480): la modalidad termina sin pagar tributos. Si hubiera decidido dejarla en el país, habría tenido que modificar la declaración a importación ordinaria y pagar los tributos antes del vencimiento.",
+    practica: {
+      texto: "Calcula los tributos suspendidos de la máquina en la calculadora de importación temporal",
+      moduloUrl: "/importacion/temporal-corto",
+      parametros: { fob: 80000, flete: 4500, seguro: 500, arancel: 5, trm: 4100 }
+    },
+    quiz: [
+      {
+        pregunta: "¿Qué pasa con los tributos aduaneros en una importación temporal de corto plazo?",
+        opciones: [
+          "Se pagan completos al presentar la declaración y se devuelven al reexportar",
+          "No se liquidan ni se pagan, porque la mercancía no es una importación",
+          "Se liquidan en la declaración, pero no se pagan: quedan suspendidos y respaldados con una garantía",
+          "Se pagan en cuotas mensuales mientras la mercancía esté en el país"
+        ],
+        correcta: 2,
+        explicacion: "En la declaración de importación temporal de corto plazo se liquidan los tributos para constituir la garantía, pero no se pagan (art. 202 del Decreto 1165 de 2019)."
+      },
+      {
+        pregunta: "¿Cuál es el plazo máximo de una importación temporal de corto plazo?",
+        opciones: [
+          "Un mes, sin prórroga",
+          "Seis meses desde el levante, prorrogables por tres meses más",
+          "Un año, prorrogable por otro año",
+          "Cinco años"
+        ],
+        correcta: 1,
+        explicacion: "El artículo 201 fija para el corto plazo un máximo de seis meses contados desde el levante, prorrogables por tres meses más. Los cinco años son el máximo del largo plazo."
+      },
+      {
+        pregunta: "Una constructora trae una grúa, que es un bien de capital, en importación temporal de largo plazo por tres años. ¿Cómo paga los tributos?",
+        opciones: [
+          "En cuotas semestrales iguales, por semestres vencidos",
+          "No paga nada: en toda importación temporal los tributos quedan suspendidos",
+          "Todo de contado al presentar la declaración",
+          "En un solo pago al final de los tres años"
+        ],
+        correcta: 0,
+        explicacion: "En el largo plazo los tributos se liquidan en dólares y se distribuyen en cuotas semestrales iguales durante el término de permanencia, que se pagan por semestres vencidos (art. 203)."
+      },
+      {
+        pregunta: "Faltan pocos días para que venza el plazo y Andina Pack decide dejar la máquina en Colombia. ¿Qué debe hacer?",
+        opciones: [
+          "Nada: al vencer el plazo la máquina pasa sola a libre disposición",
+          "Venderla y avisar después a la DIAN",
+          "Pedir a la aseguradora que pague los tributos con la garantía",
+          "Modificar la declaración a importación ordinaria, pagar los tributos y obtener el levante antes del vencimiento"
+        ],
+        correcta: 3,
+        explicacion: "El artículo 208 exige que, antes de que venza el plazo, el importador modifique la declaración de importación temporal a ordinaria y obtenga el levante, o reexporte la mercancía. Si no lo hace, en el corto plazo la mercancía se aprehende y la garantía se hace efectiva."
       }
     ]
   }

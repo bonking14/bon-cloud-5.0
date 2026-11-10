@@ -61,7 +61,7 @@ function TarjetaRuta() {
     return () => cancelAnimationFrame(id);
   }, [hechas, total]);
 
-  let texto = `Dos casos de práctica, importación y exportación, en ${total} lecciones.`;
+  let texto = `Tres casos de práctica: importación, exportación y regímenes especiales, en ${total} lecciones.`;
   let boton = 'Empezar';
   let destino = '/curso';
   if (hechas === total) {

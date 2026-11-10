@@ -77,10 +77,10 @@ export const glosario = [
     termino: "DTA",
     nombreCompleto: "Declaración de Tránsito Aduanero",
     categoria: "Formularios DIAN",
-    definicion: "Declaración con la que la mercancía se traslada bajo control aduanero de una aduana a otra dentro del país, con los tributos suspendidos mientras dura el tránsito.",
-    ejemplo: "Un contenedor que llega al Puerto de Cartagena pero se declarará en la aduana de Medellín viaja en tránsito aduanero, amparado por la DTA.",
-    relacionado: ["Nacionalización", "Zona Franca", "Formulario 500"],
-    moduloBonCloud: "/formularios"
+    definicion: "Declaración con la que la mercancía se traslada bajo control aduanero de una aduana a otra dentro del país, con los tributos suspendidos mientras dura el tránsito. Se presenta ante la aduana de partida y solo procede en los casos del artículo 433 del Decreto 1165 de 2019.",
+    ejemplo: "Un contenedor que llega al Puerto de Cartagena consignado a un usuario de una zona franca de la Sabana de Bogotá viaja en tránsito aduanero, amparado por la DTA.",
+    relacionado: ["Tránsito Aduanero", "Zona Franca", "Usuario Operador"],
+    moduloBonCloud: "/formularios/DTA"
   },
   {
     termino: "Formulario 500",
@@ -259,8 +259,44 @@ export const glosario = [
     categoria: "Regímenes Especiales",
     definicion: "Extensión de territorio nacional con beneficios tributarios, aduaneros y de comercio exterior cuyas mercancías se entienden fuera del territorio aduanero nacional para efectos de los tributos a las importaciones y exportaciones (Ley 1004 de 2005).",
     ejemplo: "Mercancía que ingresa del exterior a una zona franca de Cartagena no paga arancel ni IVA mientras permanezca allí; los paga cuando sale al resto del país con una declaración de importación.",
-    relacionado: ["DTA", "Nacionalización"],
+    relacionado: ["Usuario Operador", "Tránsito Aduanero", "Reexportación"],
     moduloBonCloud: "/simulador"
+  },
+  {
+    termino: "Tránsito Aduanero",
+    nombreCompleto: "Modalidad de Tránsito Aduanero",
+    categoria: "Regímenes Especiales",
+    definicion: "Modalidad que permite transportar por tierra mercancías bajo control aduanero de una aduana a otra dentro del país (art. 432 del Decreto 1165 de 2019). Solo se autoriza en los casos del artículo 433, por ejemplo para carga consignada a un usuario de zona franca, y se hace en vehículos de transportadoras inscritas ante la DIAN.",
+    ejemplo: "La llenadora del módulo 3 viaja en tránsito aduanero del Puerto de Cartagena a una zona franca de la Sabana de Bogotá; el tránsito termina cuando el usuario operador recibe la carga.",
+    relacionado: ["DTA", "Zona Franca", "Usuario Operador"],
+    moduloBonCloud: "/formularios/DTA"
+  },
+  {
+    termino: "Usuario Operador",
+    nombreCompleto: "Usuario Operador de Zona Franca",
+    categoria: "Regímenes Especiales",
+    definicion: "Persona jurídica autorizada para dirigir, administrar y supervisar una o varias zonas francas y para calificar a sus usuarios (art. 3 de la Ley 1004 de 2005). Autoriza todo ingreso y salida de bienes de la zona franca (art. 475 del Decreto 1165 de 2019).",
+    ejemplo: "Cuando el camión con la llenadora llega a la zona franca, el usuario operador revisa precintos, peso y bultos contra la DTA y registra la llegada.",
+    relacionado: ["Zona Franca", "Tránsito Aduanero", "DTA"],
+    moduloBonCloud: "/formularios/DTA"
+  },
+  {
+    termino: "Importación Temporal",
+    nombreCompleto: "Importación Temporal para Reexportación en el Mismo Estado",
+    categoria: "Regímenes Especiales",
+    definicion: "Modalidad que permite traer mercancía con los tributos aduaneros suspendidos, para reexportarla en un plazo señalado sin modificaciones (art. 200 del Decreto 1165 de 2019). De corto plazo: hasta seis meses, prorrogables por tres; los tributos se liquidan pero no se pagan. De largo plazo: bienes de capital, hasta cinco años, con tributos en cuotas semestrales (arts. 201 a 203).",
+    ejemplo: "Andina Pack saca la llenadora de la zona franca para una feria de tres meses con una importación temporal de corto plazo: suspende $86.951.000 de tributos y los respalda con una garantía.",
+    relacionado: ["Reexportación", "Zona Franca", "Nacionalización"],
+    moduloBonCloud: "/importacion/temporal-corto"
+  },
+  {
+    termino: "Reexportación",
+    nombreCompleto: "Modalidad de Exportación: Reexportación",
+    categoria: "Regímenes Especiales",
+    definicion: "Modalidad de exportación con la que sale definitivamente del país la mercancía que estuvo en importación temporal o en transformación y/o ensamble (art. 380 del Decreto 1165 de 2019). Se tramita con solicitud de autorización de embarque y declaración, como una exportación definitiva, y es una de las formas de terminar la importación temporal (art. 214).",
+    ejemplo: "Al terminar la feria, Andina Pack reexporta la llenadora a la zona franca antes de que venza el plazo: la importación temporal termina sin pagar tributos.",
+    relacionado: ["Importación Temporal", "SAE", "Formulario 600"],
+    moduloBonCloud: "/formularios/600"
   },
   {
     termino: "SAE",
