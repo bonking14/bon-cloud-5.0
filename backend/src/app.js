@@ -8,6 +8,7 @@ const authRoutes = require('./routes/auth');
 const progresoRoutes = require('./routes/progreso');
 const cuentaRoutes = require('./routes/cuenta');
 const adminRoutes = require('./routes/admin');
+const grupos = require('./routes/grupos');
 const { noEncontrado, manejarErrores } = require('./middleware/errores');
 
 const app = express();
@@ -41,6 +42,8 @@ app.use('/api/auth', authRoutes);
 app.use('/api/progreso', progresoRoutes);
 app.use('/api/cuenta', cuentaRoutes);
 app.use('/api/admin', adminRoutes);
+app.use('/api/grupos', grupos.profesor);
+app.use('/api', grupos.estudiante);
 
 app.use(noEncontrado);
 app.use(manejarErrores);

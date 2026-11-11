@@ -3,6 +3,7 @@ import { Navigate } from 'react-router-dom';
 import { pedir } from '../../auth/api.js';
 import { useAuth } from '../../auth/AuthContext.jsx';
 import { REGLA_CLAVE, TEXTO_REGLA } from './reglas.js';
+import MisGrupos from '../grupos/MisGrupos.jsx';
 import css from './Cuenta.module.css';
 
 export default function Perfil() {
@@ -75,6 +76,8 @@ export default function Perfil() {
           <span>Correo confirmado: <strong>{usuario.emailVerificado ? 'Sí' : 'No'}</strong></span>
         </div>
       </section>
+
+      <MisGrupos />
 
       <form className={css.panel} onSubmit={guardarNombre} aria-labelledby="t-nombre">
         <h2 id="t-nombre">Nombre</h2>

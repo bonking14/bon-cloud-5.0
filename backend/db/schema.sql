@@ -56,3 +56,35 @@ CREATE TABLE IF NOT EXISTS tokens_cuenta (
   creado_en  TIMESTAMPTZ NOT NULL DEFAULT NOW()
 );
 CREATE INDEX IF NOT EXISTS tokens_cuenta_usuario_idx ON tokens_cuenta (usuario_id, tipo);
+
+-- ── Grupos de un profesor y notas de los quizzes ──
+CREATE TABLE IF NOT EXISTS grupos (
+  id          SERIAL PRIMARY KEY,
+  nombre      VARCHAR(100) NOT NULL,
+  profesor_id INTEGER      NOT NULL REFERENCES usuarios(id) ON DELETE CASCADE,
+  -- Código que el profesor comparte para que sus estudiantes se unan
+  codigo      VARCHAR(12)  NOT NULL UNIQUE,
+  archivado   BOOLEAN      NOT NULL DEFAULT FALSE,
+  creado_en   TIMESTAMPTZ  NOT NULL DEFAULT NOW()
+);
+CREATE INDEX IF NOT EXISTS grupos_profesor_idx ON grupos (profesor_id);
+
+CREATE TABLE IF NOT EXISTS grupo_miembros (
+  grupo_id   INTEGER     NOT NULL REFERENCES grupos(id) ON DELETE CASCADE,
+  usuario_id INTEGER     NOT NULL REFERENCES usuarios(id) ON DELETE CASCADE,
+  unido_en   TIMESTAMPTZ NOT NULL DEFAULT NOW(),
+  PRIMARY KEY (grupo_id, usuario_id)
+);
+CREATE INDEX IF NOT EXISTS grupo_miembros_usuario_idx ON grupo_miembros (usuario_id);
+
+-- Un registro por cada quiz terminado, aprobado o no
+CREATE TABLE IF NOT EXISTS intentos_quiz (
+  id         SERIAL PRIMARY KEY,
+  usuario_id INTEGER     NOT NULL REFERENCES usuarios(id) ON DELETE CASCADE,
+  leccion_id INTEGER     NOT NULL,
+  aciertos   INTEGER     NOT NULL CHECK (aciertos >= 0),
+  total      INTEGER     NOT NULL CHECK (total > 0 AND aciertos <= total),
+  aprobado   BOOLEAN     NOT NULL,
+  creado_en  TIMESTAMPTZ NOT NULL DEFAULT NOW()
+);
+CREATE INDEX IF NOT EXISTS intentos_quiz_usuario_idx ON intentos_quiz (usuario_id, leccion_id);

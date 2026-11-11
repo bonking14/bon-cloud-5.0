@@ -30,3 +30,27 @@
 .tarjeta h2 { margin: 0 0 16px; font-size: 1rem; }
 .tarjeta p { font-size: 0.875rem; line-height: 1.5; }
 .tarjeta .campo input { max-width: none; }
+
+/* Grupos y panel del profesor */
+.lista { list-style: none; margin: 0 0 12px; padding: 0; }
+.lista li { display: flex; align-items: center; justify-content: space-between; gap: 12px; padding: 8px 0; border-bottom: 1px solid var(--border); font-size: 0.875rem; color: var(--text-primary); }
+.lista small { color: var(--text-muted); }
+.enLinea { display: flex; flex-wrap: wrap; gap: 8px; align-items: center; }
+.enLinea input { flex: 1; min-width: 180px; max-width: 320px; padding: 8px 10px; border-radius: 8px; border: 1px solid var(--border); background: var(--bg-input, var(--bg-panel)); color: var(--text-primary); font: inherit; }
+.codigo { font-family: ui-monospace, Consolas, monospace; font-size: 1rem; font-weight: 700; letter-spacing: 2px; padding: 2px 8px; border-radius: 6px; background: var(--bg-active); color: var(--text-accent); }
+.tarjetas { display: grid; grid-template-columns: repeat(auto-fill, minmax(260px, 1fr)); gap: 12px; }
+.tarjetaGrupo { display: flex; flex-direction: column; gap: 6px; padding: 16px; border-radius: 12px; border: 1px solid var(--border); background: var(--bg-panel); color: var(--text-primary); text-decoration: none; }
+.tarjetaGrupo:hover { border-color: var(--text-accent); }
+.tarjetaGrupo h3 { margin: 0; font-size: 1rem; }
+.tarjetaGrupo small { color: var(--text-muted); }
+.archivado { opacity: 0.65; }
+.barra { display: inline-block; width: 90px; height: 8px; border-radius: 4px; background: var(--border); vertical-align: middle; margin-right: 8px; overflow: hidden; }
+.barra i { display: block; height: 100%; background: #10b981; }
+.filaClic { cursor: pointer; }
+.filaClic:hover td { background: var(--bg-active); }
+.detalle td { background: var(--bg-main, transparent); padding: 0 10px 12px 28px; }
+.detalle table { width: 100%; border-collapse: collapse; font-size: 0.75rem; }
+.detalle th, .detalle td td { padding: 5px 8px; border-bottom: 1px solid var(--border); background: none; }
+.si { color: #059669; font-weight: 600; }
+.no { color: var(--text-muted); }
+.acciones { display: flex; flex-wrap: wrap; gap: 8px; margin: 0 0 16px; align-items: center; }

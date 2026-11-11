@@ -19,6 +19,8 @@ const Glosario = lazy(() => import('../features/glosario/Glosario.jsx'));
 const Curso = lazy(() => import('../features/curso/Curso.jsx'));
 const Simulador = lazy(() => import('../features/simulador/Simulador.jsx'));
 const Perfil = lazy(() => import('../features/cuenta/Perfil.jsx'));
+const Grupos = lazy(() => import('../features/grupos/Grupos.jsx'));
+const PanelGrupo = lazy(() => import('../features/grupos/PanelGrupo.jsx'));
 const AdminUsuarios = lazy(() => import('../features/cuenta/AdminUsuarios.jsx'));
 const Restablecer = lazy(() => import('../features/cuenta/Restablecer.jsx'));
 const VerificarCorreo = lazy(() => import('../features/cuenta/VerificarCorreo.jsx'));
@@ -51,6 +53,8 @@ export default function App() {
                 <Route path="/simulador" element={<Simulador />} />
                 <Route path="/perfil" element={<Perfil />} />
                 <Route path="/admin/usuarios" element={<AdminUsuarios />} />
+                <Route path="/grupos" element={<Grupos />} />
+                <Route path="/grupos/:id" element={<PanelGrupo />} />
               </Route>
               <Route path="*" element={<Navigate to="/" replace />} />
             </Routes>

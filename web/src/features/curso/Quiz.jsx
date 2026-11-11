@@ -14,7 +14,8 @@ function barajar(arr) {
 // Evaluación de una lección: las opciones se barajan en cada intento,
 // cada pregunta se responde una vez y muestra su explicación.
 // siguiente: lección que sigue en el mismo módulo; si es null, la lección cierra el módulo.
-export default function Quiz({ leccion, siguiente, onAprobar, onSiguiente, onConstancia }) {
+// onTerminar(leccion, aciertos, total): se llama al responder la última pregunta, se apruebe o no.
+export default function Quiz({ leccion, siguiente, onAprobar, onSiguiente, onConstancia, onTerminar }) {
   const [intento, setIntento] = useState(0);
   const [respuestas, setRespuestas] = useState({});
   const seccionRef = useRef(null);
@@ -35,6 +36,7 @@ export default function Quiz({ leccion, siguiente, onAprobar, onSiguiente, onCon
     setRespuestas(nuevas);
     if (Object.keys(nuevas).length === preguntas.length) {
       const bien = preguntas.filter((q, i) => nuevas[i] === q.correcta).length;
+      onTerminar?.(leccion, bien, preguntas.length);
       if (bien >= minimo) onAprobar(leccion);
     }
   };

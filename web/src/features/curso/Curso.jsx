@@ -3,6 +3,7 @@ import { useNavigate, useSearchParams } from 'react-router-dom';
 import { lecciones, modulos } from '../../data/lecciones.js';
 import { useProgreso } from '../../hooks/ProgresoContext.jsx';
 import { useAuth } from '../../auth/AuthContext.jsx';
+import { pedir } from '../../auth/api.js';
 import { useToast } from '../../components/Toast.jsx';
 import Modal from '../../components/Modal.jsx';
 import FichaGlosario from '../../components/FichaGlosario.jsx';
@@ -17,7 +18,7 @@ const siguienteEnModulo = (lec) => lecciones.find((l) => l.modulo === lec.modulo
 
 export default function Curso() {
   const progreso = useProgreso();
-  const { usuario } = useAuth();
+  const { usuario, tokenApi } = useAuth();
   const avisar = useToast();
   const [params] = useSearchParams();
   const [actualId, setActualId] = useState(() => {
@@ -77,6 +78,12 @@ export default function Curso() {
     const m = modulos.find((x) => x.id === pendiente.modulo);
     avisar(`Para la constancia te falta el módulo ${m.id}: ${m.titulo}.`, 'info');
     cambiarModulo(m.id);
+  };
+
+  // Cada quiz terminado queda registrado con su nota, para el seguimiento del profesor.
+  // Si falla (sin conexión), el estudiante sigue igual: el progreso se guarda aparte.
+  const alTerminar = (leccion, aciertos, total) => {
+    if (tokenApi) pedir('/intentos', { metodo: 'POST', token: tokenApi, cuerpo: { leccionId: leccion.id, aciertos, total } }).catch(() => {});
   };
 
   const alAprobar = (leccion) => {
@@ -145,6 +152,7 @@ export default function Curso() {
             caso={modulo.caso}
             tituloRef={tituloRef}
             onAprobar={alAprobar}
+            onTerminar={alTerminar}
             onSiguiente={(id) => abrir(id)}
             onConstancia={cerrarModulo}
             onTermino={(t) => {
@@ -187,7 +195,7 @@ function TarjetaLeccion({ lec, activa, onAbrir }) {
   );
 }
 
-function DetalleLeccion({ leccion, caso, tituloRef, onAprobar, onSiguiente, onConstancia, onTermino }) {
+function DetalleLeccion({ leccion, caso, tituloRef, onAprobar, onTerminar, onSiguiente, onConstancia, onTermino }) {
   const { estaCompletada } = useProgreso();
   const navigate = useNavigate();
   const contenido = useMemo(() => ({ __html: leccion.contenido }), [leccion]);
@@ -260,7 +268,7 @@ function DetalleLeccion({ leccion, caso, tituloRef, onAprobar, onSiguiente, onCo
         </section>
       )}
 
-      <Quiz leccion={leccion} siguiente={siguienteEnModulo(leccion)} onAprobar={onAprobar} onSiguiente={onSiguiente} onConstancia={onConstancia} />
+      <Quiz leccion={leccion} siguiente={siguienteEnModulo(leccion)} onAprobar={onAprobar} onTerminar={onTerminar} onSiguiente={onSiguiente} onConstancia={onConstancia} />
     </article>
   );
 }

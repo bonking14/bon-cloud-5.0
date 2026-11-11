@@ -72,6 +72,7 @@ export default function Layout() {
           <button type="button" className="nav-item theme-switch" role="switch" aria-checked={!esClaro} onClick={alternar}>
             <span className={css.filaIcono}><Icono d={esClaro ? ICONO_LUNA : ICONO_SOL} tamano={16} />{esClaro ? 'Tema oscuro' : 'Tema claro'}</span>
           </button>
+          {(rol === 'profesor' || rol === 'administrador') && <NavLink to="/grupos" className={claseNav}>Grupos</NavLink>}
           {rol === 'administrador' && <NavLink to="/admin/usuarios" className={claseNav}>Usuarios</NavLink>}
           {esInvitado
             ? <span className={css.usuario}>{usuario?.nombre}</span>

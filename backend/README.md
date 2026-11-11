@@ -95,6 +95,25 @@ No necesitan base de datos: reemplazan `src/config/db.js` por un pool falso.
 | `GET` | `/api/admin/usuarios` | Solo administrador. `?buscar=&pagina=` → 25 por página. |
 | `PUT` | `/api/admin/usuarios/:id/rol` | Solo administrador. `{ rol }`: `estudiante`, `profesor` o `administrador`. Nadie cambia su propio rol. |
 
+### Grupos y notas
+
+| Método | Ruta | Descripción |
+|---|---|---|
+| `POST` | `/api/intentos` | Requiere token. `{ leccionId, aciertos, total }`. Guarda un quiz terminado; el servidor decide si aprobó (70%). Tope de 120 por hora. |
+| `GET` | `/api/mis-grupos` | Requiere token. Grupos a los que pertenece el estudiante. |
+| `POST` | `/api/mis-grupos` | Requiere token. `{ codigo }`. Se une al grupo abierto con ese código. |
+| `DELETE` | `/api/mis-grupos/:id` | Requiere token. Sale del grupo. |
+| `GET` | `/api/grupos` | Profesor: sus grupos. Administrador: todos. |
+| `POST` | `/api/grupos` | Profesor. `{ nombre }`. Crea el grupo con un código de 6 caracteres. |
+| `GET` | `/api/grupos/:id` | Panel: cada estudiante con sus lecciones aprobadas y, por lección, mejor nota, intentos y fechas. |
+| `PUT` | `/api/grupos/:id` | `{ nombre?, archivado? }`. Un grupo archivado no admite más estudiantes. |
+| `DELETE` | `/api/grupos/:id` | Elimina el grupo y sus membresías. El progreso de los estudiantes se conserva. |
+| `DELETE` | `/api/grupos/:id/miembros/:usuarioId` | Retira a un estudiante. |
+
+Un profesor solo ve sus grupos y a los estudiantes que están en ellos; el grupo de otro
+profesor responde `404`, igual que uno que no existe. La nota de los quizzes la calcula el
+navegador: sirve para seguimiento, no para certificar.
+
 ### Roles
 
 Todo registro nuevo es `estudiante`. Un administrador asciende a `profesor` o `administrador`
