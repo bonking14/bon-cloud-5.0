@@ -1,5 +1,6 @@
 import { useEffect, useRef, useState } from 'react';
-import { Navigate, useLocation, useNavigate } from 'react-router-dom';
+import { Link, Navigate, useLocation, useNavigate } from 'react-router-dom';
+import { VERSION } from '../legal/textos.js';
 import { useAuth } from '../../auth/AuthContext.jsx';
 import { pedir } from '../../auth/api.js';
 import { useTheme } from '../../hooks/useTheme.js';
@@ -21,6 +22,7 @@ export default function Landing() {
 
   const [modo, setModo] = useState('login'); // 'login' | 'registro' | 'recuperar'
   const [campos, setCampos] = useState({ nombre: '', email: '', password: '' });
+  const [acepta, setAcepta] = useState(false);
   const [mensaje, setMensaje] = useState('');
   const [cargando, setCargando] = useState(false);
   const [exito, setExito] = useState(false);
@@ -56,6 +58,10 @@ export default function Landing() {
       setMensaje(modo === 'registro' ? 'Completa tu nombre, correo y contraseña.' : 'Escribe tu correo y tu contraseña.');
       return;
     }
+    if (modo === 'registro' && !acepta) {
+      setMensaje('Para crear la cuenta debes aceptar los términos de uso y la política de datos.');
+      return;
+    }
     if (modo === 'registro' && !REGLA_CLAVE.test(campos.password)) {
       setMensaje('La contraseña debe tener mínimo 8 caracteres, una mayúscula, un número y un símbolo (!@#$%^&*).');
       return;
@@ -63,7 +69,7 @@ export default function Landing() {
     setCargando(true);
     setMensaje('Conectando con el servidor. Si estaba inactivo puede tardar hasta un minuto.');
     try {
-      if (modo === 'registro') await registrarse({ nombre: campos.nombre.trim(), email, password: campos.password });
+      if (modo === 'registro') await registrarse({ nombre: campos.nombre.trim(), email, password: campos.password, aceptaTerminos: true, versionTerminos: VERSION });
       else await iniciarSesion(email, campos.password);
       setMensaje('');
       setExito(true);
@@ -124,6 +130,13 @@ export default function Landing() {
             )}
           </div>
 
+          {modo === 'registro' && (
+            <label className={css.acepta}>
+              <input type="checkbox" checked={acepta} onChange={(e) => setAcepta(e.target.checked)} />
+              <span>Acepto los <Link to="/terminos" target="_blank">términos de uso</Link> y autorizo el tratamiento de mis datos según la <Link to="/privacidad" target="_blank">política de datos</Link>.</span>
+            </label>
+          )}
+
           <button type="submit" className={`${css.boton} ${exito ? css.botonExito : ''}`} disabled={cargando || exito}>
             {textoBoton}
           </button>
@@ -145,7 +158,7 @@ export default function Landing() {
         </form>
       </div>
 
-      <div className={css.credito}>Bahía de Cartagena • Plataforma educativa de comercio exterior</div>
+      <div className={css.credito}>Bahía de Cartagena • Plataforma educativa de comercio exterior • <Link to="/terminos">Términos</Link> • <Link to="/privacidad">Datos personales</Link> • <Link to="/verificar">Verificar certificado</Link></div>
     </div>
   );
 }

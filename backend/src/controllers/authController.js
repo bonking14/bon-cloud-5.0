@@ -26,7 +26,10 @@ const enviarEnlaceVerificacion = async (usuario) => {
 
 // REGISTRO
 const register = async (req, res) => {
-  const { nombre, email, password } = req.body || {};
+  const { nombre, email, password, aceptaTerminos, versionTerminos } = req.body || {};
+  // La web exige marcar la casilla; aquí queda la constancia de cuándo y de qué versión
+  const acepto = aceptaTerminos === true;
+  const version = acepto && typeof versionTerminos === 'string' ? versionTerminos.slice(0, 20) : null;
 
   if (typeof nombre !== 'string' || !nombre.trim() || nombre.length > 100) {
     return res.status(400).json({ error: 'Escribe tu nombre (máximo 100 caracteres).' });
@@ -49,8 +52,9 @@ const register = async (req, res) => {
   let result;
   try {
     result = await pool.query(
-      'INSERT INTO usuarios (nombre, email, password) VALUES ($1, $2, $3) RETURNING id, nombre, email',
-      [nombre.trim(), emailNormalizado, hash]
+      `INSERT INTO usuarios (nombre, email, password, terminos_aceptados_en, terminos_version)
+       VALUES ($1, $2, $3, CASE WHEN $4 THEN NOW() END, $5) RETURNING id, nombre, email`,
+      [nombre.trim(), emailNormalizado, hash, acepto, version]
     );
   } catch (err) {
     // Dos registros simultáneos con el mismo correo: lo frena la restricción UNIQUE

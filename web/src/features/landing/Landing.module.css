@@ -104,3 +104,9 @@
   .tarjeta { padding: 2rem 1.5rem; border-radius: 28px; }
   .credito { display: none; }
 }
+
+.acepta { display: flex; gap: 8px; align-items: flex-start; margin: 0 0 1rem; font-size: 0.68rem; line-height: 1.4; color: #90cfe8; cursor: pointer; }
+.acepta input { margin-top: 2px; }
+.acepta a, .credito a { color: #ffc96a; }
+:global(.light-mode) .acepta { color: #334155; }
+:global(.light-mode) .acepta a, :global(.light-mode) .credito a { color: #1d4ed8; }

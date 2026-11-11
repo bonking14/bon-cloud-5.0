@@ -116,3 +116,7 @@ CREATE TABLE IF NOT EXISTS certificados (
   nota       INTEGER     NOT NULL,
   emitido_en TIMESTAMPTZ NOT NULL DEFAULT NOW()
 );
+
+-- ── Consentimiento: cuándo aceptó los términos y la política de datos, y qué versión ──
+ALTER TABLE usuarios ADD COLUMN IF NOT EXISTS terminos_aceptados_en TIMESTAMPTZ;
+ALTER TABLE usuarios ADD COLUMN IF NOT EXISTS terminos_version VARCHAR(20);

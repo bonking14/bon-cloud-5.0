@@ -19,6 +19,7 @@ const Glosario = lazy(() => import('../features/glosario/Glosario.jsx'));
 const Curso = lazy(() => import('../features/curso/Curso.jsx'));
 const Simulador = lazy(() => import('../features/simulador/Simulador.jsx'));
 const Perfil = lazy(() => import('../features/cuenta/Perfil.jsx'));
+const Legal = lazy(() => import('../features/legal/Legal.jsx'));
 const Examenes = lazy(() => import('../features/examen/Examenes.jsx'));
 const Verificar = lazy(() => import('../features/examen/Verificar.jsx'));
 const Grupos = lazy(() => import('../features/grupos/Grupos.jsx'));
@@ -38,6 +39,8 @@ export default function App() {
               <Route path="/" element={<Landing />} />
               {/* Páginas que abren los enlaces de los correos: no piden sesión */}
               <Route path="/restablecer" element={<Suspense fallback={null}><Restablecer /></Suspense>} />
+              <Route path="/terminos" element={<Suspense fallback={null}><Legal documento="terminos" /></Suspense>} />
+              <Route path="/privacidad" element={<Suspense fallback={null}><Legal documento="privacidad" /></Suspense>} />
               <Route path="/verificar" element={<Suspense fallback={null}><Verificar /></Suspense>} />
               <Route path="/verificar/:codigo" element={<Suspense fallback={null}><Verificar /></Suspense>} />
               <Route path="/verificar-correo" element={<Suspense fallback={null}><VerificarCorreo /></Suspense>} />

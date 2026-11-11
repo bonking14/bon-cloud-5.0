@@ -50,8 +50,8 @@ export function AuthProvider({ children }) {
     return data.usuario;
   }, [actualizar]);
 
-  const registrarse = useCallback(async ({ nombre, email, password }) => {
-    await pedir('/auth/register', { metodo: 'POST', cuerpo: { nombre, email, password } });
+  const registrarse = useCallback(async ({ nombre, email, password, aceptaTerminos, versionTerminos }) => {
+    await pedir('/auth/register', { metodo: 'POST', cuerpo: { nombre, email, password, aceptaTerminos, versionTerminos } });
     return iniciarSesion(email, password);
   }, [iniciarSesion]);
 

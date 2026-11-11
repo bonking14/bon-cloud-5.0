@@ -9,8 +9,8 @@ const celda = (v) => {
 
 export const aCsv = (filas) => `﻿${filas.map((f) => f.map(celda).join(';')).join('\r\n')}\r\n`;
 
-export function descargarCsv(nombre, filas) {
-  const url = URL.createObjectURL(new Blob([aCsv(filas)], { type: 'text/csv;charset=utf-8' }));
+export function descargarTexto(nombre, texto, tipo) {
+  const url = URL.createObjectURL(new Blob([texto], { type: tipo }));
   const a = document.createElement('a');
   a.href = url;
   a.download = nombre;
@@ -19,3 +19,5 @@ export function descargarCsv(nombre, filas) {
   a.remove();
   URL.revokeObjectURL(url);
 }
+
+export const descargarCsv = (nombre, filas) => descargarTexto(nombre, aCsv(filas), 'text/csv;charset=utf-8');

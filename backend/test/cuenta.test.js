@@ -203,3 +203,43 @@ describe('administración de usuarios', () => {
     assert.match(propio.body.error, /propio rol/);
   });
 });
+
+describe('datos personales', () => {
+  test('exportar entrega todo lo de la persona, sin la contraseña, usando el id del token', async () => {
+    db.responder = async (s) => (/FROM usuarios WHERE id/.test(s) ? { rows: [{ id: 7, nombre: 'Ana', email: 'ana@example.com' }] } : { rows: [] });
+    const res = await request(app).get('/api/cuenta/datos').set('Authorization', sesion());
+    assert.equal(res.status, 200);
+    assert.deepEqual(Object.keys(res.body), ['generadoEn', 'cuenta', 'progreso', 'intentosDeQuiz', 'examenes', 'certificados', 'gruposALosQuePertenece', 'gruposQueDirige']);
+    assert.ok(db.consultas.every((c) => c.params.length === 1 && c.params[0] === 7));
+    assert.ok(db.consultas.every((c) => !/SELECT[^F]*\bpassword\b/.test(c.sql)));
+    assert.equal((await request(app).get('/api/cuenta/datos')).status, 401);
+  });
+
+  test('eliminar la cuenta pide la contraseña', async () => {
+    db.responder = async (s) => (/SELECT password, rol/.test(s) ? { rows: [{ password: hash, rol: 'estudiante' }] } : { rows: [] });
+    const mal = await request(app).delete('/api/cuenta').set('Authorization', sesion()).send({ password: 'NoEs123!' });
+    assert.equal(mal.status, 400);
+    assert.equal(sql(/^DELETE FROM usuarios/).length, 0);
+    const bien = await request(app).delete('/api/cuenta').set('Authorization', sesion()).send({ password: PASSWORD });
+    assert.equal(bien.status, 200);
+    assert.deepEqual(sql(/^DELETE FROM usuarios/)[0].params, [7]);
+  });
+
+  test('el único administrador no puede eliminarse', async () => {
+    db.responder = async (s) => (/SELECT password, rol/.test(s) ? { rows: [{ password: hash, rol: 'administrador' }] } : /COUNT\(\*\) AS n FROM usuarios/.test(s) ? { rows: [{ n: '0' }] } : { rows: [] });
+    const res = await request(app).delete('/api/cuenta').set('Authorization', sesion()).send({ password: PASSWORD });
+    assert.equal(res.status, 400);
+    assert.match(res.body.error, /único administrador/);
+    assert.equal(sql(/^DELETE FROM usuarios/).length, 0);
+  });
+
+  test('el registro deja constancia de la aceptación de los términos solo si se marcó', async () => {
+    db.responder = async (s, p) => (/^INSERT INTO usuarios/.test(s.trim()) ? { rows: [{ id: 9, nombre: p[0], email: p[1] }] } : { rows: [] });
+    const datos = { nombre: 'Luis', email: 'luis@example.com', password: PASSWORD };
+    await request(app).post('/api/auth/register').send({ ...datos, aceptaTerminos: true, versionTerminos: '2026-11' });
+    await request(app).post('/api/auth/register').send({ ...datos, aceptaTerminos: 'sí' });
+    const [si, no] = sql(/^INSERT INTO usuarios/);
+    assert.deepEqual(si.params.slice(3), [true, '2026-11']);
+    assert.deepEqual(no.params.slice(3), [false, null]);
+  });
+});
