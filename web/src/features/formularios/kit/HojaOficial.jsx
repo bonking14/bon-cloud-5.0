@@ -110,21 +110,21 @@ export default function HojaOficial({ trazado, numero, titulo, campos = {}, extr
       <div className="hoja-oficial" style={{ aspectRatio: `${W} / ${H}` }}>
         <svg viewBox={`0 0 ${W} ${H}`} className="ho-trazado" aria-hidden="true" fontFamily="Arial, Helvetica, 'Liberation Sans', sans-serif">
           {(trazado.capas || []).map(([x, y, w, h, f, b], i) => <rect key={`c${i}`} x={x} y={y} width={w} height={h} fill={f || 'none'} stroke={b || 'none'} strokeWidth="0.5" />)}
-          {trazado.fondos.filter((f) => f.w >= 4 && f.h >= 4).map((f, i) => <rect key={i} x={f.x} y={f.y} width={f.w} height={f.h} fill={f.c === 'oscuro' ? sombra : '#e9eef5'} />)}
+          {trazado.fondos.filter((f) => f.w >= 4 && f.h >= 4).map((f, i) => <rect key={i} x={f.x} y={f.y} width={f.w} height={f.h} fill={f.k || (f.c === 'oscuro' ? sombra : '#e9eef5')} />)}
           <text className="ho-marca" x={W / 2} y={H / 2} transform={`rotate(-52 ${W / 2} ${H / 2})`} textAnchor="middle">SIMULADOR EDUCATIVO · SIN VALIDEZ</text>
           {trazado.lineas.map(([o, pos, a, b], i) => (o === 'h'
-            ? <line key={i} x1={a} y1={pos} x2={b} y2={pos} stroke={LINEA} strokeWidth="0.57" />
-            : <line key={i} x1={pos} y1={a} x2={pos} y2={b} stroke={LINEA} strokeWidth="0.57" />))}
+            ? <line key={i} x1={a} y1={pos} x2={b} y2={pos} stroke={trazado.linea || LINEA} strokeWidth="0.57" />
+            : <line key={i} x1={pos} y1={a} x2={pos} y2={b} stroke={trazado.linea || LINEA} strokeWidth="0.57" />))}
           {trazado.textos.map((t, i) => (
             <text key={i} x={t.x} y={t.y} fontSize={t.s} fontWeight={t.b ? 700 : 400} fill={COLOR[t.c] || TINTA}
-              textLength={t.t.length > 1 ? t.w : undefined} lengthAdjust="spacingAndGlyphs">{t.t}</text>
+              textAnchor={t.a === 'm' ? 'middle' : undefined} textLength={t.t.length > 1 ? t.w : undefined} lengthAdjust="spacingAndGlyphs">{t.t}</text>
           ))}
           {trazado.verticales.map((t, i) => (
             <text key={i} transform={`translate(${t.x + 2} ${(t.y0 + t.y1) / 2}) rotate(-90)`} textAnchor="middle" fontSize={t.s} fontWeight="700" fill={COLOR[t.c] || TINTA}>{t.t}</text>
           ))}
           {/* Cabecera: marca y número del formulario */}
           <text x="28" y="50" fontSize="21" fontWeight="700" letterSpacing="3" fill="#2c2d45">DIAN</text>
-          <rect x="484" y="26.5" width="105" height="32" rx="3" fill="#38648f" />
+          <rect x="484" y="26.5" width="105" height="32" rx="3" fill={trazado.numero || '#38648f'} />
           <text x="536.5" y="54" fontSize="33" fontWeight="700" fill="#fff" textAnchor="middle">{numero}</text>
           {/* En el 600 el título viene dibujado como trazo, no como texto */}
           {trazado.capas && <rect x="136" y="27" width="248" height="30" fill="#fff" />}

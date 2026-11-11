@@ -57,10 +57,11 @@ export function calcularDAV(v) {
   return { 97: precio, 123: adiciones, 134: deducciones, 135: precio + adiciones - deducciones };
 }
 
-// Formulario 001: la composición del capital (casillas 82 a 87) no puede pasar del 100%
+// Formulario 001: composición del capital. El capital nacional (82) se reparte en público (83)
+// y privado (84), y el extranjero (85) en público (86) y privado (87); nacional más
+// extranjero no puede pasar del 100%.
 export function sumaCapital(v) {
-  let total = 0;
-  for (let i = 82; i <= 87; i++) total += n(v[`porc_${i}`]);
+  const total = n(v.porc_82) + n(v.porc_85);
   return { total, excede: total > 100 };
 }
 

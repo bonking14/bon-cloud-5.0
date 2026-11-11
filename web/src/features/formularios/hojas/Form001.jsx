@@ -1,274 +1,111 @@
 import { useState } from 'react';
-import { digitoVerificacion } from '../../../lib/nit.js';
 import { sumaCapital } from '../../../lib/formularios.js';
+import { digitoVerificacion } from '../../../lib/nit.js';
 import { useCampos } from '../kit/contexto.js';
-import { Celda, Fila, Seccion, Hoja, Firmas, Entrada } from '../kit/campos.jsx';
-import Casilla from '../kit/Casilla.jsx';
+import HojaOficial, { SelectorHojas } from '../kit/HojaOficial.jsx';
+import { soloDigitos } from '../kit/formato.js';
+import { rutPrincipal, rutHoja2 } from '../trazados/rut.js';
 
-// El NIT se escribe sin puntos ni DV, hasta 10 dígitos
-const soloNit = (t) => t.replace(/[^0-9]/g, '').substring(0, 10);
+// Formulario 001, Registro Único Tributario (RUT): hoja principal y hoja 2. La DIAN no publica
+// el RUT en blanco (se genera en MUISCA), así que el trazado se arma en trazados/rut.js con las
+// casillas del Instructivo de calidad del RUT (IN-CAC-0237, versión 3, 2026).
+const CONCEPTOS = [['01', 'Inscripción'], ['02', 'Actualización'], ['03', 'Actualización de oficio'], ['09', 'Solicitud de cancelación']];
+const TIPOS_CONTRIBUYENTE = [['1', 'Persona jurídica y asimiladas'], ['2', 'Persona natural o sucesión ilíquida']];
+const TIPOS_DOCUMENTO = [['13', 'Cédula de ciudadanía'], ['22', 'Cédula de extranjería'], ['31', 'NIT'], ['41', 'Pasaporte']];
+const FORMAS = [['1', 'Directa'], ['2', 'Indirecta'], ['3', 'Directa e indirecta']];
+const TIPOS_EXPORTACION = [['01', 'Bienes'], ['02', 'Servicios'], ['03', 'Bienes y servicios']];
+const NOMBRE = (lista) => Object.fromEntries(lista);
 
-// Casillas 5, 6, 12 y 14: se repiten en cada hoja con el mismo NIT
-function Identificacion() {
-  const { valores: v } = useCampos();
-  return (
-    <div className="ident-row">
-      <Celda num="5" etiqueta="Número de Identificación Tributaria (NIT)" flex={3} nombre="nit" formato={soloNit} inputMode="numeric" />
-      <Celda num="6" etiqueta="DV" flex={1} valor={digitoVerificacion(v.nit)} />
-      <Celda num="12" etiqueta="Dirección seccional" flex={2} />
-      <Celda num="14" etiqueta="Buzón electrónico" flex={4} />
-    </div>
-  );
-}
+// Varias cajas de una misma casilla (rejillas de códigos o columnas de una tabla)
+const partes = (cajas, nombre, etiqueta, extra = {}) => ({
+  partes: cajas.map((caja, i) => ({ nombre: `${nombre}_${i + 1}`, caja, etiqueta: `${etiqueta} ${i + 1}`, centro: true, ...extra })),
+});
 
-const Rotulo = ({ children, ancho = 100 }) => <div className="cell cell-nota" style={{ width: ancho, flex: 'none' }}>{children}</div>;
-
-function Hoja1({ oculta }) {
-  return (
-    <Hoja numero="001" titulo="Registro Único Tributario" oculta={oculta}>
-      <Identificacion />
-      <Fila style={{ marginBottom: 5, borderTop: '1px solid #000' }}>
-        <Celda num="2" etiqueta="Concepto" ancho={80} />
-        <div className="cell cell-nota" style={{ flex: 1, alignItems: 'flex-start', color: '#555' }}>Inscripción · Actualización · Cancelación</div>
-      </Fila>
-
-      <Seccion>Identificación</Seccion>
-      <Fila>
-        <Celda num="24" etiqueta="Tipo contribuyente" nombre="tipo_contribuyente" />
-        <Celda num="25" etiqueta="Tipo documento" nombre="tipo_doc" />
-        <Celda num="26" etiqueta="Número de Identificación" flex={2} nombre="num_id" />
-        <Celda num="27" etiqueta="Fecha expedición" placeholder="DD/MM/AAAA" />
-      </Fila>
-      <Fila>
-        <Rotulo>Lugar de expedición</Rotulo>
-        <Celda num="28" etiqueta="País" />
-        <Celda num="29" etiqueta="Departamento" />
-        <Celda num="30" etiqueta="Ciudad/Municipio" />
-      </Fila>
-      <Fila>
-        <Celda num="31" etiqueta="Primer apellido" />
-        <Celda num="32" etiqueta="Segundo apellido" />
-        <Celda num="33" etiqueta="Primer nombre" />
-        <Celda num="34" etiqueta="Otros nombres" />
-      </Fila>
-      <Fila><Celda num="35" etiqueta="Razón social" nombre="razon_social" /></Fila>
-      <Fila>
-        <Celda num="36" etiqueta="Nombre comercial" flex={2} />
-        <Celda num="37" etiqueta="Sigla" />
-      </Fila>
-
-      <Seccion>Ubicación</Seccion>
-      <Fila>
-        <Celda num="38" etiqueta="País" />
-        <Celda num="39" etiqueta="Departamento" />
-        <Celda num="40" etiqueta="Ciudad/Municipio" />
-      </Fila>
-      <Fila><Celda num="41" etiqueta="Dirección principal" nombre="dir_principal" /></Fila>
-      <Fila>
-        <Celda num="42" etiqueta="Correo electrónico" flex={2} />
-        <Celda num="43" etiqueta="Código postal" />
-        <Celda num="44" etiqueta="Teléfono 1" />
-        <Celda num="45" etiqueta="Teléfono 2" />
-      </Fila>
-
-      <Seccion>Clasificación</Seccion>
-      <Fila>
-        <Rotulo>Actividad principal</Rotulo>
-        <Celda num="46" etiqueta="Código" nombre="act_principal" />
-        <Celda num="47" etiqueta="Fecha inicio actividad" placeholder="DD/MM/AAAA" />
-        <Rotulo>Actividad secundaria</Rotulo>
-        <Celda num="48" etiqueta="Código" />
-        <Celda num="49" etiqueta="Fecha inicio actividad" placeholder="DD/MM/AAAA" />
-      </Fila>
-      <Fila>
-        <Rotulo>Otras actividades</Rotulo>
-        <Celda num="50" etiqueta="Código 1" />
-        <Celda etiqueta="Código 2" />
-        <Rotulo>Ocupación</Rotulo>
-        <Celda num="51" etiqueta="Código" />
-        <Celda num="52" etiqueta="Número establecimientos" />
-      </Fila>
-
-      <Fila style={{ marginTop: 5, borderTop: '1px solid #000' }}>
-        <Celda num="53" etiqueta="Responsabilidades, Calidades y Atributos (Códigos)" nombre="resp_53" placeholder="Ej: 05, 10, 42, 48" />
-      </Fila>
-
-      <div style={{ display: 'flex', gap: 5, marginTop: 5 }}>
-        <div style={{ flex: 1, border: '1px solid #000' }}>
-          <div className="row" style={{ border: 'none' }}>
-            <Celda num="54" etiqueta="Usuarios aduaneros (Códigos)" nombre="adu_54" placeholder="Ej: 23 importador, 22 exportador" />
-          </div>
-        </div>
-        <div style={{ flex: 1, border: '1px solid #000' }}>
-          <div className="cell-nota" style={{ fontSize: '0.5rem', borderBottom: '1px solid #000' }}>Exportadores</div>
-          <div className="row" style={{ border: 'none', borderBottom: '1px solid #000' }}>
-            <Celda num="55" etiqueta="Forma" />
-            <Celda num="56" etiqueta="Tipo" />
-          </div>
-          <div className="row" style={{ border: 'none' }}>
-            <Rotulo ancho={60}>Servicio</Rotulo>
-            <Celda etiqueta="1" />
-            <Celda etiqueta="2" />
-            <Celda etiqueta="3" />
-            <Celda num="57" etiqueta="Modo" />
-            <Celda num="58" etiqueta="CPC" />
-          </div>
-        </div>
-      </div>
-
-      <div style={{ border: '1px solid #000', marginTop: 5 }}>
-        <div style={{ fontSize: '0.5rem', padding: 2, borderBottom: '1px solid #000' }}>Para uso exclusivo de la DIAN</div>
-        <div className="row" style={{ border: 'none' }}>
-          <div className="cell" style={{ flex: 1, flexDirection: 'row', justifyContent: 'center', alignItems: 'center', fontSize: '0.5rem', gap: 4 }}>
-            <Casilla num="59" /> Anexos: SI <input type="checkbox" style={{ width: 'auto' }} aria-label="Anexos sí" /> NO <input type="checkbox" style={{ width: 'auto' }} aria-label="Anexos no" />
-          </div>
-          <Celda num="60" etiqueta="No. de Folios" />
-          <Celda num="61" etiqueta="Fecha" />
-        </div>
-      </div>
-
-      <Firmas alto={110} firmas={[
-        { texto: 'La información suministrada a través del formulario oficial del Registro Único Tributario, deberá ser exacta y veraz; en caso de constatar inexactitud en alguno de los datos suministrados se adelantarán los procedimientos administrativos sancionatorios o de suspensión, según el caso. (Parágrafo 1o. del Artículo 1.6.1.2.20. del Decreto 1625 de 2016).', firma: 'Firma del solicitante' },
-        {
-          texto: 'Sin perjuicio de las verificaciones que la DIAN realice.',
-          firma: 'Firma autorizada',
-          children: (
-            <div className="firma-campos">
-              <div style={{ flex: 1 }}>984. Nombre <input type="text" aria-label="Nombre (casilla 984)" /></div>
-              <div style={{ flex: 1 }}>985. Cargo <input type="text" aria-label="Cargo (casilla 985)" /></div>
-            </div>
-          ),
-        },
-      ]} />
-    </Hoja>
-  );
-}
-
-// Celda dentro de una tabla, con su número de casilla en línea
-const CeldaTabla = ({ num, texto, children }) => (
-  <div style={{ flex: 1, padding: 2 }}><Casilla num={num} /> {texto} {children ?? <input type="text" aria-label={texto} />}</div>
-);
-
-function Hoja2({ oculta }) {
-  const { valores: v } = useCampos();
-  const capital = sumaCapital(v);
-  const fila = (n) => Array.from({ length: n }, (_, i) => i + 1);
-
-  return (
-    <Hoja numero="001" titulo="Registro Único Tributario" oculta={oculta}>
-      <Identificacion />
-
-      <Seccion>Características y formas de las organizaciones</Seccion>
-      <Fila>
-        <Celda num="62" etiqueta="Naturaleza" />
-        <Celda num="63" etiqueta="Formas asociativas" />
-        <Celda num="64" etiqueta="Entidades o institutos de derecho público..." flex={2} />
-        <Celda num="65" etiqueta="Fondos" />
-        <Celda num="66" etiqueta="Cooperativas" />
-        <Celda num="67" etiqueta="Sociedades y organismos extranjeros" />
-      </Fila>
-      <Fila>
-        <Celda num="68" etiqueta="Sin personería jurídica" />
-        <Celda num="69" etiqueta="Otras organizaciones no clasificadas" flex={2} />
-        <Celda num="70" etiqueta="Beneficio" />
-      </Fila>
-
-      <div style={{ display: 'flex', gap: 5, marginTop: 5 }}>
-        <div style={{ flex: 2 }}>
-          <Seccion style={{ marginTop: 0 }}>Constitución, registro y última reforma</Seccion>
-          <table className="dian-table" style={{ marginTop: 0 }}>
-            <tbody>
-              <tr><th>Documento</th><th>1. Constitución</th><th>2. Reforma</th></tr>
-              {['71. Clase', '72. Número', '73. Fecha', '74. Número de notaría', '75. Entidad de registro', '76. Fecha de registro'].map((t) => (
-                <tr key={t}><td>{t}</td><td><input type="text" aria-label={`${t}, constitución`} /></td><td><input type="text" aria-label={`${t}, reforma`} /></td></tr>
-              ))}
-              <tr>
-                <td colSpan={3} style={{ padding: 0 }}>
-                  <div style={{ display: 'flex' }}>
-                    <CeldaTabla num="77" texto="No. Matrícula mercantil" />
-                    <CeldaTabla num="78" texto="Departamento" />
-                    <CeldaTabla num="79" texto="Ciudad/Municipio" />
-                  </div>
-                </td>
-              </tr>
-              <tr>
-                <td colSpan={3} style={{ padding: 0 }}>
-                  <div style={{ display: 'flex', alignItems: 'center' }}>
-                    <div style={{ padding: '2px 5px', fontSize: '0.5rem' }}>Vigencia:</div>
-                    <CeldaTabla num="80" texto="Desde" />
-                    <CeldaTabla num="81" texto="Hasta" />
-                  </div>
-                </td>
-              </tr>
-            </tbody>
-          </table>
-        </div>
-        <div style={{ flex: 1 }}>
-          <Seccion style={{ marginTop: 0 }}>Composición del capital</Seccion>
-          <table className="dian-table" style={{ marginTop: 0 }}>
-            <tbody>
-              {[[82, 'Nacional'], [83, 'Nacional público'], [84, 'Nacional privado'], [85, 'Extranjero'], [86, 'Extranjero público'], [87, 'Extranjero privado']].map(([n, t]) => (
-                <tr key={n}><td>{n}. {t} %</td><td><Entrada nombre={`porc_${n}`} type="number" aria-label={`${t} %`} /></td></tr>
-              ))}
-            </tbody>
-          </table>
-          {capital.excede && <div role="alert" style={{ color: 'red', fontSize: '0.5rem', padding: 2 }}>La suma excede 100% ({capital.total}%)</div>}
-          <div style={{ border: '1px solid #000', marginTop: 5 }}>
-            <div style={{ textAlign: 'center', fontSize: '0.5rem', fontWeight: 'bold', borderBottom: '1px solid #000', padding: 2 }}>ENTIDAD DE VIGILANCIA Y CONTROL</div>
-            <div style={{ padding: 5, fontSize: '0.5rem' }}>
-              <Casilla num="88" style={{ position: 'static' }} /> Entidad de vigilancia y control
-              <input type="text" aria-label="Entidad de vigilancia y control" style={{ width: '100%', border: 'none', outline: 'none', fontSize: '0.5rem', marginTop: 5, borderBottom: '1px dotted #000', background: 'transparent' }} />
-            </div>
-          </div>
-        </div>
-      </div>
-
-      <Seccion>Estado y beneficio</Seccion>
-      <table className="dian-table" style={{ marginTop: 0 }}>
-        <tbody>
-          <tr><th>Item</th><th>89. Estado actual</th><th>90. Fecha cambio de estado</th><th>91. NIT</th><th>92. DV</th></tr>
-          {fila(5).map((i) => (
-            <tr key={i}><td style={{ textAlign: 'center' }}>{i}</td>{[89, 90, 91, 92].map((c) => <td key={c}><input type="text" aria-label={`Casilla ${c}, ítem ${i}`} /></td>)}</tr>
-          ))}
-        </tbody>
-      </table>
-
-      <Seccion>Vinculación económica</Seccion>
-      <Fila>
-        <Celda num="93" etiqueta="Vinculación económica" />
-        <Celda num="94" etiqueta="Nombre del grupo económico y/o empresarial" flex={3} />
-        <Celda num="95" etiqueta="NIT Matriz o Controlante" />
-        <Celda num="96" etiqueta="DV" ancho={30} />
-      </Fila>
-      <Fila><Celda num="97" etiqueta="Nombre o razón social de la matriz o controlante" /></Fila>
-
-      <table className="dian-table" style={{ marginTop: 5 }}>
-        <tbody>
-          <tr>
-            <th>Item</th><th>170. Número de id. tributaria exterior</th><th>171. País</th>
-            <th>172. NIT sociedad o natural del exterior con EP</th><th>173. Nombre o razón social de la sociedad o natural del exterior con EP</th>
-          </tr>
-          {fila(4).map((i) => (
-            <tr key={i}><td style={{ textAlign: 'center' }}>{i}</td>{[170, 171, 172, 173].map((c) => <td key={c}><input type="text" aria-label={`Casilla ${c}, ítem ${i}`} /></td>)}</tr>
-          ))}
-        </tbody>
-      </table>
-    </Hoja>
-  );
-}
-
-// Las dos hojas se muestran por pestañas en pantalla y se imprimen juntas
 function Form001() {
-  const [hoja, setHoja] = useState(1);
+  const { valores: v } = useCampos();
+  const [hoja, setHoja] = useState('1');
+  const capital = sumaCapital(v);
+  const R1 = rutPrincipal.rejillas;
+  const R2 = rutHoja2.rejillas;
+  const identificacion = {
+    4: { omitir: true },
+    5: { nombre: 'nit', inputMode: 'numeric', formato: soloDigitos, etiqueta: 'Número de Identificación Tributaria (NIT)' },
+    6: { valor: digitoVerificacion(v.nit), centro: true, etiqueta: 'DV' },
+    12: { nombre: 'seccional' },
+    14: { nombre: 'buzon' },
+  };
+
+  const campos1 = {
+    ...identificacion,
+    2: { nombre: 'concepto', caja: [60.8, 63.3, 20.4, 8.9], centro: true, sugerencias: CONCEPTOS, etiqueta: 'Concepto' },
+    24: { nombre: 'tipo_contribuyente', sugerencias: TIPOS_CONTRIBUYENTE },
+    25: { nombre: 'tipo_doc', sugerencias: TIPOS_DOCUMENTO },
+    26: { nombre: 'num_id' },
+    27: { nombre: 'fecha_expedicion', placeholder: 'AAAA-MM-DD' },
+    35: { nombre: 'razon_social' },
+    36: { nombre: 'nombre_comercial' },
+    38: { nombre: 'pais' }, 39: { nombre: 'departamento' }, 40: { nombre: 'ciudad' },
+    41: { nombre: 'dir_principal' },
+    42: { nombre: 'correo' },
+    46: { nombre: 'act_principal', centro: true, etiqueta: 'Actividad principal: código' },
+    47: { nombre: 'act_principal_fecha', placeholder: 'AAAA-MM-DD', etiqueta: 'Actividad principal: fecha inicio actividad' },
+    48: { nombre: 'act_secundaria', centro: true, etiqueta: 'Actividad secundaria: código' },
+    49: { nombre: 'act_secundaria_fecha', placeholder: 'AAAA-MM-DD', etiqueta: 'Actividad secundaria: fecha inicio actividad' },
+    50: partes(R1[50], 'act_otra', 'Otras actividades: código'),
+    51: { nombre: 'ocupacion', centro: true, etiqueta: 'Ocupación: código' },
+    52: { nombre: 'establecimientos', centro: true },
+    53: partes(R1[53], 'resp', 'Responsabilidad, calidad o atributo', { max: 2 }),
+    54: partes(R1[54], 'adu', 'Obligado aduanero: código', { max: 2 }),
+    55: { nombre: 'exp_forma', sugerencias: FORMAS, centro: true },
+    56: { nombre: 'exp_tipo', sugerencias: TIPOS_EXPORTACION, centro: true },
+    57: partes(R1[57], 'exp_modo', 'Servicio: modo'),
+    58: partes(R1[58], 'exp_cpc', 'Servicio: CPC'),
+    // Los llena la DIAN
+    59: { omitir: true }, 60: { omitir: true }, 61: { omitir: true }, 984: { omitir: true }, 985: { omitir: true },
+  };
+
+  const columnas = (num, nombre, etiqueta) => ({
+    partes: R2[num].map((caja, i) => ({ nombre: `${nombre}_${i + 1}`, caja, etiqueta: `${etiqueta}: ${i === 0 ? 'constitución' : 'reforma'}` })),
+  });
+  const campos2 = {
+    4: { omitir: true },
+    5: { valor: v.nit ?? '', etiqueta: 'NIT (hoja 2)' },
+    6: { valor: digitoVerificacion(v.nit), centro: true, etiqueta: 'DV (hoja 2)' },
+    12: { valor: v.seccional ?? '', etiqueta: 'Dirección seccional (hoja 2)' },
+    14: { valor: v.buzon ?? '', etiqueta: 'Buzón electrónico (hoja 2)' },
+    62: { nombre: 'naturaleza' }, 63: { nombre: 'forma_asociativa' },
+    71: columnas(71, 'doc_clase', 'Clase'), 72: columnas(72, 'doc_numero', 'Número'), 73: columnas(73, 'doc_fecha', 'Fecha'),
+    74: columnas(74, 'doc_notaria', 'Número de notaría'), 75: columnas(75, 'doc_entidad', 'Entidad de registro'),
+    76: columnas(76, 'doc_fecha_registro', 'Fecha de registro'), 77: columnas(77, 'doc_matricula', 'No. Matrícula mercantil'),
+    78: columnas(78, 'doc_departamento', 'Departamento'), 79: columnas(79, 'doc_ciudad', 'Ciudad/Municipio'),
+    89: partes(R2[89], 'estado', 'Estado actual, ítem', { centro: false }),
+    90: partes(R2[90], 'estado_fecha', 'Fecha cambio de estado, ítem'),
+    91: partes(R2[91], 'estado_nit', 'NIT, ítem'),
+    92: partes(R2[92], 'estado_dv', 'DV, ítem', { max: 1 }),
+    95: { nombre: 'matriz_nit', inputMode: 'numeric', formato: soloDigitos, etiqueta: 'NIT de la matriz o controlante' },
+    96: { valor: digitoVerificacion(v.matriz_nit), centro: true, etiqueta: 'DV de la matriz o controlante' },
+  };
+  [82, 83, 84, 85, 86, 87].forEach((n) => { campos2[n] = { nombre: `porc_${n}`, inputMode: 'decimal', centro: true }; });
+  const hoja2ConDatos = ['naturaleza', 'forma_asociativa', 'porc_82', 'porc_85', 'doc_clase_1', 'doc_numero_1', 'estado_1', 'matriz_nit'].some((k) => String(v[k] ?? '').trim());
+
   return (
     <>
-      <div className="dian-hojas no-imprimir" role="tablist" aria-label="Hojas del RUT">
-        {[[1, 'Hoja 1 (Identificación y clasificación)'], [2, 'Hoja 2 (Organización y capital)']].map(([n, t]) => (
-          <button key={n} type="button" role="tab" aria-selected={hoja === n} className={`filtro-btn${hoja === n ? ' active' : ''}`} onClick={() => setHoja(n)}>{t}</button>
-        ))}
-      </div>
-      <Hoja1 oculta={hoja !== 1} />
-      <Hoja2 oculta={hoja !== 2} />
+      <SelectorHojas hojas={[['1', 'Hoja principal'], ['2', 'Hoja 2 · Organización y capital']]} actual={hoja} onCambiar={setHoja} />
+      <HojaOficial trazado={rutPrincipal} numero="001" titulo="Formulario del Registro Único Tributario" campos={campos1} oculta={hoja !== '1'}
+        pie={(
+          <div className="no-imprimir">
+            {(v.tipo_contribuyente || v.tipo_doc || v.concepto) && (
+              <p className="ho-nota">
+                {[v.concepto && `Concepto ${v.concepto}: ${NOMBRE(CONCEPTOS)[v.concepto] || 'código no reconocido'}`,
+                  v.tipo_contribuyente && `Tipo de contribuyente ${v.tipo_contribuyente}: ${NOMBRE(TIPOS_CONTRIBUYENTE)[v.tipo_contribuyente] || 'código no reconocido'}`,
+                  v.tipo_doc && `Tipo de documento ${v.tipo_doc}: ${NOMBRE(TIPOS_DOCUMENTO)[v.tipo_doc] || 'código no reconocido'}`].filter(Boolean).join(' · ')}
+              </p>
+            )}
+          </div>
+        )} />
+      <HojaOficial trazado={rutHoja2} numero="001" titulo="Formulario del Registro Único Tributario, hoja 2" campos={campos2} oculta={hoja !== '2'} imprimir={hoja2ConDatos}
+        pie={capital.excede && <p className="ho-alerta no-imprimir" role="alert">El capital nacional (82) más el extranjero (85) suma {capital.total}%: no puede pasar del 100%.</p>} />
+      <p className="ho-nota no-imprimir" style={{ width: 980, margin: '10px auto 0' }}>Simulador educativo de BonCloud, sin validez ante la DIAN. El RUT real no se llena en un formulario en blanco: se inscribe y actualiza en línea en MUISCA, y la DIAN no publica su hoja vacía. Esta hoja se reconstruyó con las secciones, los números y los nombres de casilla del Instructivo de calidad del RUT de la DIAN (IN-CAC-0237, 2026), así que la posición exacta de las casillas puede diferir de la del documento que genera MUISCA. Se incluyen la hoja principal y la hoja 2; las hojas 3 a 6 (representación, socios, revisor fiscal y contador, establecimientos) no.</p>
     </>
   );
 }
@@ -279,34 +116,69 @@ export default {
   Componente: Form001,
   inicial: () => ({}),
   obligatorios: [
-    ['nit', 'NIT'],
-    ['tipo_contribuyente', 'Tipo contribuyente'],
-    ['tipo_doc', 'Tipo documento'],
-    ['num_id', 'Número de identificación'],
-    ['dir_principal', 'Dirección principal'],
-    ['act_principal', 'Actividad principal'],
+    ['nit', 'NIT (casilla 5)'],
+    ['tipo_contribuyente', 'Tipo de contribuyente (casilla 24)'],
+    ['tipo_doc', 'Tipo de documento (casilla 25)'],
+    ['num_id', 'Número de identificación (casilla 26)'],
+    ['dir_principal', 'Dirección principal (casilla 41)'],
+    ['act_principal', 'Actividad principal (casilla 46)'],
   ],
   // Caso de la Ruta de Aprendizaje: HidroColombia S.A.S. (datos ficticios)
   caso: {
     boton: 'Cargar caso de la Ruta de Aprendizaje',
-    mensaje: 'Se cargó el RUT de HidroColombia, la empresa del caso: responsabilidad 10 (usuario aduanero) y usuario aduanero 23 (importador). El DV del NIT 900123456 es 8.',
+    mensaje: 'Se cargó el RUT de HidroColombia, la empresa del caso: responsabilidad 10 (obligado aduanero) y, en la casilla 54, el código 23 (importador). El DV del NIT 900123456 es 8.',
     valores: () => ({
-      nit: '900123456', tipo_contribuyente: 'Persona jurídica', tipo_doc: 'NIT', num_id: '900123456',
-      razon_social: 'HidroColombia S.A.S. (empresa ficticia)', dir_principal: 'Zona Industrial de Mamonal, Cartagena',
-      act_principal: '4659', resp_53: '05, 10, 42, 48, 52', adu_54: '23',
+      concepto: '02', nit: '900123456', seccional: 'Impuestos y Aduanas de Cartagena',
+      tipo_contribuyente: '1', tipo_doc: '31', num_id: '900123456',
+      razon_social: 'HidroColombia S.A.S. (empresa ficticia)', nombre_comercial: 'HidroColombia',
+      pais: 'Colombia', departamento: 'Bolívar', ciudad: 'Cartagena', dir_principal: 'Zona Industrial de Mamonal, Cartagena',
+      act_principal: '4659', establecimientos: '1',
+      resp_1: '05', resp_2: '10', resp_3: '42', resp_4: '48', resp_5: '52', adu_1: '23',
     }),
   },
   explicaciones: {
-    2: 'Concepto del trámite: inscripción, actualización o cancelación del RUT (Resolución DIAN 8346 de 2004).',
-    5: 'NIT que asigna la DIAN. En una inscripción nueva lo asigna el sistema.',
+    2: 'Concepto del trámite: 01 inscripción, 02 actualización, 03 actualización de oficio, 09 solicitud de cancelación. En las actualizaciones de oficio lo pone el sistema.',
+    4: 'Número del formulario. Lo asigna el sistema automáticamente.',
+    5: 'Número de Identificación Tributaria. En una inscripción nueva lo asigna la DIAN.',
     6: 'Dígito de verificación del NIT, calculado con el algoritmo de módulo 11 de la DIAN.',
-    24: 'Tipo de contribuyente: persona jurídica o persona natural.',
-    25: 'Tipo de documento de identificación (por ejemplo, NIT o cédula de ciudadanía).',
+    12: 'Dirección Seccional. El sistema la asigna sola según la dirección, el municipio y el departamento de la sección Ubicación.',
+    14: 'Buzón electrónico que la DIAN asigna al inscrito.',
+    24: 'Tipo de contribuyente: 1 persona jurídica y asimiladas, 2 persona natural o sucesión ilíquida.',
+    25: 'Tipo de documento de identificación; por ejemplo 13 cédula de ciudadanía o 31 NIT. Debe coincidir con el documento aportado.',
     26: 'Número del documento de identificación.',
+    27: 'Fecha de expedición del documento de identificación.',
+    28: 'País donde se expidió el documento de identificación.',
+    31: 'Primer apellido, si es persona natural.',
     35: 'Razón social tal como figura en el certificado de existencia y representación legal.',
+    36: 'Nombre comercial, si usa uno distinto de la razón social.',
+    38: 'País del domicilio principal.',
     41: 'Dirección del domicilio principal.',
-    46: 'Código CIIU (Rev. 4 A.C.) de la actividad económica principal.',
-    53: 'Responsabilidades, calidades y atributos. Quien opera en comercio exterior debe tener la 10 – Usuario aduanero, además de las tributarias que le correspondan.',
-    54: 'Calidad de usuario aduanero. Para importar se registra el código 23 (importador) y para exportar el 22 (exportador).',
+    42: 'Correo electrónico de contacto.',
+    46: 'Código CIIU de la actividad económica principal.',
+    47: 'Fecha en que empezó a desarrollar la actividad principal.',
+    48: 'Código CIIU de la actividad económica secundaria.',
+    50: 'Códigos CIIU de otras actividades económicas.',
+    51: 'Código de la ocupación, para personas naturales.',
+    52: 'Número de establecimientos de comercio, oficinas, sedes o locales.',
+    53: 'Responsabilidades, calidades y atributos: un código por recuadro. Quien opera en comercio exterior debe tener la 10, obligado aduanero, además de las tributarias que le correspondan.',
+    54: 'Calidad de usuario aduanero: un código por recuadro. Para importar se registra el 23 (importador) y para exportar el 22 (exportador).',
+    55: 'Forma en que participa en la exportación: 1 directa, 2 indirecta, 3 directa e indirecta.',
+    56: 'Tipo de exportación: 01 bienes, 02 servicios, 03 bienes y servicios.',
+    57: 'Modo de prestación del servicio que se exporta.',
+    58: 'Código CPC (Clasificación Central de Productos) del servicio que se exporta.',
+    62: 'Naturaleza de la organización.',
+    63: 'Forma asociativa de la persona jurídica.',
+    71: 'Clase del documento de constitución y de la última reforma.',
+    77: 'Número de la matrícula mercantil.',
+    82: 'Porcentaje de capital nacional. Se reparte en público (83) y privado (84).',
+    85: 'Porcentaje de capital extranjero. Se reparte en público (86) y privado (87).',
+    88: 'Entidad que ejerce la vigilancia y el control.',
+    89: 'Estado actual y beneficio de la organización.',
+    90: 'Fecha del cambio de estado.',
+    94: 'Nombre del grupo económico o empresarial al que pertenece.',
+    95: 'NIT de la matriz o controlante.',
+    97: 'Nombre o razón social de la matriz o controlante.',
+    170: 'Número de identificación tributaria otorgado en el exterior.',
+    172: 'Número de identificación tributaria de la sociedad o persona natural del exterior con establecimiento permanente (EP).',
   },
 };

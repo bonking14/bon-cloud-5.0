@@ -103,9 +103,22 @@ describe('formularios DIAN en React', () => {
     expect(document.querySelector('[data-casilla="69"]')).toBeNull();
   });
 
-  it('001 carga sus datos de ejemplo', async () => {
+  it('001: carga el RUT del caso, con sus responsabilidades en la rejilla de la casilla 53', async () => {
     abrir('001');
     fireEvent.click(await screen.findByText(/Cargar caso de la Ruta/, {}, ESPERA));
-    expect(screen.getAllByDisplayValue('8').length).toBeGreaterThan(0); // DV de 900123456
+    expect(screen.getByLabelText('DV').value).toBe('8'); // DV de 900123456
+    expect(screen.getByLabelText('Responsabilidad, calidad o atributo 2').value).toBe('10');
+    expect(screen.getByLabelText('Obligado aduanero: código 1').value).toBe('23');
+    expect(screen.getByLabelText('Responsabilidad, calidad o atributo 26')).toBeTruthy();
+    expect(document.querySelector('[data-casilla="59"]')).toBeNull(); // uso exclusivo de la DIAN
+    expect(screen.getByLabelText('NIT (hoja 2)').value).toBe('900123456');
+  });
+
+  it('001: avisa si el capital nacional más el extranjero pasa del 100%', async () => {
+    abrir('001');
+    const nacional = await screen.findByLabelText('Nacional %', {}, ESPERA);
+    fireEvent.change(nacional, { target: { value: '70' } });
+    fireEvent.change(screen.getByLabelText('Extranjero %'), { target: { value: '40' } });
+    expect(screen.getByRole('alert').textContent).toMatch(/suma 110%/);
   });
 });
