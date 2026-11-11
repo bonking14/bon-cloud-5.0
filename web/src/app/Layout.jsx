@@ -10,7 +10,7 @@ import css from './Layout.module.css';
 const claseNav = ({ isActive }) => `nav-item${isActive ? ' active' : ''}`;
 
 export default function Layout() {
-  const { usuario, cerrarSesion } = useAuth();
+  const { usuario, rol, esInvitado, cerrarSesion } = useAuth();
   const { esClaro, alternar } = useTheme();
   const { actual, cambiar } = useFontSize();
   const [menuAbierto, setMenuAbierto] = useState(false);
@@ -72,7 +72,10 @@ export default function Layout() {
           <button type="button" className="nav-item theme-switch" role="switch" aria-checked={!esClaro} onClick={alternar}>
             <span className={css.filaIcono}><Icono d={esClaro ? ICONO_LUNA : ICONO_SOL} tamano={16} />{esClaro ? 'Tema oscuro' : 'Tema claro'}</span>
           </button>
-          <span className={css.usuario}>{usuario?.nombre}</span>
+          {rol === 'administrador' && <NavLink to="/admin/usuarios" className={claseNav}>Usuarios</NavLink>}
+          {esInvitado
+            ? <span className={css.usuario}>{usuario?.nombre}</span>
+            : <NavLink to="/perfil" className={claseNav} title="Mi perfil">{usuario?.nombre}</NavLink>}
           <button type="button" id="btnLogout" onClick={salir}>
             <span className={css.filaIcono}><Icono d={ICONO_SALIR} tamano={16} />Cerrar sesión</span>
           </button>

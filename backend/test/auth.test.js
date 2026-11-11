@@ -74,9 +74,11 @@ describe('POST /api/auth/login', () => {
     const res = await request(app).post('/api/auth/login').send({ email: 'ana@example.com', password: PASSWORD });
     assert.equal(res.status, 200);
     assert.equal(res.body.mensaje, 'Login exitoso.');
-    assert.deepEqual(res.body.usuario, { id: 7, nombre: 'Ana', email: 'ana@example.com' });
+    // Una cuenta anterior a los roles (sin columna rol en la fila) entra como estudiante
+    assert.deepEqual(res.body.usuario, { id: 7, nombre: 'Ana', email: 'ana@example.com', rol: 'estudiante', emailVerificado: false });
     const payload = jwt.verify(res.body.token, process.env.JWT_SECRET);
     assert.equal(payload.id, 7);
+    assert.equal(payload.rol, 'estudiante');
     assert.equal(payload.exp - payload.iat, 8 * 60 * 60, 'expira en 8h por defecto');
     assert.ok(db.consultas.some((c) => /bloqueado_hasta = NULL/.test(c.sql)), 'limpia el bloqueo temporal');
   });

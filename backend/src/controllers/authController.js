@@ -2,11 +2,27 @@ const bcrypt = require('bcryptjs');
 const jwt = require('jsonwebtoken');
 const pool = require('../config/db');
 const env = require('../config/env');
+const { crearToken, consumirToken } = require('../services/tokens');
+const { enviarRecuperacion, enviarVerificacion } = require('../services/correo');
 
 const EMAIL_REGEX = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 const PASSWORD_SEGURA = /^(?=.*[A-Z])(?=.*[0-9])(?=.*[!@#$%^&*]).{8,}$/;
 const MAX_INTENTOS = 5;
 const MINUTOS_BLOQUEO = 15;
+const MINUTOS_RECUPERAR = 60;
+const MINUTOS_VERIFICAR = 48 * 60;
+
+// Devuelve el mensaje de error de una contraseña nueva, o '' si sirve
+const errorPassword = (password) => {
+  if (typeof password !== 'string' || password.length > 72) return 'La contraseña no es válida (máximo 72 caracteres).';
+  if (!PASSWORD_SEGURA.test(password)) return 'La contraseña debe tener mínimo 8 caracteres, una mayúscula, un número y un símbolo (!@#$%^&*).';
+  return '';
+};
+
+const enviarEnlaceVerificacion = async (usuario) => {
+  const token = await crearToken(usuario.id, 'verificar', MINUTOS_VERIFICAR);
+  await enviarVerificacion(usuario, token);
+};
 
 // REGISTRO
 const register = async (req, res) => {
@@ -18,14 +34,8 @@ const register = async (req, res) => {
   if (typeof email !== 'string' || !EMAIL_REGEX.test(email) || email.length > 254) {
     return res.status(400).json({ error: 'Escribe un correo electrónico válido.' });
   }
-  if (typeof password !== 'string' || password.length > 72) {
-    return res.status(400).json({ error: 'La contraseña no es válida (máximo 72 caracteres).' });
-  }
-  if (!PASSWORD_SEGURA.test(password)) {
-    return res.status(400).json({
-      error: 'La contraseña debe tener mínimo 8 caracteres, una mayúscula, un número y un símbolo (!@#$%^&*).'
-    });
-  }
+  const malaClave = errorPassword(password);
+  if (malaClave) return res.status(400).json({ error: malaClave });
 
   const emailNormalizado = email.trim().toLowerCase();
 
@@ -50,6 +60,9 @@ const register = async (req, res) => {
     throw err;
   }
 
+  // Todo registro nuevo es estudiante; el correo queda por confirmar
+  await enviarEnlaceVerificacion(result.rows[0]);
+
   res.status(201).json({
     mensaje: 'Usuario registrado exitosamente.',
     usuario: result.rows[0]
@@ -65,7 +78,7 @@ const login = async (req, res) => {
   }
 
   const result = await pool.query(
-    `SELECT id, nombre, email, password, bloqueado,
+    `SELECT id, nombre, email, password, bloqueado, rol, email_verificado,
             COALESCE(bloqueado_hasta > NOW(), false) AS bloqueo_temporal
        FROM usuarios
       WHERE LOWER(email) = $1`,
@@ -121,8 +134,9 @@ const login = async (req, res) => {
     [usuario.id]
   );
 
+  const rol = usuario.rol || 'estudiante';
   const token = jwt.sign(
-    { id: usuario.id, email: usuario.email, nombre: usuario.nombre },
+    { id: usuario.id, email: usuario.email, nombre: usuario.nombre, rol },
     env.jwtSecret,
     { expiresIn: env.jwtExpiresIn }
   );
@@ -133,9 +147,90 @@ const login = async (req, res) => {
     usuario: {
       id: usuario.id,
       nombre: usuario.nombre,
-      email: usuario.email
+      email: usuario.email,
+      rol,
+      emailVerificado: Boolean(usuario.email_verificado)
     }
   });
 };
 
-module.exports = { register, login };
+// RECUPERAR CONTRASEÑA: pide el enlace. Responde igual exista o no la cuenta,
+// para no revelar qué correos están registrados.
+const MENSAJE_RECUPERAR = 'Si ese correo está registrado, te enviamos un enlace para restablecer la contraseña.';
+const forgotPassword = async (req, res) => {
+  const { email } = req.body || {};
+  if (typeof email !== 'string' || !EMAIL_REGEX.test(email) || email.length > 254) {
+    return res.status(400).json({ error: 'Escribe un correo electrónico válido.' });
+  }
+  const r = await pool.query(
+    'SELECT id, nombre, email, bloqueado FROM usuarios WHERE LOWER(email) = $1',
+    [email.trim().toLowerCase()]
+  );
+  const usuario = r.rows[0];
+  if (usuario && !usuario.bloqueado) {
+    const token = await crearToken(usuario.id, 'recuperar', MINUTOS_RECUPERAR);
+    await enviarRecuperacion(usuario, token);
+  }
+  res.json({ mensaje: MENSAJE_RECUPERAR });
+};
+
+// RESTABLECER CONTRASEÑA con el enlace del correo
+const resetPassword = async (req, res) => {
+  const { token, password } = req.body || {};
+  const malaClave = errorPassword(password);
+  if (malaClave) return res.status(400).json({ error: malaClave });
+
+  const usuarioId = await consumirToken(token, 'recuperar');
+  if (!usuarioId) {
+    return res.status(400).json({ error: 'El enlace no es válido o ya venció. Pide uno nuevo.' });
+  }
+  const hash = await bcrypt.hash(password, 12);
+  // Quien abre el enlace demostró que el correo es suyo: queda verificado, y se levanta
+  // el bloqueo temporal por intentos fallidos (no el bloqueo manual de un administrador).
+  await pool.query(
+    `UPDATE usuarios
+        SET password = $2, intentos_fallidos = 0, bloqueado_hasta = NULL,
+            email_verificado = TRUE, email_verificado_en = COALESCE(email_verificado_en, NOW())
+      WHERE id = $1`,
+    [usuarioId, hash]
+  );
+  await promoverSiEsAdmin(usuarioId);
+  res.json({ mensaje: 'Contraseña actualizada. Ya puedes iniciar sesión.' });
+};
+
+// Los correos de ADMIN_EMAILS pasan a administrador, pero solo después de demostrar que el
+// correo es suyo: registrarse con el correo de otro no da ningún permiso.
+const promoverSiEsAdmin = async (usuarioId) => {
+  if (!env.adminEmails.length) return;
+  await pool.query(
+    `UPDATE usuarios SET rol = 'administrador'
+      WHERE id = $1 AND email_verificado AND rol <> 'administrador' AND LOWER(email) = ANY($2::text[])`,
+    [usuarioId, env.adminEmails]
+  );
+};
+
+// VERIFICAR CORREO con el enlace
+const verifyEmail = async (req, res) => {
+  const usuarioId = await consumirToken((req.body || {}).token, 'verificar');
+  if (!usuarioId) {
+    return res.status(400).json({ error: 'El enlace no es válido o ya venció. Pide uno nuevo desde tu perfil.' });
+  }
+  await pool.query(
+    'UPDATE usuarios SET email_verificado = TRUE, email_verificado_en = COALESCE(email_verificado_en, NOW()) WHERE id = $1',
+    [usuarioId]
+  );
+  await promoverSiEsAdmin(usuarioId);
+  res.json({ mensaje: 'Correo confirmado. Si tenías la sesión abierta, vuelve a iniciarla para ver los cambios.' });
+};
+
+// Reenvía el enlace de verificación al usuario de la sesión
+const resendVerification = async (req, res) => {
+  const r = await pool.query('SELECT id, nombre, email, email_verificado FROM usuarios WHERE id = $1', [req.usuario.id]);
+  const usuario = r.rows[0];
+  if (!usuario) return res.status(404).json({ error: 'La cuenta ya no existe.' });
+  if (usuario.email_verificado) return res.json({ mensaje: 'Tu correo ya está confirmado.' });
+  await enviarEnlaceVerificacion(usuario);
+  res.json({ mensaje: 'Te enviamos un nuevo enlace de confirmación.' });
+};
+
+module.exports = { register, login, forgotPassword, resetPassword, verifyEmail, resendVerification, errorPassword };

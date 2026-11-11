@@ -6,6 +6,8 @@ const env = require('./config/env');
 
 const authRoutes = require('./routes/auth');
 const progresoRoutes = require('./routes/progreso');
+const cuentaRoutes = require('./routes/cuenta');
+const adminRoutes = require('./routes/admin');
 const { noEncontrado, manejarErrores } = require('./middleware/errores');
 
 const app = express();
@@ -37,6 +39,8 @@ app.get('/', (req, res) => {
 // El simulador logístico calcula en el navegador (js/simulador.js): no hay endpoint /api/simulador.
 app.use('/api/auth', authRoutes);
 app.use('/api/progreso', progresoRoutes);
+app.use('/api/cuenta', cuentaRoutes);
+app.use('/api/admin', adminRoutes);
 
 app.use(noEncontrado);
 app.use(manejarErrores);

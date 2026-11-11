@@ -1,4 +1,4 @@
-import { createContext, useCallback, useContext, useMemo, useState } from 'react';
+import { createContext, useCallback, useContext, useEffect, useMemo, useState } from 'react';
 import { pedir, tokenVencido } from './api.js';
 import { borrarProgresoInvitado } from '../lib/progresoLocal.js';
 
@@ -67,16 +67,40 @@ export function AuthProvider({ children }) {
     actualizar(null);
   }, [sesion, actualizar]);
 
+  // Cambia datos del usuario de la sesión (nombre, rol, correo verificado) sin cerrar sesión
+  const actualizarUsuario = useCallback((datos) => {
+    setSesion((s) => {
+      if (!s || s.usuario?.invitado) return s;
+      const nueva = { ...s, usuario: { ...s.usuario, ...datos } };
+      guardarSesion(nueva);
+      return nueva;
+    });
+  }, []);
+
+  // El rol y la verificación del correo pueden cambiar mientras la sesión está abierta
+  // (un administrador asciende a alguien, o se abre el enlace del correo): se refrescan
+  // al cargar la aplicación. Si el servidor no responde, se sigue con lo guardado.
+  const tokenReal = sesion && !sesion.usuario?.invitado ? sesion.token : null;
+  useEffect(() => {
+    if (!tokenReal) return undefined;
+    let vigente = true;
+    pedir('/cuenta', { token: tokenReal })
+      .then((data) => { if (vigente && data.usuario) actualizarUsuario(data.usuario); })
+      .catch(() => {});
+    return () => { vigente = false; };
+  }, [tokenReal, actualizarUsuario]);
+
   const valor = useMemo(() => ({
     sesion,
     usuario: sesion?.usuario ?? null,
     esInvitado: Boolean(sesion?.usuario?.invitado),
     // Token solo si es un JWT real: el de invitado no sirve contra la API
     tokenApi: sesion && !sesion.usuario?.invitado ? sesion.token : null,
-    iniciarSesion, registrarse, entrarComoInvitado, cerrarSesion,
+    rol: sesion?.usuario?.invitado ? null : sesion?.usuario?.rol || (sesion ? 'estudiante' : null),
+    iniciarSesion, registrarse, entrarComoInvitado, cerrarSesion, actualizarUsuario,
     // Si la API responde 401/403, el token ya no sirve: se cierra la sesión
     verificarVigencia: () => { if (sesion && !sesion.usuario?.invitado && tokenVencido(sesion.token)) actualizar(null); },
-  }), [sesion, iniciarSesion, registrarse, entrarComoInvitado, cerrarSesion, actualizar]);
+  }), [sesion, iniciarSesion, registrarse, entrarComoInvitado, cerrarSesion, actualizarUsuario, actualizar]);
 
   return <AuthContext.Provider value={valor}>{children}</AuthContext.Provider>;
 }

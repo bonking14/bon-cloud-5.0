@@ -1,6 +1,7 @@
 import { useEffect, useRef, useState } from 'react';
 import { Navigate, useLocation, useNavigate } from 'react-router-dom';
 import { useAuth } from '../../auth/AuthContext.jsx';
+import { pedir } from '../../auth/api.js';
 import { useTheme } from '../../hooks/useTheme.js';
 import { iniciarEscenaPuerto } from './escenaPuerto.js';
 import css from './Landing.module.css';
@@ -18,7 +19,7 @@ export default function Landing() {
   const location = useLocation();
   const destino = location.state?.desde || '/inicio';
 
-  const [modo, setModo] = useState('login'); // 'login' | 'registro'
+  const [modo, setModo] = useState('login'); // 'login' | 'registro' | 'recuperar'
   const [campos, setCampos] = useState({ nombre: '', email: '', password: '' });
   const [mensaje, setMensaje] = useState('');
   const [cargando, setCargando] = useState(false);
@@ -37,6 +38,20 @@ export default function Landing() {
   const enviar = async (e) => {
     e.preventDefault();
     const email = campos.email.trim();
+    if (modo === 'recuperar') {
+      if (!email) { setMensaje('Escribe el correo de tu cuenta.'); return; }
+      setCargando(true);
+      setMensaje('Conectando con el servidor. Si estaba inactivo puede tardar hasta un minuto.');
+      try {
+        const data = await pedir('/auth/forgot-password', { metodo: 'POST', cuerpo: { email } });
+        setMensaje(`${data.mensaje} Revisa también la carpeta de correo no deseado.`);
+      } catch (err) {
+        setMensaje(err.message);
+      } finally {
+        setCargando(false);
+      }
+      return;
+    }
     if (!email || !campos.password || (modo === 'registro' && !campos.nombre.trim())) {
       setMensaje(modo === 'registro' ? 'Completa tu nombre, correo y contraseña.' : 'Escribe tu correo y tu contraseña.');
       return;
@@ -65,12 +80,11 @@ export default function Landing() {
     entrarComoInvitado();
   };
 
-  const alternarModo = () => {
-    setModo((m) => (m === 'login' ? 'registro' : 'login'));
-    setMensaje('');
-  };
+  const irA = (nuevo) => { setModo(nuevo); setMensaje(''); };
+  const alternarModo = () => irA(modo === 'login' ? 'registro' : 'login');
 
-  const textoBoton = exito ? 'ACCESO CONCEDIDO' : cargando ? 'VERIFICANDO...' : modo === 'registro' ? 'CREAR CUENTA' : 'BIENVENIDO';
+  const textoBoton = exito ? 'ACCESO CONCEDIDO' : cargando ? 'VERIFICANDO...'
+    : modo === 'registro' ? 'CREAR CUENTA' : modo === 'recuperar' ? 'ENVIAR ENLACE' : 'BIENVENIDO';
 
   return (
     <div className={css.landing}>
@@ -98,12 +112,16 @@ export default function Landing() {
               <label htmlFor="email">CORREO</label>
               <input id="email" name="email" type="email" autoComplete="email" value={campos.email} onChange={cambiar} placeholder="operations@boncloud.com" />
             </div>
-            <div className={css.campo}>
-              <label htmlFor="password">CONTRASEÑA</label>
-              <input id="password" name="password" type="password" value={campos.password} onChange={cambiar}
-                autoComplete={modo === 'registro' ? 'new-password' : 'current-password'} placeholder="••••••••" />
-              {modo === 'registro' && <span className={css.pista}>Mínimo 8 caracteres, una mayúscula, un número y un símbolo.</span>}
-            </div>
+            {modo === 'recuperar' ? (
+              <span className={css.pista}>Te enviaremos un enlace para crear una contraseña nueva. Vence en 1 hora.</span>
+            ) : (
+              <div className={css.campo}>
+                <label htmlFor="password">CONTRASEÑA</label>
+                <input id="password" name="password" type="password" value={campos.password} onChange={cambiar}
+                  autoComplete={modo === 'registro' ? 'new-password' : 'current-password'} placeholder="••••••••" />
+                {modo === 'registro' && <span className={css.pista}>Mínimo 8 caracteres, una mayúscula, un número y un símbolo.</span>}
+              </div>
+            )}
           </div>
 
           <button type="submit" className={`${css.boton} ${exito ? css.botonExito : ''}`} disabled={cargando || exito}>
@@ -115,6 +133,12 @@ export default function Landing() {
             <button type="button" onClick={alternarModo}>
               {modo === 'login' ? '¿No tienes cuenta? Regístrate' : '¿Ya tienes cuenta? Inicia sesión'}
             </button>
+            {modo === 'login' && (
+              <>
+                <span aria-hidden="true">·</span>
+                <button type="button" onClick={() => irA('recuperar')}>¿Olvidaste tu contraseña?</button>
+              </>
+            )}
             <span aria-hidden="true">·</span>
             <button type="button" onClick={invitado}>Entrar como invitado</button>
           </div>

@@ -1,4 +1,4 @@
-import { lazy } from 'react';
+import { lazy, Suspense } from 'react';
 import { HashRouter, Navigate, Route, Routes } from 'react-router-dom';
 import { AuthProvider } from '../auth/AuthContext.jsx';
 import ProtectedRoute from '../auth/ProtectedRoute.jsx';
@@ -18,6 +18,10 @@ const Formularios = lazy(() => import('../features/formularios/Formularios.jsx')
 const Glosario = lazy(() => import('../features/glosario/Glosario.jsx'));
 const Curso = lazy(() => import('../features/curso/Curso.jsx'));
 const Simulador = lazy(() => import('../features/simulador/Simulador.jsx'));
+const Perfil = lazy(() => import('../features/cuenta/Perfil.jsx'));
+const AdminUsuarios = lazy(() => import('../features/cuenta/AdminUsuarios.jsx'));
+const Restablecer = lazy(() => import('../features/cuenta/Restablecer.jsx'));
+const VerificarCorreo = lazy(() => import('../features/cuenta/VerificarCorreo.jsx'));
 
 // HashRouter: GitHub Pages no sabe reescribir rutas, así recargar /#/glosario no da 404
 export default function App() {
@@ -28,6 +32,9 @@ export default function App() {
           <HashRouter>
             <Routes>
               <Route path="/" element={<Landing />} />
+              {/* Páginas que abren los enlaces de los correos: no piden sesión */}
+              <Route path="/restablecer" element={<Suspense fallback={null}><Restablecer /></Suspense>} />
+              <Route path="/verificar-correo" element={<Suspense fallback={null}><VerificarCorreo /></Suspense>} />
               <Route element={<ProtectedRoute><Layout /></ProtectedRoute>}>
                 <Route path="/inicio" element={<Dashboard />} />
                 <Route path="/curso" element={<Curso />} />
@@ -42,6 +49,8 @@ export default function App() {
                 <Route path="/formularios/:id" element={<Formularios />} />
                 <Route path="/glosario" element={<Glosario />} />
                 <Route path="/simulador" element={<Simulador />} />
+                <Route path="/perfil" element={<Perfil />} />
+                <Route path="/admin/usuarios" element={<AdminUsuarios />} />
               </Route>
               <Route path="*" element={<Navigate to="/" replace />} />
             </Routes>

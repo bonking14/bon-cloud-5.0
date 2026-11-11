@@ -4,6 +4,9 @@ const path = require('path');
 process.env.JWT_SECRET = 'secreto-de-prueba';
 process.env.DATABASE_URL = 'postgres://prueba:prueba@localhost:5432/prueba';
 delete process.env.CORS_ORIGINS;
+delete process.env.RESEND_API_KEY; // los correos se escriben en el registro, no se envían
+process.env.ADMIN_EMAILS = 'jefe@example.com';
+process.env.APP_URL = 'https://ejemplo.test/app';
 
 // Cada test define cómo responde la base: recibe (sql, params) y devuelve { rows }.
 const db = {

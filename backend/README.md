@@ -32,9 +32,18 @@ backend/
 | `JWT_EXPIRES_IN` | No | Duración del token. Por defecto `8h`. |
 | `CORS_ORIGINS` | No | Orígenes permitidos, separados por comas. Por defecto: `https://bonking14.github.io` y los `localhost` de desarrollo (4000, 5500, 5503). |
 | `PORT` | No | Puerto. Por defecto `4000` (Render pone el suyo). |
+| `RESEND_API_KEY` | No\*\* | Clave de [Resend](https://resend.com) para enviar correos. |
+| `EMAIL_FROM` | No | Remitente. Por defecto `BonCloud <onboarding@resend.dev>`. |
+| `APP_URL` | No | Dirección pública de la web, para armar los enlaces de los correos. Por defecto `https://bonking14.github.io/bon-cloud-5.0/`. |
+| `ADMIN_EMAILS` | No | Correos, separados por comas, que pasan a administrador cuando confirman su dirección. |
 
 \* Hace falta `DATABASE_URL` **o** las cuatro `DB_*`. Si falta algo obligatorio el servidor
 no arranca y dice qué variable falta.
+
+\*\* Sin `RESEND_API_KEY` el servidor funciona, pero no envía correos: escribe cada enlace
+(recuperar contraseña, confirmar correo) en su registro. Sirve para desarrollo y para sacar un
+enlace a mano desde los *Logs* de Render. Con la clave pero sin dominio propio verificado en
+Resend, los correos solo llegan a la dirección de la cuenta de Resend.
 
 Para desarrollo local copia `.env.example` como `.env` y llénalo.
 
@@ -51,8 +60,9 @@ npm start              # http://localhost:4000
 ## Migrar la base de datos
 
 `npm run db:migrate` ejecuta `db/schema.sql`. Se puede correr las veces que quieras: crea las
-tablas que falten (`usuarios`, `progreso_usuario`) y agrega a `usuarios` las columnas nuevas
-(`bloqueado_hasta`, `creado_en`) sin tocar los datos que ya hay.
+tablas que falten (`usuarios`, `progreso_usuario`, `tokens_cuenta`) y agrega a `usuarios` las
+columnas nuevas (`bloqueado_hasta`, `creado_en`, `rol`, `email_verificado`, `email_verificado_en`)
+sin tocar los datos que ya hay. Los usuarios existentes quedan como `estudiante`.
 
 ## Tests
 
@@ -70,6 +80,23 @@ No necesitan base de datos: reemplazan `src/config/db.js` por un pool falso.
 | `POST` | `/api/auth/login` | `{ email, password }` → `{ mensaje, token, usuario }` |
 | `GET` | `/api/progreso` | Requiere `Authorization: Bearer <token>` → `{ ok, progreso: { leccionesCompletadas } }` |
 | `POST` | `/api/progreso` | Requiere token. Body `{ progreso: { leccionesCompletadas: [1, 2, ...] } }`. Reemplaza el progreso guardado. |
+| `POST` | `/api/auth/forgot-password` | `{ email }`. Envía el enlace para restablecer (vence en 1 hora). Responde igual exista o no la cuenta. |
+| `POST` | `/api/auth/reset-password` | `{ token, password }`. Cambia la contraseña con el enlace, que sirve una sola vez. |
+| `POST` | `/api/auth/verify-email` | `{ token }`. Confirma el correo (el enlace vence en 48 horas). |
+| `POST` | `/api/auth/resend-verification` | Requiere token. Reenvía el enlace de confirmación. |
+| `GET` | `/api/cuenta` | Requiere token → `{ usuario: { id, nombre, email, rol, emailVerificado, creadoEn } }` |
+| `PUT` | `/api/cuenta` | Requiere token. `{ nombre }`. |
+| `PUT` | `/api/cuenta/password` | Requiere token. `{ actual, nueva }`. |
+| `GET` | `/api/admin/usuarios` | Solo administrador. `?buscar=&pagina=` → 25 por página. |
+| `PUT` | `/api/admin/usuarios/:id/rol` | Solo administrador. `{ rol }`: `estudiante`, `profesor` o `administrador`. Nadie cambia su propio rol. |
+
+### Roles
+
+Todo registro nuevo es `estudiante`. Un administrador asciende a `profesor` o `administrador`
+desde la web (menú **Usuarios**). El primer administrador sale de `ADMIN_EMAILS`: esa cuenta pasa
+a administrador cuando confirma su correo (o restablece su contraseña con el enlace), no al
+registrarse, para que registrarse con el correo de otra persona no dé permisos. Las rutas de
+administrador leen el rol de la base en cada pedido, no del token.
 
 Bloqueo de cuentas: después de 5 contraseñas incorrectas la cuenta queda bloqueada 15 minutos
 (`403`) y el contador vuelve a cero. La columna `bloqueado = true` es un bloqueo manual que solo
@@ -85,6 +112,6 @@ quita un administrador desde la base de datos.
 3. Corre la migración una vez: en el servicio, **Shell** → `npm run db:migrate`
    (o desde tu equipo, con la `DATABASE_URL` externa de Render en tu `.env`).
    Hasta que la corras, `/api/progreso` responde `500` porque la tabla `progreso_usuario`
-   no existe, y el login falla porque falta la columna `bloqueado_hasta`.
+   no existe, y el login falla porque faltan las columnas `bloqueado_hasta` y `rol`.
    Para no tener ese hueco, corre la migración **antes** de desplegar (desde tu equipo con la
    URL externa): el código viejo funciona igual con las columnas nuevas.

@@ -30,3 +30,29 @@ CREATE TABLE IF NOT EXISTS progreso_usuario (
   completada_en TIMESTAMPTZ NOT NULL DEFAULT NOW(),
   PRIMARY KEY (usuario_id, leccion_id)
 );
+
+-- ── Cuentas: roles y verificación de correo ──
+-- Los usuarios que ya existen quedan como estudiante y con el correo sin verificar.
+ALTER TABLE usuarios ADD COLUMN IF NOT EXISTS rol VARCHAR(20) NOT NULL DEFAULT 'estudiante';
+ALTER TABLE usuarios ADD COLUMN IF NOT EXISTS email_verificado BOOLEAN NOT NULL DEFAULT FALSE;
+ALTER TABLE usuarios ADD COLUMN IF NOT EXISTS email_verificado_en TIMESTAMPTZ;
+
+DO $$
+BEGIN
+  IF NOT EXISTS (SELECT 1 FROM pg_constraint WHERE conname = 'usuarios_rol_valido') THEN
+    ALTER TABLE usuarios ADD CONSTRAINT usuarios_rol_valido CHECK (rol IN ('estudiante', 'profesor', 'administrador'));
+  END IF;
+END $$;
+
+-- Enlaces de un solo uso para recuperar la contraseña y verificar el correo.
+-- Se guarda la huella SHA-256 del enlace, nunca el enlace: quien lea la base no puede usarlos.
+CREATE TABLE IF NOT EXISTS tokens_cuenta (
+  id         SERIAL PRIMARY KEY,
+  usuario_id INTEGER     NOT NULL REFERENCES usuarios(id) ON DELETE CASCADE,
+  tipo       VARCHAR(20) NOT NULL CHECK (tipo IN ('recuperar', 'verificar')),
+  token_hash CHAR(64)    NOT NULL UNIQUE,
+  expira_en  TIMESTAMPTZ NOT NULL,
+  usado_en   TIMESTAMPTZ,
+  creado_en  TIMESTAMPTZ NOT NULL DEFAULT NOW()
+);
+CREATE INDEX IF NOT EXISTS tokens_cuenta_usuario_idx ON tokens_cuenta (usuario_id, tipo);

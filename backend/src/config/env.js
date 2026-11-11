@@ -33,7 +33,16 @@ const corsOrigins = process.env.CORS_ORIGINS
   ? process.env.CORS_ORIGINS.split(',').map((o) => o.trim()).filter(Boolean)
   : ORIGENES_POR_DEFECTO;
 
+const lista = (valor) => (valor || '').split(',').map((x) => x.trim().toLowerCase()).filter(Boolean);
+
 module.exports = {
+  // Correo (Resend). Sin clave el servidor arranca igual y escribe los enlaces en el registro.
+  resendApiKey: process.env.RESEND_API_KEY || '',
+  emailRemitente: process.env.EMAIL_FROM || 'BonCloud <onboarding@resend.dev>',
+  // Dirección pública de la web: con ella se arman los enlaces de los correos
+  appUrl: (process.env.APP_URL || 'https://bonking14.github.io/bon-cloud-5.0/').replace(/\/?$/, '/'),
+  // Correos que pasan a administrador cuando verifican su dirección
+  adminEmails: lista(process.env.ADMIN_EMAILS),
   port: Number(process.env.PORT) || 4000,
   jwtSecret: process.env.JWT_SECRET,
   jwtExpiresIn: process.env.JWT_EXPIRES_IN || '8h',
