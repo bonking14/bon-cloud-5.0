@@ -59,6 +59,11 @@ npm start              # http://localhost:4000
 
 ## Migrar la base de datos
 
+No hace falta correr nada a mano: **el servidor aplica el esquema cada vez que arranca**, antes
+de atender pedidos. Si no puede, no arranca y Render deja funcionando la versión anterior.
+
+Para aplicarlo a mano (por ejemplo desde tu equipo):
+
 `npm run db:migrate` ejecuta `db/schema.sql`. Se puede correr las veces que quieras: crea las
 tablas que falten (`usuarios`, `progreso_usuario`, `tokens_cuenta`) y agrega a `usuarios` las
 columnas nuevas (`bloqueado_hasta`, `creado_en`, `rol`, `email_verificado`, `email_verificado_en`)
