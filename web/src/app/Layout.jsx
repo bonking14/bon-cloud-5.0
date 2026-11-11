@@ -59,6 +59,7 @@ export default function Layout() {
               )}
             </div>
           ))}
+          <NavLink to="/examen" className={claseNav}>Examen final</NavLink>
         </nav>
         <div className="sidebar-footer">
           <div className={css.tamanos} role="group" aria-label="Tamaño de letra">

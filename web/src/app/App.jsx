@@ -19,6 +19,8 @@ const Glosario = lazy(() => import('../features/glosario/Glosario.jsx'));
 const Curso = lazy(() => import('../features/curso/Curso.jsx'));
 const Simulador = lazy(() => import('../features/simulador/Simulador.jsx'));
 const Perfil = lazy(() => import('../features/cuenta/Perfil.jsx'));
+const Examenes = lazy(() => import('../features/examen/Examenes.jsx'));
+const Verificar = lazy(() => import('../features/examen/Verificar.jsx'));
 const Grupos = lazy(() => import('../features/grupos/Grupos.jsx'));
 const PanelGrupo = lazy(() => import('../features/grupos/PanelGrupo.jsx'));
 const AdminUsuarios = lazy(() => import('../features/cuenta/AdminUsuarios.jsx'));
@@ -36,6 +38,8 @@ export default function App() {
               <Route path="/" element={<Landing />} />
               {/* Páginas que abren los enlaces de los correos: no piden sesión */}
               <Route path="/restablecer" element={<Suspense fallback={null}><Restablecer /></Suspense>} />
+              <Route path="/verificar" element={<Suspense fallback={null}><Verificar /></Suspense>} />
+              <Route path="/verificar/:codigo" element={<Suspense fallback={null}><Verificar /></Suspense>} />
               <Route path="/verificar-correo" element={<Suspense fallback={null}><VerificarCorreo /></Suspense>} />
               <Route element={<ProtectedRoute><Layout /></ProtectedRoute>}>
                 <Route path="/inicio" element={<Dashboard />} />
@@ -53,6 +57,7 @@ export default function App() {
                 <Route path="/simulador" element={<Simulador />} />
                 <Route path="/perfil" element={<Perfil />} />
                 <Route path="/admin/usuarios" element={<AdminUsuarios />} />
+                <Route path="/examen" element={<Examenes />} />
                 <Route path="/grupos" element={<Grupos />} />
                 <Route path="/grupos/:id" element={<PanelGrupo />} />
               </Route>

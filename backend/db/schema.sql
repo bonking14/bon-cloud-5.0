@@ -88,3 +88,31 @@ CREATE TABLE IF NOT EXISTS intentos_quiz (
   creado_en  TIMESTAMPTZ NOT NULL DEFAULT NOW()
 );
 CREATE INDEX IF NOT EXISTS intentos_quiz_usuario_idx ON intentos_quiz (usuario_id, leccion_id);
+
+-- ── Examen final por módulo y certificado ──
+-- Cada examen guarda qué preguntas le tocaron al estudiante y en qué orden salieron las
+-- opciones; el servidor califica con eso, no con lo que diga el navegador.
+CREATE TABLE IF NOT EXISTS examenes (
+  id          SERIAL PRIMARY KEY,
+  usuario_id  INTEGER     NOT NULL REFERENCES usuarios(id) ON DELETE CASCADE,
+  modulo      INTEGER     NOT NULL,
+  preguntas   JSONB       NOT NULL,
+  iniciado_en TIMESTAMPTZ NOT NULL DEFAULT NOW(),
+  expira_en   TIMESTAMPTZ NOT NULL,
+  enviado_en  TIMESTAMPTZ,
+  aciertos    INTEGER,
+  total       INTEGER     NOT NULL,
+  aprobado    BOOLEAN
+);
+CREATE INDEX IF NOT EXISTS examenes_usuario_idx ON examenes (usuario_id, modulo);
+
+CREATE TABLE IF NOT EXISTS certificados (
+  id         SERIAL PRIMARY KEY,
+  usuario_id INTEGER     NOT NULL UNIQUE REFERENCES usuarios(id) ON DELETE CASCADE,
+  -- Código público con el que cualquiera comprueba el certificado
+  codigo     VARCHAR(16) NOT NULL UNIQUE,
+  -- Nombre y nota tal como eran al emitirlo: no cambian si el usuario edita su perfil
+  nombre     VARCHAR(100) NOT NULL,
+  nota       INTEGER     NOT NULL,
+  emitido_en TIMESTAMPTZ NOT NULL DEFAULT NOW()
+);

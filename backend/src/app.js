@@ -9,6 +9,7 @@ const progresoRoutes = require('./routes/progreso');
 const cuentaRoutes = require('./routes/cuenta');
 const adminRoutes = require('./routes/admin');
 const grupos = require('./routes/grupos');
+const examenesRoutes = require('./routes/examenes');
 const { noEncontrado, manejarErrores } = require('./middleware/errores');
 
 const app = express();
@@ -44,6 +45,7 @@ app.use('/api/cuenta', cuentaRoutes);
 app.use('/api/admin', adminRoutes);
 app.use('/api/grupos', grupos.profesor);
 app.use('/api', grupos.estudiante);
+app.use('/api', examenesRoutes);
 
 app.use(noEncontrado);
 app.use(manejarErrores);

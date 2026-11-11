@@ -54,3 +54,13 @@
 .si { color: #059669; font-weight: 600; }
 .no { color: var(--text-muted); }
 .acciones { display: flex; flex-wrap: wrap; gap: 8px; margin: 0 0 16px; align-items: center; }
+
+/* Examen final */
+.ayudaFija { position: sticky; top: 0; z-index: 5; margin: 0 0 12px; padding: 8px 12px; border-radius: 8px; background: var(--bg-active); color: var(--text-primary); font-size: 0.875rem; }
+.pregunta { padding: 0; font-size: 0.9375rem; font-weight: 600; color: var(--text-primary); margin-bottom: 8px; }
+fieldset.panel { min-width: 0; }
+.opcion { display: flex; gap: 8px; align-items: flex-start; padding: 6px 0; font-size: 0.875rem; color: var(--text-primary); cursor: pointer; }
+.opcion input { margin-top: 3px; }
+.revision { margin: 12px 0 0; padding-left: 20px; font-size: 0.8125rem; color: var(--text-primary); }
+.revision li { margin-bottom: 8px; }
+.revision small { color: var(--text-muted); }

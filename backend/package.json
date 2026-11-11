@@ -5,7 +5,8 @@
   "scripts": {
     "start": "node server.js",
     "test": "node --test \"test/*.test.js\"",
-    "db:migrate": "node db/migrate.js"
+    "db:migrate": "node db/migrate.js",
+    "banco": "node scripts/generar-banco.mjs"
   },
   "keywords": [],
   "author": "",

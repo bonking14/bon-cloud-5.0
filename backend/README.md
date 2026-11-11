@@ -114,6 +114,25 @@ Un profesor solo ve sus grupos y a los estudiantes que están en ellos; el grupo
 profesor responde `404`, igual que uno que no existe. La nota de los quizzes la calcula el
 navegador: sirve para seguimiento, no para certificar.
 
+### Examen final y certificado
+
+| Método | Ruta | Descripción |
+|---|---|---|
+| `GET` | `/api/examenes` | Requiere token. Estado de cada módulo (intentos, mejor nota, si puede presentar) y el certificado, si ya lo tiene. |
+| `POST` | `/api/examenes` | Requiere token. `{ modulo }`. Empieza un examen (o devuelve el que está en curso): 10 preguntas al azar, 30 minutos. |
+| `POST` | `/api/examenes/:id/responder` | Requiere token. `{ respuestas: [0..3 \| null, ...] }`. El servidor califica; se aprueba con 70. |
+| `GET` | `/api/certificados/:codigo` | **Pública.** Comprueba un certificado: nombre, nota y fecha. |
+
+Para presentar el examen de un módulo hay que tener aprobadas sus lecciones. Hay 3 intentos por
+módulo, y un examen que vence sin enviarse cuenta como intento. Al aprobar todos los módulos se
+emite un certificado por persona, con un código `BC-XXXXX-XXXXX`.
+
+Las preguntas salen de `data/banco.json`, que se genera a partir de los quizzes de la web con
+`npm run banco`. Hay que volver a generarlo cuando cambien las lecciones (una prueba falla si
+queda desactualizado). Como esas preguntas son las mismas de los quizzes, que viajan al
+navegador, quien sepa buscarlas puede ver las respuestas: para un examen con peso conviene un
+banco de preguntas propio, que solo exista en el servidor.
+
 ### Roles
 
 Todo registro nuevo es `estudiante`. Un administrador asciende a `profesor` o `administrador`
