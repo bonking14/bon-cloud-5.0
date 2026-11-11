@@ -1,19 +1,33 @@
+import { useMemo, useState } from 'react';
 import { subpartidas } from '../../../data/subpartidas.js';
 import { calcular600 } from '../../../lib/formularios.js';
 import { digitoVerificacion } from '../../../lib/nit.js';
 import { useCampos } from '../kit/contexto.js';
-import HojaOficial from '../kit/HojaOficial.jsx';
+import HojaOficial, { SelectorHojas } from '../kit/HojaOficial.jsx';
+import { recuadrosVacios } from '../kit/recuadros.js';
 import { dolares, soloDigitos } from '../kit/formato.js';
 import hoja1 from '../trazados/600-1.json';
 import hoja2 from '../trazados/600-2.json';
+import hoja3 from '../trazados/600-3.json';
+import hoja4 from '../trazados/600-4.json';
+import hoja5 from '../trazados/600-5.json';
+import hoja6 from '../trazados/600-6.json';
+import hoja7 from '../trazados/600-7.json';
+import hoja8 from '../trazados/600-8.json';
 
 // Formulario 600, Declaración de Exportación (DEX). Trazado y numeración del formulario
-// oficial de la DIAN (Formulario_600_2026.pdf): hoja 1 (principal) y hoja 2 (subpartidas
-// declaradas). Las hojas 3 a 8 del original (transporte, documentos soporte, sistemas
-// especiales y embarques fraccionados) no se incluyen.
+// oficial de la DIAN (Formulario_600_2026.pdf), con sus ocho hojas. Las hojas 1 y 2 tienen
+// nombres de campo propios (los usa el caso de práctica); en las hojas 3 a 8 los campos se
+// generan a partir de los recuadros vacíos del trazado.
 const TIPOS_DOCUMENTO = [['13', 'Cédula de ciudadanía'], ['22', 'Cédula de extranjería'], ['31', 'NIT'], ['41', 'Pasaporte']];
 const INCOTERMS = ['EXW', 'FCA', 'FAS', 'FOB', 'CFR', 'CIF', 'CPT', 'CIP', 'DAP', 'DPU', 'DDP'].map((t) => [t, t]);
 const ALTO_FILA = 24;
+const HOJAS = [
+  ['1', 'Hoja 1 · Principal'], ['2', 'Hoja 2 · Subpartidas'], ['3', 'Hoja 3 · Transporte'], ['4', 'Hoja 4 · Documentos soporte'],
+  ['5', 'Hoja 5 · Sistemas especiales'], ['6', 'Hoja 6 · Provisionales a definitivos'], ['7', 'Hoja 7 · Embarques fraccionados'], ['8', 'Hoja 8 · Continuación descripción'],
+];
+const CONTINUACION = [['3', hoja3, 'Detalles del transporte'], ['4', hoja4, 'Documentos soporte y vistos buenos'], ['5', hoja5, 'Sistemas especiales'],
+  ['6', hoja6, 'Detalle provisionales a definitivos'], ['7', hoja7, 'Detalle embarques fraccionados'], ['8', hoja8, 'Continuación descripción subpartidas declaradas']];
 
 // En este formulario el rótulo va arriba y el dato debajo, en filas de 24 puntos
 function debajo(c, extra = {}, alto = ALTO_FILA) {
@@ -27,7 +41,19 @@ const limpio = (t) => String(t || '').replace(/[.\s]/g, '');
 
 function Form600() {
   const { valores: v, poner, ponerVarios } = useCampos();
+  const [hoja, setHoja] = useState('1');
   const r = calcular600(v);
+  // Hojas 3 a 8: un campo por cada recuadro vacío, debajo del bloque del exportador
+  const recuadros = useMemo(() => Object.fromEntries(CONTINUACION.map(([n, t]) => [n, recuadrosVacios(t, { desdeY: 205, prefijo: `h${n}` })])), []);
+  // Se imprimen las hojas 1 y 2 y las de continuación que tengan algún dato
+  const conDatos = (n) => recuadros[n].some((c) => String(v[c.nombre] ?? '').trim());
+  // El bloque del exportador se repite en todas las hojas con los datos de la hoja 1
+  const exportador = (n) => ({
+    20: { valor: v.exp_tipo_doc ?? '', centro: true, caja: [41, 168.5, 35, 10.5], etiqueta: `Tipo de documento del exportador (hoja ${n})` },
+    18: { valor: v.exp_nit ?? '', caja: [79, 168, 149, 11], etiqueta: `NIT del exportador (hoja ${n})` },
+    6: { valor: digitoVerificacion(v.exp_nit), caja: [229.5, 168, 17, 11], centro: true, etiqueta: `DV del exportador (hoja ${n})` },
+    11: { valor: v.exp_razon ?? '', caja: [41, 191.5, 552, 11], etiqueta: `Razón social del exportador (hoja ${n})` },
+  });
   const c1 = hoja1.celdas;
   const c2 = hoja2.celdas;
 
@@ -99,10 +125,7 @@ function Form600() {
   };
   const campos2 = {
     4: { omitir: true },
-    20: { valor: v.exp_tipo_doc ?? '', centro: true, caja: [41, 168.5, 35, 10.5], etiqueta: 'Tipo de documento del exportador (hoja 2)' },
-    18: { valor: v.exp_nit ?? '', caja: [79, 168, 149, 11], etiqueta: 'NIT del exportador (hoja 2)' },
-    6: { valor: digitoVerificacion(v.exp_nit), caja: [229.5, 168, 17, 11], centro: true, etiqueta: 'DV del exportador (hoja 2)' },
-    11: { valor: v.exp_razon ?? '', caja: [41, 191.5, 552, 11], etiqueta: 'Razón social del exportador (hoja 2)' },
+    ...exportador(2),
     7: { omitir: true }, 8: { omitir: true }, 9: { omitir: true }, 10: { omitir: true },
     111: { nombre: 's_marcas', multilinea: true, caja: [25, 277.5, 568, 22.5], etiqueta: 'Marcas' },
     112: { nombre: 's_descripcion', multilinea: true, caja: [25, 313.5, 568, 370], etiqueta: 'Descripción' },
@@ -126,11 +149,14 @@ function Form600() {
 
   return (
     <>
-      <HojaOficial trazado={hoja1} numero="600" titulo="Declaración de Exportación" campos={campos1} extras={extras1} />
-      <HojaOficial trazado={hoja2} numero="600" titulo="Declaración de Exportación, hoja 2: subpartidas declaradas" campos={campos2} extras={extras2}
-        pie={(
-          <p className="ho-nota no-imprimir">Simulador educativo de BonCloud, sin validez ante la DIAN. Reproduce la hoja 1 y la hoja 2 (subpartidas declaradas) del formulario 600 oficial; las hojas 3 a 8 del original no se incluyen. La declaración real la generan los servicios informáticos de la DIAN después del embarque y se firma digitalmente (art. 363 del Decreto 1165 de 2019).</p>
-        )} />
+      <SelectorHojas hojas={HOJAS} actual={hoja} onCambiar={setHoja} />
+      <HojaOficial trazado={hoja1} numero="600" titulo="Declaración de Exportación" campos={campos1} extras={extras1} oculta={hoja !== '1'} />
+      <HojaOficial trazado={hoja2} numero="600" titulo="Declaración de Exportación, hoja 2: subpartidas declaradas" campos={campos2} extras={extras2} oculta={hoja !== '2'} />
+      {CONTINUACION.map(([n, trazado, nombre]) => (
+        <HojaOficial key={n} trazado={trazado} numero="600" titulo={`Declaración de Exportación, hoja ${n}: ${nombre}`}
+          campos={exportador(n)} extras={recuadros[n]} soloConfiguradas oculta={hoja !== n} imprimir={conDatos(n)} />
+      ))}
+      <p className="ho-nota no-imprimir" style={{ width: 980, margin: '10px auto 0' }}>Simulador educativo de BonCloud, sin validez ante la DIAN. Reproduce las ocho hojas del formulario 600 oficial; al imprimir salen las hojas 1 y 2 y las demás que tengan datos. La declaración real la generan los servicios informáticos de la DIAN después del embarque y se firma digitalmente (art. 363 del Decreto 1165 de 2019).</p>
       <datalist id="lista-subpartidas-600">
         {subpartidas.map((s) => <option key={s.codigo} value={s.codigo}>{s.titulo}</option>)}
       </datalist>

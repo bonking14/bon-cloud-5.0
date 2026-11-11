@@ -45,6 +45,10 @@ pip install pdfplumber
 python3 scripts/extraer_formulario.py Formulario_500_2026.pdf 1 > src/features/formularios/trazados/500.json
 ```
 
+El número es la hoja del PDF. El 600 está dibujado con recuadros superpuestos y lleva `capas` al
+final (`... Formulario_600_2026.pdf 3 capas > .../600-3.json`); en sus hojas 3 a 8 los campos
+se generan solos a partir de los recuadros vacíos (`kit/recuadros.js`).
+
 Cada archivo de `hojas/` dice qué va en cada casilla (nombre del dato, valor calculado, lista
 de códigos o posición a mano). El 001 (RUT) todavía usa el diseño anterior: la DIAN no publica
 su hoja en blanco en ese catálogo.

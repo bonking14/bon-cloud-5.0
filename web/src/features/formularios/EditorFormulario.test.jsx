@@ -64,6 +64,30 @@ describe('formularios DIAN en React', () => {
     expect(screen.getByLabelText('Subpartida').value).toBe('0901.21.10.00');
   });
 
+  it('600: tiene las ocho hojas del original y las de continuación repiten al exportador', async () => {
+    abrir('600');
+    fireEvent.click(await screen.findByText(/Cargar caso de la Ruta/, {}, ESPERA));
+    expect(screen.getAllByRole('tab')).toHaveLength(8);
+    for (let n = 3; n <= 8; n++) expect(screen.getByLabelText(`NIT del exportador (hoja ${n})`).value).toBe('890900123');
+    // cada registro de las hojas de continuación tiene su campo, con el rótulo del original
+    fireEvent.change(screen.getByLabelText('No. Manifiesto de carga, registro 1'), { target: { value: 'MC-001' } });
+    expect(screen.getByLabelText('No. Manifiesto de carga, registro 1').value).toBe('MC-001');
+    expect(screen.getByLabelText('Número de identificación, registro 7')).toBeTruthy(); // hoja 3: siete transportadores
+    expect(screen.getByLabelText('Fecha expedición, registro 11')).toBeTruthy(); // hoja 4: once documentos
+    expect(screen.getByLabelText('No. Programa, fila 30')).toBeTruthy(); // hoja 5: treinta ítems
+    expect(screen.getAllByLabelText('Fecha DEX, fila 43')).toHaveLength(2); // hoja 7: 86 embarques en dos columnas
+    expect(screen.getAllByLabelText('Descripción, registro 1').some((el) => el.tagName === 'TEXTAREA')).toBe(true); // hoja 8
+  });
+
+  it('560: la hoja 2 continúa los ítems del 4 al 25', async () => {
+    abrir('560');
+    fireEvent.click(await screen.findByText(/Cargar caso de la Ruta/, {}, ESPERA));
+    expect(screen.getByLabelText('NIT del importador (hoja 2)').value).toBe('900123456');
+    expect(screen.getByLabelText('Nombre comercial, ítem 4')).toBeTruthy();
+    expect(screen.getByLabelText('Precio FOB unitario USD, ítem 25')).toBeTruthy();
+    expect(screen.queryByLabelText('Nombre comercial, ítem 26')).toBeNull();
+  });
+
   it('560: el caso da valor en aduana USD 63.800 (casilla 135)', async () => {
     abrir('560');
     fireEvent.click(await screen.findByText(/Cargar caso de la Ruta/, {}, ESPERA));

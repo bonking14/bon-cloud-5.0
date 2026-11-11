@@ -15,6 +15,8 @@ import { useCampos } from './contexto.js';
 //   { partes: [...] }     varios campos dentro de la misma casilla (por ejemplo año, mes y día)
 //   { omitir: true }      casilla sin campo (espacios reservados a la DIAN)
 // `sombra`: color de los sombreados oscuros del original (en el 560 son claros)
+// `soloConfiguradas`: no crea campos libres para las casillas que no estén en `campos`
+// `oculta` / `imprimir`: hojas de un formulario de varias hojas (se ve una a la vez)
 // Las casillas que no aparecen en `campos` quedan como campo libre.
 const COLOR = { azul: '#005e93', gris: '#b9bcc2', blanco: '#fff' };
 const TINTA = '#1d1d1b';
@@ -77,13 +79,14 @@ function Campo({ num, def, caja, rotulo, W, H, onAyuda }) {
   return <input type="text" className={clase} list={def.lista} inputMode={def.inputMode} maxLength={def.max} placeholder={def.placeholder} autoComplete="off" {...comunes} {...ligado} />;
 }
 
-export default function HojaOficial({ trazado, numero, titulo, campos = {}, extras = [], pie, sombra = LINEA }) {
+export default function HojaOficial({ trazado, numero, titulo, campos = {}, extras = [], pie, sombra = LINEA, soloConfiguradas = false, oculta = false, imprimir = true }) {
   const { explicaciones } = useCampos();
   const [ayuda, setAyuda] = useState(null);
   const { w: W, h: H, celdas } = trazado;
 
   const lista = [];
   Object.entries(celdas).forEach(([num, celda]) => {
+    if (soloConfiguradas && !campos[num]) return;
     const def = campos[num] || {};
     if (def.omitir) return;
     const base = def.caja || cajaDe(celda);
@@ -98,7 +101,7 @@ export default function HojaOficial({ trazado, numero, titulo, campos = {}, extr
 
   const texto = ayuda && explicaciones[ayuda];
   return (
-    <div className="ho-envoltura">
+    <div className={['ho-envoltura', oculta && 'ho-oculta', !imprimir && 'no-imprimir'].filter(Boolean).join(' ')}>
       <p className="ho-ayuda no-imprimir" role="status">
         {texto
           ? <><strong>Casilla {ayuda}.</strong> {texto}</>
@@ -131,6 +134,17 @@ export default function HojaOficial({ trazado, numero, titulo, campos = {}, extr
         {lista.map(({ clave, ...resto }) => <Campo key={clave} {...resto} W={W} H={H} onAyuda={setAyuda} />)}
       </div>
       {pie}
+    </div>
+  );
+}
+
+// Pestañas para elegir la hoja visible de un formulario de varias hojas
+export function SelectorHojas({ hojas, actual, onCambiar }) {
+  return (
+    <div className="ho-hojas no-imprimir" role="tablist" aria-label="Hojas del formulario">
+      {hojas.map(([id, texto]) => (
+        <button key={id} type="button" role="tab" aria-selected={id === actual} className={`btn-card${id === actual ? ' activo' : ''}`} onClick={() => onCambiar(id)}>{texto}</button>
+      ))}
     </div>
   );
 }

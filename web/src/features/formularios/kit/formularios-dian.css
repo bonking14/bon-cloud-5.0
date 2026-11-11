@@ -151,6 +151,9 @@
 /* ── Hoja oficial: trazado del PDF de la DIAN con los campos encima ── */
 .ho-envoltura { width: 980px; margin: 0 auto; }
 .ho-envoltura + .ho-envoltura { margin-top: 24px; }
+.ho-envoltura.ho-oculta { display: none; }
+.ho-hojas { display: flex; flex-wrap: wrap; gap: 8px; width: 980px; margin: 0 auto 12px; }
+.ho-hojas .btn-card.activo { border-color: var(--text-accent); box-shadow: inset 0 0 0 1px var(--text-accent); background: var(--bg-active); }
 .ho-ayuda { margin: 0 0 8px; padding: 8px 12px; min-height: 2.6em; border-radius: 8px; font-size: 0.8125rem; line-height: 1.45; background: var(--bg-active); color: var(--text-primary); position: sticky; top: 0; z-index: 5; }
 .hoja-oficial { position: relative; width: 100%; background: #fff; color: #1d1d1b; box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15); container-type: inline-size; overflow: hidden; }
 .ho-trazado { position: absolute; inset: 0; width: 100%; height: 100%; display: block; }
@@ -174,6 +177,7 @@ textarea.ho-campo { padding-top: 0.2cqw; line-height: 1.25; }
 @media print {
   @page { size: letter portrait; margin: 0; }
   .ho-envoltura { width: 100%; margin: 0; }
+  .ho-envoltura.ho-oculta { display: block; }
   .ho-envoltura + .ho-envoltura { margin-top: 0; break-before: page; }
   .hoja-oficial { box-shadow: none; }
   .ho-campo, .ho-campo.ho-calculado { background: transparent !important; box-shadow: none !important; color: #000; }

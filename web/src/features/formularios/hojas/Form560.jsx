@@ -1,12 +1,15 @@
+import { useState } from 'react';
 import { calcularDAV, CASILLAS_ADICIONES, CASILLAS_DEDUCCIONES } from '../../../lib/formularios.js';
 import { digitoVerificacion } from '../../../lib/nit.js';
 import { useCampos } from '../kit/contexto.js';
-import HojaOficial from '../kit/HojaOficial.jsx';
+import HojaOficial, { SelectorHojas } from '../kit/HojaOficial.jsx';
 import { dolares, soloDigitos } from '../kit/formato.js';
 import trazado from '../trazados/560.json';
+import trazado2 from '../trazados/560-2.json';
 
 // Formulario 560, Declaración Andina del Valor (DAV). Trazado, numeración e instrucciones
-// del formulario oficial de la DIAN (Formulario_560_2026.pdf).
+// del formulario oficial de la DIAN (Formulario_560_2026.pdf): hoja principal y hoja 2,
+// que continúa la descripción de la mercancía con los ítems 4 a 25.
 const SI_NO = [['S', 'Sí'], ['N', 'No']];
 const TIPOS_DECLARACION = [['1', 'Inicial'], ['2', 'Legalización'], ['3', 'Anticipada'], ['4', 'Corrección'], ['5', 'Modificación']];
 const INCOTERMS = ['EXW', 'FCA', 'FAS', 'FOB', 'CFR', 'CIF', 'CPT', 'CIP', 'DAP', 'DPU', 'DDP'].map((t) => [t, t]);
@@ -20,6 +23,7 @@ const BLOQUE_B = [[72, 'referencia', 'Referencia'], [73, 'estado', 'Cód. Estado
 
 function Form560() {
   const { valores: v } = useCampos();
+  const [hoja, setHoja] = useState('1');
   const r = calcularDAV(v);
   const celdas = trazado.celdas;
 
@@ -84,11 +88,29 @@ function Form560() {
   campos[134].etiqueta = 'Total deducciones';
   campos[135] = { ...campos[135], etiqueta: 'Valor de transacción declarado', grande: false };
 
+  // ── Hoja 2: ítems 4 a 25, en filas de 12 puntos ──
+  const c2 = trazado2.celdas;
+  const ITEMS_2 = Array.from({ length: 22 }, (_, i) => i + 4);
+  const campos2 = {
+    5: { valor: v.f_nit ?? '', etiqueta: 'NIT del importador (hoja 2)' },
+    6: { valor: digitoVerificacion(v.f_nit), caja: [188, 169.5, 13, 11.7], centro: true, etiqueta: 'DV del importador (hoja 2)' },
+    11: { valor: v.f_razon ?? '', etiqueta: 'Razón social (hoja 2)' },
+  };
+  const tabla2 = (bloque, letra) => bloque.forEach(([num, clave, etiqueta]) => {
+    const c = c2[num];
+    campos2[num] = { partes: ITEMS_2.map((item, i) => ({ nombre: `${letra}${item}_${clave}`, caja: [c.x + 0.8, c.y + 12 + i * 12 + 0.8, c.w - 1.6, 10.4], etiqueta: `${etiqueta}, ítem ${item}` })) };
+  });
+  tabla2(BLOQUE_A, 'a');
+  tabla2(BLOQUE_B, 'b');
+  const hoja2ConDatos = Object.entries(v).some(([k, x]) => /^[ab]([4-9]|1\d|2[0-5])_/.test(k) && String(x ?? '').trim());
+
   return (
-    <HojaOficial trazado={trazado} numero="560" titulo="Declaración Andina del Valor" campos={campos} sombra="#c9d4e4"
-      pie={(
-        <p className="ho-nota no-imprimir">Simulador educativo de BonCloud, sin validez ante la DIAN. La hoja reproduce la distribución y la numeración del formulario 560 oficial (hoja principal). En la determinación del valor, la columna USD suma sola: precio pagado (97), adiciones (123), deducciones (134) y valor de transacción declarado (135 = 97 + 123 − 134). La DAV se exige cuando el valor FOB es de USD 5.000 o más.</p>
-      )} />
+    <>
+      <SelectorHojas hojas={[['1', 'Hoja 1 · Principal'], ['2', 'Hoja 2 · Más ítems (4 a 25)']]} actual={hoja} onCambiar={setHoja} />
+      <HojaOficial trazado={trazado} numero="560" titulo="Declaración Andina del Valor" campos={campos} sombra="#c9d4e4" oculta={hoja !== '1'} />
+      <HojaOficial trazado={trazado2} numero="560" titulo="Declaración Andina del Valor, hoja 2" campos={campos2} sombra="#e9eef5" soloConfiguradas oculta={hoja !== '2'} imprimir={hoja2ConDatos} />
+      <p className="ho-nota no-imprimir" style={{ width: 980, margin: '10px auto 0' }}>Simulador educativo de BonCloud, sin validez ante la DIAN. Reproduce las dos hojas del formulario 560 oficial; la hoja 2 solo se imprime si tiene datos. En la determinación del valor, la columna USD suma sola: precio pagado (97), adiciones (123), deducciones (134) y valor de transacción declarado (135 = 97 + 123 − 134). La DAV se exige cuando el valor FOB es de USD 5.000 o más.</p>
+    </>
   );
 }
 
