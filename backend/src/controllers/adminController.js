@@ -10,18 +10,18 @@ const listarUsuarios = async (req, res) => {
   // Los comodines que escriba el usuario se buscan como texto literal
   const patron = `%${buscar.toLowerCase().replace(/[\\%_]/g, '\\$&')}%`;
   const r = await pool.query(
-    `SELECT id, nombre, email, rol, email_verificado, bloqueado, ultimo_login, creado_en,
-            COUNT(*) OVER() AS total
-       FROM usuarios
-      WHERE LOWER(nombre) LIKE $1 OR LOWER(email) LIKE $1
-      ORDER BY creado_en DESC, id DESC
+    `SELECT u.id, u.nombre, u.email, u.rol, u.email_verificado, u.bloqueado, u.ultimo_login, u.creado_en,
+            u.institucion_id, COUNT(*) OVER() AS total
+       FROM usuarios u
+      WHERE LOWER(u.nombre) LIKE $1 OR LOWER(u.email) LIKE $1
+      ORDER BY u.creado_en DESC, u.id DESC
       LIMIT $2 OFFSET $3`,
     [patron, POR_PAGINA, (pagina - 1) * POR_PAGINA]
   );
   res.json({
     usuarios: r.rows.map((u) => ({
       id: u.id, nombre: u.nombre, email: u.email, rol: u.rol, emailVerificado: Boolean(u.email_verificado),
-      bloqueado: Boolean(u.bloqueado), ultimoLogin: u.ultimo_login, creadoEn: u.creado_en,
+      bloqueado: Boolean(u.bloqueado), ultimoLogin: u.ultimo_login, creadoEn: u.creado_en, institucionId: u.institucion_id ?? null,
     })),
     total: r.rows.length ? Number(r.rows[0].total) : 0,
     pagina,

@@ -1,5 +1,7 @@
 const crypto = require('crypto');
 const pool = require('../config/db');
+const env = require('../config/env');
+const { licenciaDe, impedimento } = require('../services/licencias');
 
 // Sin 0/O ni 1/I/L, que se confunden al dictar o copiar el código
 const ALFABETO = 'ABCDEFGHJKMNPQRSTUVWXYZ23456789';
@@ -37,12 +39,20 @@ const listarGrupos = async (req, res) => {
       ORDER BY g.archivado, g.creado_en DESC`,
     [todos, req.usuario.id]
   );
-  res.json({ grupos: r.rows.map((g) => ({ ...publico(g), profesor: g.profesor, miembros: Number(g.miembros) })) });
+  res.json({
+    grupos: r.rows.map((g) => ({ ...publico(g), profesor: g.profesor, miembros: Number(g.miembros) })),
+    licencia: await licenciaDe(req.usuario.id),
+    licenciaObligatoria: env.licenciaObligatoria,
+  });
 };
 
 const crearGrupo = async (req, res) => {
   const { nombre } = req.body || {};
   if (!nombreValido(nombre)) return res.status(400).json({ error: 'Escribe el nombre del grupo (máximo 100 caracteres).' });
+  if (env.licenciaObligatoria && req.usuario.rol !== 'administrador') {
+    const l = await licenciaDe(req.usuario.id);
+    if (!l || !l.vigente) return res.status(403).json({ error: 'Para crear grupos necesitas una licencia vigente. Habla con el administrador.' });
+  }
   const cuantos = await pool.query('SELECT COUNT(*) AS n FROM grupos WHERE profesor_id = $1', [req.usuario.id]);
   if (Number(cuantos.rows[0]?.n) >= MAX_GRUPOS_POR_PROFESOR) {
     return res.status(400).json({ error: `Llegaste al máximo de ${MAX_GRUPOS_POR_PROFESOR} grupos. Archiva o elimina alguno.` });
@@ -158,6 +168,8 @@ const unirse = async (req, res) => {
   const g = r.rows[0];
   if (!g || g.archivado) return res.status(404).json({ error: 'No hay un grupo abierto con ese código. Revísalo con tu profesor.' });
   if (g.profesor_id === req.usuario.id) return res.status(400).json({ error: 'Ese grupo es tuyo: no necesitas unirte.' });
+  const motivo = await impedimento(g.profesor_id, req.usuario.id);
+  if (motivo) return res.status(403).json({ error: motivo });
   await pool.query('INSERT INTO grupo_miembros (grupo_id, usuario_id) VALUES ($1, $2) ON CONFLICT DO NOTHING', [g.id, req.usuario.id]);
   res.status(201).json({ mensaje: `Te uniste a ${g.nombre}.`, grupo: { id: g.id, nombre: g.nombre, profesor: g.profesor, archivado: false } });
 };

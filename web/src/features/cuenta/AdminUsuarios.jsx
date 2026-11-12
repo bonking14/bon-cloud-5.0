@@ -14,6 +14,7 @@ export default function AdminUsuarios() {
   const [buscar, setBuscar] = useState('');
   const [consulta, setConsulta] = useState({ buscar: '', pagina: 1 });
   const [datos, setDatos] = useState(null);
+  const [instituciones, setInstituciones] = useState([]);
   const [mensaje, setMensaje] = useState({ texto: 'Cargando usuarios…' });
 
   const cargar = useCallback(() => {
@@ -24,6 +25,18 @@ export default function AdminUsuarios() {
       .catch((err) => setMensaje({ texto: err.message, error: true }));
   }, [consulta, tokenApi, rol]);
   useEffect(cargar, [cargar]);
+  useEffect(() => {
+    if (rol === 'administrador') pedir('/admin/instituciones', { token: tokenApi }).then((d) => setInstituciones(d.instituciones || [])).catch(() => {});
+  }, [rol, tokenApi]);
+
+  const asignar = async (u, valor) => {
+    const institucionId = valor ? Number(valor) : null;
+    try {
+      const d = await pedir(`/admin/usuarios/${u.id}/institucion`, { metodo: 'PUT', token: tokenApi, cuerpo: { institucionId } });
+      setDatos((x) => ({ ...x, usuarios: x.usuarios.map((y) => (y.id === u.id ? { ...y, institucionId } : y)) }));
+      setMensaje({ texto: `${u.nombre}: ${d.mensaje}` });
+    } catch (err) { setMensaje({ texto: err.message, error: true }); }
+  };
 
   if (rol !== 'administrador') return <Navigate to="/inicio" replace />;
 
@@ -55,10 +68,10 @@ export default function AdminUsuarios() {
           <div className={css.desplazable}>
             <table className={css.tabla}>
               <thead>
-                <tr><th>Nombre</th><th>Correo</th><th>Correo confirmado</th><th>Último ingreso</th><th>Rol</th></tr>
+                <tr><th>Nombre</th><th>Correo</th><th>Correo confirmado</th><th>Último ingreso</th><th>Rol</th><th>Institución</th></tr>
               </thead>
               <tbody>
-                {datos.usuarios.length === 0 && <tr><td colSpan={5}>No hay usuarios que coincidan.</td></tr>}
+                {datos.usuarios.length === 0 && <tr><td colSpan={6}>No hay usuarios que coincidan.</td></tr>}
                 {datos.usuarios.map((u) => (
                   <tr key={u.id}>
                     <td>{u.nombre}{u.bloqueado ? ' (bloqueado)' : ''}</td>
@@ -69,6 +82,14 @@ export default function AdminUsuarios() {
                       {u.id === usuario.id ? <span className={css.insignia}>{u.rol} (tú)</span> : (
                         <select className={css.selector} value={u.rol} aria-label={`Rol de ${u.nombre}`} onChange={(e) => cambiarRol(u, e.target.value)}>
                           {ROLES.map((r) => <option key={r} value={r}>{r}</option>)}
+                        </select>
+                      )}
+                    </td>
+                    <td>
+                      {u.rol === 'estudiante' ? '—' : (
+                        <select className={css.selector} value={u.institucionId ?? ''} aria-label={`Institución de ${u.nombre}`} onChange={(e) => asignar(u, e.target.value)}>
+                          <option value="">Sin institución</option>
+                          {instituciones.map((i) => <option key={i.id} value={i.id}>{i.nombre}</option>)}
                         </select>
                       )}
                     </td>

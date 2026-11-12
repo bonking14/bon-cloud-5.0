@@ -120,3 +120,17 @@ CREATE TABLE IF NOT EXISTS certificados (
 -- ── Consentimiento: cuándo aceptó los términos y la política de datos, y qué versión ──
 ALTER TABLE usuarios ADD COLUMN IF NOT EXISTS terminos_aceptados_en TIMESTAMPTZ;
 ALTER TABLE usuarios ADD COLUMN IF NOT EXISTS terminos_version VARCHAR(20);
+
+-- ── Licencias: instituciones con cupos y fecha de vencimiento ──
+CREATE TABLE IF NOT EXISTS instituciones (
+  id        SERIAL PRIMARY KEY,
+  nombre    VARCHAR(150) NOT NULL,
+  -- Estudiantes distintos que pueden estar en los grupos de sus profesores
+  cupos     INTEGER      NOT NULL CHECK (cupos >= 0),
+  vence_en  DATE,
+  activa    BOOLEAN      NOT NULL DEFAULT TRUE,
+  notas     VARCHAR(500),
+  creado_en TIMESTAMPTZ  NOT NULL DEFAULT NOW()
+);
+-- Un profesor pertenece, como mucho, a una institución; sin institución no tiene límite de cupos
+ALTER TABLE usuarios ADD COLUMN IF NOT EXISTS institucion_id INTEGER REFERENCES instituciones(id) ON DELETE SET NULL;

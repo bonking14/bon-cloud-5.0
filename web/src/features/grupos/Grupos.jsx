@@ -9,6 +9,7 @@ export default function Grupos() {
   const { rol, tokenApi } = useAuth();
   const puede = rol === 'profesor' || rol === 'administrador';
   const [grupos, setGrupos] = useState(null);
+  const [licencia, setLicencia] = useState(null);
   const [nombre, setNombre] = useState('');
   const [msg, setMsg] = useState({ texto: 'Cargando grupos…' });
 
@@ -16,7 +17,7 @@ export default function Grupos() {
     if (!puede) return;
     pedir('/grupos', { token: tokenApi })
       // Solo se borra el «Cargando…»: un mensaje de una acción recién hecha se conserva
-      .then((d) => { setGrupos(d.grupos); setMsg((m) => (m.texto.startsWith('Cargando') ? { texto: '' } : m)); })
+      .then((d) => { setGrupos(d.grupos); setLicencia(d.licencia || null); setMsg((m) => (m.texto.startsWith('Cargando') ? { texto: '' } : m)); })
       .catch((err) => setMsg({ texto: err.message, error: true }));
   }, [puede, tokenApi]);
   useEffect(cargar, [cargar]);
@@ -40,6 +41,13 @@ export default function Grupos() {
         <h1>Grupos</h1>
         <p>Crea un grupo, comparte su código con tus estudiantes y sigue su avance en la Ruta de Aprendizaje.</p>
       </div>
+
+      {licencia && (
+        <p className={licencia.vigente ? css.pista : css.aviso} role="status">
+          Licencia de <strong>{licencia.nombre}</strong>: {licencia.usados} de {licencia.cupos} cupos usados · {licencia.venceEn ? `vence el ${new Date(licencia.venceEn).toLocaleDateString('es-CO', { timeZone: 'UTC' })}` : 'no vence'}
+          {!licencia.vigente && ' · No está vigente: tus estudiantes no pueden unirse a los grupos hasta que el administrador la renueve.'}
+        </p>
+      )}
 
       <form className={`${css.panel} ${css.enLinea}`} onSubmit={crear}>
         <input value={nombre} onChange={(e) => setNombre(e.target.value)} maxLength={100} placeholder="Nombre del grupo, por ejemplo: Comercio Exterior 2026-2" aria-label="Nombre del grupo nuevo" style={{ maxWidth: 420 }} />

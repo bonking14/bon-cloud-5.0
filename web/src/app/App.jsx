@@ -24,6 +24,7 @@ const Examenes = lazy(() => import('../features/examen/Examenes.jsx'));
 const Verificar = lazy(() => import('../features/examen/Verificar.jsx'));
 const Grupos = lazy(() => import('../features/grupos/Grupos.jsx'));
 const PanelGrupo = lazy(() => import('../features/grupos/PanelGrupo.jsx'));
+const Instituciones = lazy(() => import('../features/cuenta/Instituciones.jsx'));
 const AdminUsuarios = lazy(() => import('../features/cuenta/AdminUsuarios.jsx'));
 const Restablecer = lazy(() => import('../features/cuenta/Restablecer.jsx'));
 const VerificarCorreo = lazy(() => import('../features/cuenta/VerificarCorreo.jsx'));
@@ -60,6 +61,7 @@ export default function App() {
                 <Route path="/simulador" element={<Simulador />} />
                 <Route path="/perfil" element={<Perfil />} />
                 <Route path="/admin/usuarios" element={<AdminUsuarios />} />
+                <Route path="/admin/instituciones" element={<Instituciones />} />
                 <Route path="/examen" element={<Examenes />} />
                 <Route path="/grupos" element={<Grupos />} />
                 <Route path="/grupos/:id" element={<PanelGrupo />} />

@@ -43,6 +43,8 @@ module.exports = {
   appUrl: (process.env.APP_URL || 'https://bonking14.github.io/bon-cloud-5.0/').replace(/\/?$/, '/'),
   // Correos que pasan a administrador cuando verifican su dirección
   adminEmails: lista(process.env.ADMIN_EMAILS),
+  // Con 'true', un profesor solo puede crear grupos si su institución tiene la licencia vigente
+  licenciaObligatoria: process.env.LICENCIA_OBLIGATORIA === 'true',
   port: Number(process.env.PORT) || 4000,
   jwtSecret: process.env.JWT_SECRET,
   jwtExpiresIn: process.env.JWT_EXPIRES_IN || '8h',

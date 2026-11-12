@@ -133,6 +133,17 @@ queda desactualizado). Como esas preguntas son las mismas de los quizzes, que vi
 navegador, quien sepa buscarlas puede ver las respuestas: para un examen con peso conviene un
 banco de preguntas propio, que solo exista en el servidor.
 
+### Licencias por institución
+
+Solo el administrador (`/api/admin/instituciones`, `GET`/`POST`/`PUT /:id`/`DELETE /:id`, y
+`PUT /api/admin/usuarios/:id/institucion` para asignar un profesor). Una institución tiene
+**cupos** (estudiantes distintos en los grupos de sus profesores), una fecha de vencimiento
+opcional y puede suspenderse. Cuando el profesor de un grupo pertenece a una institución, un
+estudiante solo puede unirse si la licencia está vigente y quedan cupos. Un profesor sin
+institución no tiene límite, salvo que `LICENCIA_OBLIGATORIA=true`: entonces no puede crear
+grupos sin una licencia vigente. No hay pasarela de pago: la licencia se factura por fuera y
+el administrador la registra.
+
 ### Roles
 
 Todo registro nuevo es `estudiante`. Un administrador asciende a `profesor` o `administrador`

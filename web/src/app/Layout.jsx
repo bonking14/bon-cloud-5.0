@@ -75,6 +75,7 @@ export default function Layout() {
           </button>
           {(rol === 'profesor' || rol === 'administrador') && <NavLink to="/grupos" className={claseNav}>Grupos</NavLink>}
           {rol === 'administrador' && <NavLink to="/admin/usuarios" className={claseNav}>Usuarios</NavLink>}
+          {rol === 'administrador' && <NavLink to="/admin/instituciones" className={claseNav}>Licencias</NavLink>}
           {esInvitado
             ? <span className={css.usuario}>{usuario?.nombre}</span>
             : <NavLink to="/perfil" className={claseNav} title="Mi perfil">{usuario?.nombre}</NavLink>}

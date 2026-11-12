@@ -187,7 +187,7 @@ describe('administración de usuarios', () => {
     assert.equal(res.body.total, 41);
     assert.equal(res.body.pagina, 2);
     assert.equal(res.body.usuarios[0].password, undefined);
-    assert.deepEqual(sql(/FROM usuarios\s+WHERE LOWER\(nombre\)/)[0].params, ['%lu\\_s\\%%', 25, 25]);
+    assert.deepEqual(sql(/FROM usuarios u\s+WHERE LOWER\(u\.nombre\)/)[0].params, ['%lu\\_s\\%%', 25, 25]);
   });
 
   test('cambia el rol de otro usuario, valida el rol y no deja cambiar el propio', async () => {
