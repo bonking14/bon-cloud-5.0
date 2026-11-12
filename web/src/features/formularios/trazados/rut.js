@@ -202,5 +202,76 @@ function hoja2() {
   return { ...t, rejillas: { ...tabla, ...estado } };
 }
 
+// ── Hojas 3 a 6: bloques que se repiten (un representante, un socio, un establecimiento...) ──
+// Cada bloque es una lista de filas; cada fila, una lista de [casilla, rótulo, ancho relativo].
+// Como la misma casilla aparece en varios bloques, sus cajas se devuelven en `rejillas`
+// (una por bloque) y el formulario les pone un campo a cada una.
+function hojaDeBloques(subtitulo, seccion, bloques) {
+  const L = lienzo();
+  const { t } = L;
+  L.cabecera(subtitulo);
+  L.marco(X0, 60, 295, 34);
+  L.texto(X0 + 4, 70, 5.5, 'Espacio reservado para la DIAN');
+  L.marco(316, 60, 275, 34);
+  L.texto(320, 70, 6, '4. Número de formulario');
+  t.celdas[4] = { x: 316, y: 60, w: 275, h: 34, r: 'Número de formulario' };
+  let y = L.fila(94, [[5, 'Número de Identificación Tributaria (NIT)', 2.6], [6, 'DV', 0.4], [12, 'Dirección seccional', 3], [14, 'Buzón electrónico', 4]]);
+  y = L.banda(y, seccion);
+  const rejillas = {};
+  bloques.forEach(({ titulo, filas }, b) => {
+    // Franja angosta a la izquierda con el número (o el nombre) del bloque
+    const alto = filas.length * 24;
+    L.marco(X0, y, 16, alto);
+    t.verticales.push({ x: X0 + 6, y0: y, y1: y + alto, s: 6, t: titulo || String(b + 1) });
+    filas.forEach((casillas) => {
+      const total = casillas.reduce((s2, c) => s2 + (c[2] || 1), 0);
+      let x = X0 + 16;
+      casillas.forEach(([num, rotulo, peso = 1]) => {
+        const w = ((X1 - X0 - 16) * peso) / total;
+        L.marco(x, y, w, 24);
+        L.texto(x + 2, y + 7, 6, `${num}. ${rotulo}`);
+        (rejillas[num] = rejillas[num] || []).push([x + 1, y + 9.5, w - 2, 13.5]);
+        if (!t.celdas[num]) t.celdas[num] = { x, y, w, h: 24, r: rotulo };
+        x += w;
+      });
+      y += 24;
+    });
+    y += 5;
+  });
+  return { ...t, rejillas };
+}
+
+const repetir = (n, filas) => Array.from({ length: n }, () => ({ filas }));
+const persona = (base, tarjeta) => [
+  [[base, 'Tipo de documento', 1.2], [base + 1, 'Número de identificación', 2], [base + 2, 'DV', 0.4], [base + 3, tarjeta, 1.6]],
+  [[base + 4, 'Primer apellido'], [base + 5, 'Segundo apellido'], [base + 6, 'Primer nombre'], [base + 7, 'Otros nombres']],
+  [[base + 8, 'Número de Identificación Tributaria (NIT)', 2], [base + 9, 'DV', 0.4], [base + 10, 'Sociedad o firma designada', 3], [base + 11, 'Fecha de nombramiento', 1.4]],
+];
+
+export const rutHoja3 = hojaDeBloques('Hoja 3', 'REPRESENTACIÓN', repetir(5, [
+  [[98, 'Representación', 2], [99, 'Fecha inicio ejercicio representación legal', 1.4]],
+  [[100, 'Tipo de documento', 1.2], [101, 'Número de identificación', 2], [102, 'DV', 0.4], [103, 'Número tarjeta profesional', 1.6]],
+  [[104, 'Primer apellido'], [105, 'Segundo apellido'], [106, 'Primer nombre'], [107, 'Otros nombres']],
+  [[108, 'Número de Identificación Tributaria (NIT)', 2], [109, 'DV', 0.4], [110, 'Razón social representante legal', 4]],
+]));
+
+export const rutHoja4 = hojaDeBloques('Hoja 4', 'SOCIOS Y/O MIEMBROS DE JUNTAS DIRECTIVAS, CONSORCIOS, UNIONES TEMPORALES', repetir(5, [
+  [[111, 'Tipo de documento', 1.2], [112, 'Número de identificación', 2], [113, 'DV', 0.4], [114, 'Nacionalidad', 1.6]],
+  [[115, 'Primer apellido'], [116, 'Segundo apellido'], [117, 'Primer nombre'], [118, 'Otros nombres']],
+  [[119, 'Razón social', 3], [120, 'Valor capital del socio', 1.6], [121, '% Participación', 1], [122, 'Fecha de ingreso', 1.2], [123, 'Fecha de retiro', 1.2]],
+]));
+
+export const rutHoja5 = hojaDeBloques('Hoja 5', 'REVISOR FISCAL Y CONTADOR', [
+  { titulo: 'Revisor fiscal principal', filas: persona(124, 'Número de tarjeta profesional') },
+  { titulo: 'Revisor fiscal suplente', filas: persona(136, 'Número de tarjeta profesional') },
+  { titulo: 'Contador', filas: persona(148, 'Número de tarjeta profesional') },
+]);
+
+export const rutHoja6 = hojaDeBloques('Hoja 6', 'ESTABLECIMIENTOS, AGENCIAS, SUCURSALES, OFICINAS, SEDES O NEGOCIOS ENTRE OTROS', repetir(6, [
+  [[160, 'Tipo de establecimiento', 1.4], [161, 'Actividad económica', 1.2], [162, 'Nombre del establecimiento', 3]],
+  [[163, 'Departamento'], [164, 'Ciudad/Municipio'], [165, 'Dirección', 2.4]],
+  [[166, 'Número de matrícula mercantil', 1.4], [167, 'Fecha de la matrícula mercantil', 1.3], [168, 'Teléfono', 1], [169, 'Fecha de cierre', 1]],
+]));
+
 export const rutPrincipal = hojaPrincipal();
 export const rutHoja2 = hoja2();

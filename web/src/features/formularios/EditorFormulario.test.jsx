@@ -114,6 +114,28 @@ describe('formularios DIAN en React', () => {
     expect(screen.getByLabelText('NIT (hoja 2)').value).toBe('900123456');
   });
 
+  it('001: tiene las seis hojas, con cinco representantes, cinco socios y seis establecimientos', async () => {
+    abrir('001');
+    fireEvent.click(await screen.findByText(/Cargar caso de la Ruta/, {}, ESPERA));
+    expect(screen.getAllByRole('tab')).toHaveLength(6);
+    expect(screen.getByLabelText('98. Representación, representante 5')).toBeTruthy();
+    expect(screen.getByLabelText('121. % Participación, socio 5')).toBeTruthy();
+    expect(screen.getByLabelText('127. Número de tarjeta profesional, revisor fiscal principal')).toBeTruthy();
+    expect(screen.getByLabelText('151. Número de tarjeta profesional, contador')).toBeTruthy();
+    expect(screen.getByLabelText('162. Nombre del establecimiento, establecimiento 6')).toBeTruthy();
+    // El DV de cada persona sale de su propio número de identificación
+    fireEvent.change(screen.getByLabelText('112. Número de identificación, socio 3'), { target: { value: '800197268' } });
+    expect(screen.getByLabelText('113. DV, socio 3').value).toBe('4');
+    expect(screen.getByLabelText('113. DV, socio 2').value).toBe('');
+    expect(screen.getByLabelText('NIT (hoja 6)').value).toBe('900123456');
+  });
+
+  it('600: las casillas de las hojas 3 a 8 tienen ayuda', async () => {
+    abrir('600');
+    fireEvent.focus(await screen.findByLabelText('No. Manifiesto de carga, registro 1', {}, ESPERA));
+    expect(screen.getAllByRole('status').some((el) => /Casilla 133\..*certifica el embarque/.test(el.textContent))).toBe(true);
+  });
+
   it('001: avisa si el capital nacional más el extranjero pasa del 100%', async () => {
     abrir('001');
     const nacional = await screen.findByLabelText('Nacional %', {}, ESPERA);

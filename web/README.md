@@ -51,7 +51,7 @@ se generan solos a partir de los recuadros vacíos (`kit/recuadros.js`).
 
 Cada archivo de `hojas/` dice qué va en cada casilla (nombre del dato, valor calculado, lista
 de códigos o posición a mano). El 001 (RUT) es la excepción: la DIAN no publica su hoja en
-blanco (se genera en MUISCA), así que su trazado se arma a mano en `trazados/rut.js` con las
+blanco (se genera en MUISCA), así que el trazado de sus seis hojas se arma a mano en `trazados/rut.js` con las
 casillas del Instructivo de calidad del RUT (IN-CAC-0237).
 
 ### Dónde editar el contenido

@@ -4,9 +4,9 @@ import { digitoVerificacion } from '../../../lib/nit.js';
 import { useCampos } from '../kit/contexto.js';
 import HojaOficial, { SelectorHojas } from '../kit/HojaOficial.jsx';
 import { soloDigitos } from '../kit/formato.js';
-import { rutPrincipal, rutHoja2 } from '../trazados/rut.js';
+import { rutPrincipal, rutHoja2, rutHoja3, rutHoja4, rutHoja5, rutHoja6 } from '../trazados/rut.js';
 
-// Formulario 001, Registro Único Tributario (RUT): hoja principal y hoja 2. La DIAN no publica
+// Formulario 001, Registro Único Tributario (RUT), con sus seis hojas. La DIAN no publica
 // el RUT en blanco (se genera en MUISCA), así que el trazado se arma en trazados/rut.js con las
 // casillas del Instructivo de calidad del RUT (IN-CAC-0237, versión 3, 2026).
 const CONCEPTOS = [['01', 'Inscripción'], ['02', 'Actualización'], ['03', 'Actualización de oficio'], ['09', 'Solicitud de cancelación']];
@@ -15,6 +15,16 @@ const TIPOS_DOCUMENTO = [['13', 'Cédula de ciudadanía'], ['22', 'Cédula de ex
 const FORMAS = [['1', 'Directa'], ['2', 'Indirecta'], ['3', 'Directa e indirecta']];
 const TIPOS_EXPORTACION = [['01', 'Bienes'], ['02', 'Servicios'], ['03', 'Bienes y servicios']];
 const NOMBRE = (lista) => Object.fromEntries(lista);
+const HOJAS = [['1', 'Hoja principal'], ['2', 'Hoja 2 · Organización y capital'], ['3', 'Hoja 3 · Representación'], ['4', 'Hoja 4 · Socios'], ['5', 'Hoja 5 · Revisor fiscal y contador'], ['6', 'Hoja 6 · Establecimientos']];
+// Hojas de bloques repetidos: [hoja, trazado, nombre de cada bloque]
+const DE_BLOQUES = [
+  ['3', rutHoja3, (b) => `representante ${b + 1}`],
+  ['4', rutHoja4, (b) => `socio ${b + 1}`],
+  ['5', rutHoja5, (b) => ['revisor fiscal principal', 'revisor fiscal suplente', 'contador'][b]],
+  ['6', rutHoja6, (b) => `establecimiento ${b + 1}`],
+];
+// Casillas cuyo DV se calcula con el número de identificación de la casilla anterior
+const DV_DE = { 102: 101, 109: 108, 113: 112, 126: 125, 133: 132, 138: 137, 145: 144, 150: 149, 157: 156 };
 
 // Varias cajas de una misma casilla (rejillas de códigos o columnas de una tabla)
 const partes = (cajas, nombre, etiqueta, extra = {}) => ({
@@ -86,11 +96,35 @@ function Form001() {
     96: { valor: digitoVerificacion(v.matriz_nit), centro: true, etiqueta: 'DV de la matriz o controlante' },
   };
   [82, 83, 84, 85, 86, 87].forEach((n) => { campos2[n] = { nombre: `porc_${n}`, inputMode: 'decimal', centro: true }; });
+  // ── Hojas 3 a 6: un campo por cada casilla de cada bloque ──
+  const camposDe = (n, trazado, nombreBloque) => {
+    const campos = { 4: { omitir: true }, 5: campos2[5], 6: campos2[6], 12: campos2[12], 14: campos2[14] };
+    [5, 6, 12, 14].forEach((c) => { campos[c] = { ...campos[c], etiqueta: campos[c].etiqueta.replace('(hoja 2)', `(hoja ${n})`) }; });
+    Object.entries(trazado.rejillas).forEach(([num, cajas]) => {
+      const rotulo = trazado.celdas[num].r;
+      // En la hoja 5 las tres personas usan casillas distintas: cada casilla tiene un solo bloque
+      const bloque = (i) => (n === '5' ? Math.floor((Number(num) - 124) / 12) : i);
+      campos[num] = {
+        partes: cajas.map((caja, i) => {
+          const nombre = `h${n}_${num}_${i + 1}`;
+          // El número de casilla va en el nombre: en un mismo bloque hay dos «DV» y dos números de identificación
+          const etiqueta = `${num}. ${rotulo}, ${nombreBloque(bloque(i))}`;
+          const origen = DV_DE[num];
+          return origen
+            ? { valor: digitoVerificacion(v[`h${n}_${origen}_${i + 1}`]), caja, etiqueta, centro: true }
+            : { nombre, caja, etiqueta };
+        }),
+      };
+    });
+    return campos;
+  };
+  const conDatos = (n) => Object.keys(v).some((k) => k.startsWith(`h${n}_`) && String(v[k] ?? '').trim());
+
   const hoja2ConDatos = ['naturaleza', 'forma_asociativa', 'porc_82', 'porc_85', 'doc_clase_1', 'doc_numero_1', 'estado_1', 'matriz_nit'].some((k) => String(v[k] ?? '').trim());
 
   return (
     <>
-      <SelectorHojas hojas={[['1', 'Hoja principal'], ['2', 'Hoja 2 · Organización y capital']]} actual={hoja} onCambiar={setHoja} />
+      <SelectorHojas hojas={HOJAS} actual={hoja} onCambiar={setHoja} />
       <HojaOficial trazado={rutPrincipal} numero="001" titulo="Formulario del Registro Único Tributario" campos={campos1} oculta={hoja !== '1'}
         pie={(
           <div className="no-imprimir">
@@ -105,7 +139,10 @@ function Form001() {
         )} />
       <HojaOficial trazado={rutHoja2} numero="001" titulo="Formulario del Registro Único Tributario, hoja 2" campos={campos2} oculta={hoja !== '2'} imprimir={hoja2ConDatos}
         pie={capital.excede && <p className="ho-alerta no-imprimir" role="alert">El capital nacional (82) más el extranjero (85) suma {capital.total}%: no puede pasar del 100%.</p>} />
-      <p className="ho-nota no-imprimir" style={{ width: 980, margin: '10px auto 0' }}>Simulador educativo de BonCloud, sin validez ante la DIAN. El RUT real no se llena en un formulario en blanco: se inscribe y actualiza en línea en MUISCA, y la DIAN no publica su hoja vacía. Esta hoja se reconstruyó con las secciones, los números y los nombres de casilla del Instructivo de calidad del RUT de la DIAN (IN-CAC-0237, 2026), así que la posición exacta de las casillas puede diferir de la del documento que genera MUISCA. Se incluyen la hoja principal y la hoja 2; las hojas 3 a 6 (representación, socios, revisor fiscal y contador, establecimientos) no.</p>
+      {DE_BLOQUES.map(([n, trazado, nombreBloque]) => (
+        <HojaOficial key={n} trazado={trazado} numero="001" titulo={`Formulario del Registro Único Tributario, hoja ${n}`} campos={camposDe(n, trazado, nombreBloque)} oculta={hoja !== n} imprimir={conDatos(n)} />
+      ))}
+      <p className="ho-nota no-imprimir" style={{ width: 980, margin: '10px auto 0' }}>Simulador educativo de BonCloud, sin validez ante la DIAN. El RUT real no se llena en un formulario en blanco: se inscribe y actualiza en línea en MUISCA, y la DIAN no publica su hoja vacía. Esta hoja se reconstruyó con las secciones, los números y los nombres de casilla del Instructivo de calidad del RUT de la DIAN (IN-CAC-0237, 2026), así que la posición exacta de las casillas puede diferir de la del documento que genera MUISCA. Al imprimir salen la hoja principal y las demás hojas que tengan datos.</p>
     </>
   );
 }
@@ -178,6 +215,40 @@ export default {
     94: 'Nombre del grupo económico o empresarial al que pertenece.',
     95: 'NIT de la matriz o controlante.',
     97: 'Nombre o razón social de la matriz o controlante.',
+    98: 'Tipo de representación: representante legal principal, suplente, apoderado, entre otros. Se registra según el certificado de existencia y representación legal.',
+    99: 'Fecha desde la que ejerce la representación.',
+    100: 'Tipo de documento de identificación del representante.',
+    101: 'Número de identificación del representante.',
+    102: 'Dígito de verificación. Se calcula solo.',
+    103: 'Número de la tarjeta profesional, cuando la representación la exige.',
+    108: 'NIT de la persona jurídica que actúa como representante legal, si es el caso.',
+    110: 'Razón social de la persona jurídica que actúa como representante legal.',
+    111: 'Tipo de documento del socio o miembro.',
+    112: 'Número de identificación del socio o miembro.',
+    114: 'Nacionalidad del socio o miembro.',
+    119: 'Razón social, si el socio es una persona jurídica.',
+    120: 'Valor del capital que aporta el socio.',
+    121: 'Porcentaje de participación del socio, comunero, consorciado o miembro de unión temporal. No se llena para miembros de juntas directivas.',
+    122: 'Fecha en que ingresó como socio o miembro.',
+    123: 'Fecha de retiro, si ya no hace parte.',
+    124: 'Tipo de documento del revisor fiscal principal.',
+    127: 'Número de la tarjeta profesional del revisor fiscal principal.',
+    132: 'NIT de la sociedad o firma de revisoría designada, si el revisor actúa por medio de una.',
+    134: 'Nombre de la sociedad o firma designada.',
+    135: 'Fecha de nombramiento del revisor fiscal principal.',
+    136: 'Tipo de documento del revisor fiscal suplente.',
+    139: 'Número de la tarjeta profesional del revisor fiscal suplente.',
+    147: 'Fecha de nombramiento del revisor fiscal suplente.',
+    148: 'Tipo de documento del contador.',
+    151: 'Número de la tarjeta profesional del contador.',
+    159: 'Fecha de nombramiento del contador.',
+    160: 'Tipo de establecimiento: agencia, sucursal, oficina, sede, establecimiento de comercio, entre otros.',
+    161: 'Código de la actividad económica que se desarrolla en el establecimiento.',
+    162: 'Nombre del establecimiento.',
+    165: 'Dirección del establecimiento.',
+    166: 'Número de la matrícula mercantil del establecimiento.',
+    167: 'Fecha de la matrícula mercantil.',
+    169: 'Fecha de cierre del establecimiento, si ya no funciona.',
     170: 'Número de identificación tributaria otorgado en el exterior.',
     172: 'Número de identificación tributaria de la sociedad o persona natural del exterior con establecimiento permanente (EP).',
   },

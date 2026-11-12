@@ -186,7 +186,9 @@ textarea.ho-campo { padding-top: 0.2cqw; line-height: 1.25; }
 .ho-campo-lista.ho-error { border-color: #dc2626; }
 textarea.ho-campo-lista { min-height: 72px; resize: vertical; }
 .hoja-oficial.ho-solo-impresion { display: none; }
-@media (max-width: 1040px) {
+/* Solo en pantalla: al imprimir, la página carta mide menos de 1040px y esta regla
+   haría que cada hoja se desbordara a una segunda página */
+@media screen and (max-width: 1040px) {
   .ho-envoltura, .ho-hojas { width: 100%; }
   .hoja-oficial { min-width: 900px; }
   .ho-envoltura { overflow-x: auto; }
