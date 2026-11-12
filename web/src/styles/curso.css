@@ -845,3 +845,11 @@
 .curso-modulo-num { font-size: 0.6875rem; font-weight: 700; letter-spacing: 1px; text-transform: uppercase; color: var(--text-accent); }
 .curso-modulo-titulo { font-size: 0.9375rem; font-weight: 700; color: var(--text-primary); }
 .curso-modulo-sub { font-size: 0.75rem; color: var(--text-muted); }
+
+/* Respaldo del contenido: normas citadas y estado de revisión */
+.block-respaldo { font-size: 0.8125rem; }
+.block-respaldo h4 { margin: 0 0 8px; font-size: 0.875rem; }
+.block-respaldo ul { margin: 0 0 10px; padding-left: 18px; columns: 2; column-gap: 24px; }
+.block-respaldo li { margin-bottom: 3px; break-inside: avoid; }
+.respaldo-estado { margin: 0; color: var(--text-muted); line-height: 1.5; }
+@media (max-width: 640px) { .block-respaldo ul { columns: 1; } }

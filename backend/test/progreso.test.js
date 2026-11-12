@@ -96,3 +96,11 @@ describe('errores generales', () => {
     assert.equal(res.status, 400);
   });
 });
+
+test('GET /api/salud dice si hay conexión con la base', async () => {
+  assert.deepEqual((await request(app).get('/api/salud')).body, { ok: true });
+  db.responder = async () => { throw new Error('caída'); };
+  const res = await request(app).get('/api/salud');
+  assert.equal(res.status, 503);
+  assert.equal(res.body.ok, false);
+});

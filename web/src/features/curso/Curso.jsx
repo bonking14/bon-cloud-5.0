@@ -10,6 +10,8 @@ import FichaGlosario from '../../components/FichaGlosario.jsx';
 import { buscarTermino } from '../../lib/glosario.js';
 import { descargarConstancia } from '../../lib/constancia.js';
 import MapaRuta from './MapaRuta.jsx';
+import { normasCitadas } from '../../lib/normas.js';
+import { revision } from '../../data/revision.js';
 import Quiz from './Quiz.jsx';
 
 const TOTAL = lecciones.length;
@@ -195,6 +197,27 @@ function TarjetaLeccion({ lec, activa, onAbrir }) {
   );
 }
 
+const fechaLarga = (iso) => new Date(`${iso}T12:00:00`).toLocaleDateString('es-CO', { year: 'numeric', month: 'long', day: 'numeric' });
+
+// En qué se apoya la lección: las normas que cita y quién la ha revisado
+function Respaldo({ leccion }) {
+  const normas = useMemo(() => normasCitadas(leccion), [leccion]);
+  const modulo = revision.modulos[leccion.modulo] || {};
+  return (
+    <section className="leccion-block block-respaldo" aria-label="Respaldo del contenido">
+      <h4>Normas citadas en esta lección</h4>
+      {normas.length ? <ul>{normas.map((n) => <li key={n}>{n}</li>)}</ul> : <p>Esta lección no cita normas específicas.</p>}
+      <p className="respaldo-estado">
+        {modulo.contrastado && <>Contenido contrastado el {fechaLarga(modulo.contrastado)} con: {modulo.fuentes}. </>}
+        {revision.experto
+          ? <>Revisado por {revision.experto.nombre}{revision.experto.credencial ? `, ${revision.experto.credencial}` : ''}, el {fechaLarga(revision.experto.fecha)}.</>
+          : <>Revisión por un profesional de aduanas: pendiente.</>}
+        {' '}Las normas cambian: antes de una operación real, consulta el texto vigente.
+      </p>
+    </section>
+  );
+}
+
 function DetalleLeccion({ leccion, caso, tituloRef, onAprobar, onTerminar, onSiguiente, onConstancia, onTermino }) {
   const { estaCompletada } = useProgreso();
   const navigate = useNavigate();
@@ -255,6 +278,8 @@ function DetalleLeccion({ leccion, caso, tituloRef, onAprobar, onTerminar, onSig
         {/* El HTML de las lecciones es contenido propio del proyecto (data/lecciones.js) */}
         <div className="contenido-html" ref={contenidoRef} dangerouslySetInnerHTML={contenido} onClick={abrirTermino} onKeyDown={abrirTermino} />
       </section>
+
+      <Respaldo leccion={leccion} />
 
       {leccion.practica && (
         <section className="leccion-block block-practica">

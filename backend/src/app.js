@@ -38,6 +38,16 @@ app.get('/', (req, res) => {
   res.json({ mensaje: 'BonCloud API corriendo' });
 });
 
+// Para el monitoreo: responde 200 solo si el servidor llega a la base de datos
+app.get('/api/salud', async (req, res) => {
+  try {
+    await require('./config/db').query('SELECT 1');
+    res.json({ ok: true });
+  } catch {
+    res.status(503).json({ ok: false, error: 'Sin conexión con la base de datos.' });
+  }
+});
+
 // El simulador logístico calcula en el navegador (js/simulador.js): no hay endpoint /api/simulador.
 app.use('/api/auth', authRoutes);
 app.use('/api/progreso', progresoRoutes);

@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import { useCampos } from './contexto.js';
 
 // Hoja de un formulario oficial de la DIAN. El trazado (líneas, sombreados, textos y
@@ -35,10 +35,11 @@ export function cajaDe(c) {
   return [x, c.y + 0.8, c.x + c.w - x - 1, c.h - 1.6];
 }
 
-function Campo({ num, def, caja, rotulo, W, H, onAyuda }) {
+function Campo({ num, def, caja, rotulo, W, H, onAyuda, enLista = false }) {
   const { valores, poner, errores } = useCampos();
   const [x, y, w, h] = caja;
-  const estilo = { left: `${(x / W) * 100}%`, top: `${(y / H) * 100}%`, width: `${(w / W) * 100}%`, height: `${(h / H) * 100}%` };
+  // En la hoja el campo va en su casilla; en la lista ocupa el ancho de la fila
+  const estilo = enLista ? undefined : { left: `${(x / W) * 100}%`, top: `${(y / H) * 100}%`, width: `${(w / W) * 100}%`, height: `${(h / H) * 100}%` };
   const etiqueta = def.etiqueta || rotulo || `Casilla ${num}`;
   const comunes = {
     style: estilo,
@@ -47,7 +48,7 @@ function Campo({ num, def, caja, rotulo, W, H, onAyuda }) {
     onFocus: () => onAyuda(num),
     'data-casilla': num || undefined,
   };
-  const clases = ['ho-campo', def.derecha && 'ho-derecha', def.centro && 'ho-centro', def.grande && 'ho-grande'];
+  const clases = enLista ? ['ho-campo-lista'] : ['ho-campo', def.derecha && 'ho-derecha', def.centro && 'ho-centro', def.grande && 'ho-grande'];
 
   if (def.valor !== undefined) {
     return <input type="text" readOnly tabIndex={-1} value={def.valor} className={[...clases, 'ho-calculado'].filter(Boolean).join(' ')} {...comunes} />;
@@ -82,6 +83,9 @@ function Campo({ num, def, caja, rotulo, W, H, onAyuda }) {
 export default function HojaOficial({ trazado, numero, titulo, campos = {}, extras = [], pie, sombra = LINEA, soloConfiguradas = false, oculta = false, imprimir = true }) {
   const { explicaciones } = useCampos();
   const [ayuda, setAyuda] = useState(null);
+  // En pantallas angostas la hoja no cabe: se ofrece la misma información como lista de casillas
+  const [modo, setModo] = useState(() => (typeof window !== 'undefined' && window.matchMedia?.('(max-width: 760px)').matches ? 'lista' : 'hoja'));
+  useEffect(() => { setAyuda(null); }, [modo]);
   const { w: W, h: H, celdas } = trazado;
 
   const lista = [];
@@ -98,6 +102,10 @@ export default function HojaOficial({ trazado, numero, titulo, campos = {}, extr
     lista.push({ clave: num, num, def, caja: base, rotulo: celda.r });
   });
   extras.forEach((e, i) => lista.push({ clave: `x${i}`, num: e.casilla, def: e, caja: e.caja, rotulo: e.etiqueta }));
+  // Los campos libres también se guardan en el estado del formulario (con un nombre propio de
+  // esta hoja), para que lo escrito en la lista y en la hoja sea lo mismo
+  const prefijo = `libre_${numero}_${titulo.length}`;
+  lista.forEach((c) => { if (!c.def.nombre && c.def.valor === undefined) c.def = { ...c.def, nombre: `${prefijo}_${c.clave}` }; });
 
   const texto = ayuda && explicaciones[ayuda];
   return (
@@ -107,7 +115,21 @@ export default function HojaOficial({ trazado, numero, titulo, campos = {}, extr
           ? <><strong>Casilla {ayuda}.</strong> {texto}</>
           : ayuda ? <><strong>Casilla {ayuda}.</strong> {celdas[ayuda]?.r || 'Sin explicación para esta casilla.'}</> : 'Haz clic en una casilla para ver qué se escribe en ella.'}
       </p>
-      <div className="hoja-oficial" style={{ aspectRatio: `${W} / ${H}` }}>
+      <div className="ho-modos no-imprimir" role="group" aria-label="Forma de ver el formulario">
+        <button type="button" className={`btn-card${modo === 'hoja' ? ' activo' : ''}`} aria-pressed={modo === 'hoja'} onClick={() => setModo('hoja')}>Ver la hoja</button>
+        <button type="button" className={`btn-card${modo === 'lista' ? ' activo' : ''}`} aria-pressed={modo === 'lista'} onClick={() => setModo('lista')}>Ver como lista</button>
+      </div>
+      {modo === 'lista' && (
+        <div className="ho-lista no-imprimir">
+          {lista.map(({ clave, ...c }) => (
+            <label key={clave} className="ho-fila">
+              <span className="ho-fila-rotulo">{c.num ? <b>{c.num}. </b> : null}{c.def.etiqueta || c.rotulo || `Casilla ${c.num}`}</span>
+              <Campo {...c} W={W} H={H} onAyuda={setAyuda} enLista />
+            </label>
+          ))}
+        </div>
+      )}
+      <div className={`hoja-oficial${modo === 'lista' ? ' ho-solo-impresion' : ''}`} style={{ aspectRatio: `${W} / ${H}` }}>
         <svg viewBox={`0 0 ${W} ${H}`} className="ho-trazado" aria-hidden="true" fontFamily="Arial, Helvetica, 'Liberation Sans', sans-serif">
           {(trazado.capas || []).map(([x, y, w, h, f, b], i) => <rect key={`c${i}`} x={x} y={y} width={w} height={h} fill={f || 'none'} stroke={b || 'none'} strokeWidth="0.5" />)}
           {trazado.fondos.filter((f) => f.w >= 4 && f.h >= 4).map((f, i) => <rect key={i} x={f.x} y={f.y} width={f.w} height={f.h} fill={f.k || (f.c === 'oscuro' ? sombra : '#e9eef5')} />)}
