@@ -31,24 +31,32 @@ Sin dominio verificado, Resend solo entrega a la dirección de tu propia cuenta.
 El plan gratuito de Render apaga el servidor sin tráfico: el primer ingreso tarda hasta un
 minuto. Pasa el servicio a un plan pago (*Settings → Instance Type*).
 
-## 4. Copias de seguridad
+## 4. Base de datos y copias de seguridad
 
-- La base gratuita de Render **se borra a los 30 días** si no se pasa a un plan pago, y no
-  tiene copias automáticas. Pásala a un plan pago, que incluye copias diarias.
-- Para sacar una copia a mano, con la *External Database URL* de Render:
+La base de datos está en **Neon** (neon.com), no en Render. Del plan gratuito, según la
+documentación de Neon consultada en noviembre de 2026 (confírmalo en su página de planes):
 
-  ```bash
-  pg_dump "URL_EXTERNA" --no-owner --format=custom --file=boncloud-AAAA-MM-DD.dump
-  ```
+- 1 GB de almacenamiento y 100 horas de cómputo al mes por proyecto. Si se acaban las horas,
+  la base se suspende hasta el mes siguiente; si se llena, deja de aceptar escrituras. En
+  ningún caso borra los datos.
+- La base se duerme tras 5 minutos sin uso y despierta sola con el primer pedido.
+- Solo permite volver atrás **6 horas**. No es una copia de seguridad: para vender hace falta
+  un plan pago (7 días o más de historial) o sacar copias propias.
 
-- Para restaurarla en una base vacía:
+Para sacar una copia a mano, con la cadena de conexión que da Neon (*Connection string*):
 
-  ```bash
-  pg_restore --no-owner --dbname="URL_DE_LA_BASE_NUEVA" boncloud-AAAA-MM-DD.dump
-  ```
+```bash
+pg_dump "CADENA_DE_CONEXION" --no-owner --format=custom --file=boncloud-AAAA-MM-DD.dump
+```
 
-- Haz una restauración de prueba al menos una vez: una copia que nunca se ha restaurado no
-  es una copia.
+Para restaurarla en una base vacía:
+
+```bash
+pg_restore --no-owner --dbname="CADENA_DE_LA_BASE_NUEVA" boncloud-AAAA-MM-DD.dump
+```
+
+Haz una restauración de prueba al menos una vez: una copia que nunca se ha restaurado no es
+una copia.
 
 ## 5. Monitoreo
 
