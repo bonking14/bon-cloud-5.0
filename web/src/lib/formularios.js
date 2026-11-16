@@ -26,13 +26,18 @@ export function calcular500(v) {
   const sancion = n(v.total_sancion);
   const rescate = n(v.total_rescate);
   const total = arancel + iva + salvaguardia + compensatorios + antidumping + sancion + rescate;
+  // Importación temporal (modalidades que empiezan por S): los tributos se liquidan en dólares
+  // (columna «Total liquidado dólares») y no en pesos, y no se pagan con esta declaración.
+  // En las demás modalidades es al revés: se liquidan en pesos y la columna de dólares va en cero.
+  const temporal = /^S/i.test(String(v.modalidad ?? '').trim());
   return {
+    temporal,
     fob, gastos, aduanaUSD, aduanaCOP,
     arancel, salvaguardia, compensatorios, antidumping, baseIVA, iva, sancion, rescate,
     // Casilla 125: total liquidado · 126: su equivalente en dólares
     total, totalUSD: tasa ? total / tasa : 0,
     // Casilla 980: lo que se paga con esta declaración, descontados los pagos anteriores (127)
-    pago: Math.max(0, total - n(v.pagos_anteriores)),
+    pago: temporal ? 0 : Math.max(0, total - n(v.pagos_anteriores)),
     requiereDAV: fob >= 5000,
   };
 }

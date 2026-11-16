@@ -39,6 +39,15 @@ describe('formulario 500', () => {
     expect(calcular500({ ...caso, v_fob: '4999.99' }).requiereDAV).toBe(false);
   });
 
+  it('solo la importación temporal (modalidad S...) liquida en dólares y no paga con la declaración', () => {
+    expect(calcular500({ ...caso, modalidad: 'C100' }).temporal).toBe(false);
+    expect(calcular500(caso).temporal).toBe(false);
+    const t = calcular500({ ...caso, modalidad: 's100' });
+    expect(t.temporal).toBe(true);
+    expect(t.pago).toBe(0);
+    expect(t.totalUSD).toBeCloseTo(15918.05, 2);
+  });
+
   it('sanción y rescate se suman al total, y los pagos anteriores (127) se descuentan del pago (980)', () => {
     const r = calcular500({ ...caso, total_sancion: '1000000', total_rescate: '500000', pagos_anteriores: '264000' });
     expect(r.total).toBe(66764000);

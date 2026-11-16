@@ -33,7 +33,9 @@ function Form500() {
   const sp = subpartidas.find((s) => limpio(s.codigo) === limpio(v.subpartida) && limpio(v.subpartida).length === 10);
   const vistos = sp?.vistoBueno || [];
   const tasa = parseFloat(v.tasa_cambio) || 0;
-  const usd = (cop) => dolares(tasa ? cop / tasa : 0);
+  // Las casillas de liquidación que no aplican a la modalidad quedan en cero, no vacías
+  const enPesos = (cop) => (r.temporal ? '0' : pesos(cop) || '0');
+  const enDolares = (cop) => (r.temporal ? dolares(tasa ? cop / tasa : 0) || '0' : '0');
 
   // Al escribir una subpartida del catálogo se proponen su arancel, su IVA y su descripción
   const alCambiarSubpartida = (texto) => {
@@ -126,28 +128,28 @@ function Form500() {
     91: { nombre: 'descripcion', multilinea: true, caja: [22, 561.5, 567, 37.5], etiqueta: 'Descripción de las mercancías' },
     117: { omitir: true }, 118: { omitir: true },
     119: { nombre: 'total_sancion', inputMode: 'decimal', derecha: true, etiqueta: 'Sanción: total liquidado' },
-    120: { valor: pesos(r.sancion), derecha: true, etiqueta: 'Sanción: total a pagar' },
+    120: { valor: enPesos(r.sancion), derecha: true, etiqueta: 'Sanción: total a pagar' },
     121: { omitir: true }, 122: { omitir: true },
     123: { nombre: 'total_rescate', inputMode: 'decimal', derecha: true, etiqueta: 'Rescate: total liquidado' },
-    124: { valor: pesos(r.rescate), derecha: true, etiqueta: 'Rescate: total a pagar' },
-    125: { valor: pesos(r.total), derecha: true, etiqueta: 'Total liquidado' },
-    126: { valor: dolares(r.totalUSD), derecha: true, etiqueta: 'Total liquidado en dólares' },
+    124: { valor: enPesos(r.rescate), derecha: true, etiqueta: 'Rescate: total a pagar' },
+    125: { valor: enPesos(r.total), derecha: true, etiqueta: 'Total liquidado' },
+    126: { valor: enDolares(r.total), derecha: true, etiqueta: 'Total liquidado en dólares' },
     127: { nombre: 'pagos_anteriores', inputMode: 'decimal', derecha: true },
     128: { nombre: 'recibo_anterior', caja: [310, 600.8, 158, 10.9], etiqueta: 'Recibo oficial de pago anterior No.' },
     129: { nombre: 'recibo_fecha', caja: [507.8, 600.8, 80.5, 10.9], etiqueta: 'Fecha del recibo de pago anterior' },
     // Espacios que llena la DIAN, la Cancillería o el banco
     130: { omitir: true }, 131: { omitir: true }, 132: { omitir: true }, 133: { omitir: true }, 134: { omitir: true },
     135: { omitir: true }, 136: { omitir: true }, 137: { omitir: true }, 996: { omitir: true }, 997: { omitir: true },
-    980: { valor: pesos(r.pago), caja: [428, 681.5, 147.5, 15.5], derecha: true, grande: true, etiqueta: 'Pago total' },
+    980: { valor: pesos(r.pago) || '0', caja: [428, 681.5, 147.5, 15.5], derecha: true, grande: true, etiqueta: 'Pago total' },
   };
   LIQUIDACION.forEach(([concepto, [pct, base, liquidado, pagar, enUsd], tarifa, clave]) => {
     const baseCop = clave === 'iva' ? r.baseIVA : r.aduanaCOP;
     const hay = parseFloat(v[tarifa]) > 0;
     campos[pct] = { nombre: tarifa, inputMode: 'decimal', centro: true, etiqueta: `${concepto}: tarifa %` };
     campos[base] = { valor: hay || clave === 'arancel' || clave === 'iva' ? pesos(baseCop) : '', derecha: true, etiqueta: `${concepto}: base` };
-    campos[liquidado] = { valor: pesos(r[clave]), derecha: true, etiqueta: `${concepto}: total liquidado` };
-    campos[pagar] = { valor: pesos(r[clave]), derecha: true, etiqueta: `${concepto}: total a pagar` };
-    campos[enUsd] = { valor: usd(r[clave]), derecha: true, etiqueta: `${concepto}: total en dólares` };
+    campos[liquidado] = { valor: enPesos(r[clave]), derecha: true, etiqueta: `${concepto}: total liquidado` };
+    campos[pagar] = { valor: enPesos(r[clave]), derecha: true, etiqueta: `${concepto}: total a pagar` };
+    campos[enUsd] = { valor: enDolares(r[clave]), derecha: true, etiqueta: `${concepto}: total en dólares` };
   });
 
   return (
@@ -156,6 +158,7 @@ function Form500() {
         pie={(
           <div className="no-imprimir">
             {r.requiereDAV && <p className="ho-alerta" role="status">El valor FOB es de USD 5.000 o más: debes presentar la Declaración Andina del Valor (formulario 560) como documento soporte.</p>}
+            {r.temporal && <p className="ho-alerta" role="status">Importación temporal: los tributos se liquidan en dólares (columna «Total liquidado dólares») y las columnas en pesos quedan en cero. Con esta declaración no se pagan: quedan suspendidos y respaldados con la garantía.</p>}
             {vistos.length > 0 && <p className="ho-alerta" role="status"><strong>Vistos buenos requeridos:</strong> {vistos.join(' | ')}</p>}
             <p className="ho-nota">Simulador educativo de BonCloud, sin validez ante la DIAN. La hoja reproduce la distribución y la numeración del formulario 500 oficial; la declaración real se presenta con firma digital en los servicios informáticos de la DIAN. Las casillas sombreadas en verde se calculan solas.</p>
           </div>
@@ -253,7 +256,9 @@ export default {
     112: 'Tarifa de los derechos antidumping, si la mercancía está sujeta a ellos.',
     119: 'Sanción liquidada, cuando corresponda según la normatividad vigente.',
     123: 'Rescate liquidado, cuando la mercancía se legaliza.',
-    125: 'Suma de los totales liquidados de todos los conceptos.',
+    96: 'Total liquidado en dólares. Solo se usa en la importación temporal; en las demás modalidades queda en cero, porque los tributos se liquidan en pesos.',
+    125: 'Suma de los totales liquidados de todos los conceptos, en pesos. En la importación temporal queda en cero.',
+    126: 'Total liquidado en dólares. Solo se usa en la importación temporal; en las demás modalidades queda en cero.',
     127: 'Valor ya pagado con una declaración anterior, cuando esta se corrige o modifica.',
     980: 'Pago total: suma de los «total a pagar» de arancel, IVA, salvaguardia, compensatorios, antidumping, sanción y rescate, menos los pagos anteriores (127).',
   },
