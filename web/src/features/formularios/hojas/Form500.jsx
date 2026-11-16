@@ -10,7 +10,7 @@ import trazado from '../trazados/500.json';
 // los del formulario oficial de la DIAN (Formulario_500_2026.pdf); las explicaciones siguen
 // su instructivo. Cada declaración ampara una sola subpartida (casilla 59).
 // Códigos de modalidad: Anexo 1 de la Resolución DIAN 46 de 2019 (los más usados en el curso).
-const MODALIDADES = [['C100', 'Ordinaria'], ['C150', 'Franquicia del gravamen arancelario'], ['C160', 'Franquicia total (tratados o convenios)'], ['S100', 'Temporal de corto plazo'], ['C660', 'Reimportación en el mismo estado']];
+const MODALIDADES = [['C100', 'Ordinaria'], ['C150', 'Franquicia del gravamen arancelario'], ['C160', 'Franquicia total (tratados o convenios)'], ['S100', 'Temporal de corto plazo'], ['S120', 'Temporal de largo plazo'], ['S130', 'Temporal en arrendamiento (leasing)'], ['C660', 'Reimportación en el mismo estado']];
 const TIPOS_DECLARACION = [['1', 'Inicial'], ['2', 'Legalización'], ['3', 'Anticipada'], ['4', 'Corrección'], ['5', 'Modificación']];
 const NOMBRE_TIPO = Object.fromEntries(TIPOS_DECLARACION);
 const CLASES_IMPORTADOR = [['01', 'Empresa mixta'], ['02', 'Empresa privada'], ['03', 'Empresa o entidad pública']];
@@ -34,8 +34,9 @@ function Form500() {
   const vistos = sp?.vistoBueno || [];
   const tasa = parseFloat(v.tasa_cambio) || 0;
   // Las casillas de liquidación que no aplican a la modalidad quedan en cero, no vacías
-  const enPesos = (cop) => (r.temporal ? '0' : pesos(cop) || '0');
-  const enDolares = (cop) => (r.temporal ? dolares(tasa ? cop / tasa : 0) || '0' : '0');
+  const aUsd = (cop) => dolares(tasa ? cop / tasa : 0) || '0';
+  const enPesos = (cop) => (r.largoPlazo ? '0' : pesos(cop) || '0');
+  const enDolares = (cop) => (r.largoPlazo ? aUsd(cop) : '0');
 
   // Al escribir una subpartida del catálogo se proponen su arancel, su IVA y su descripción
   const alCambiarSubpartida = (texto) => {
@@ -146,7 +147,7 @@ function Form500() {
     const baseCop = clave === 'iva' ? r.baseIVA : r.aduanaCOP;
     const hay = parseFloat(v[tarifa]) > 0;
     campos[pct] = { nombre: tarifa, inputMode: 'decimal', centro: true, etiqueta: `${concepto}: tarifa %` };
-    campos[base] = { valor: hay || clave === 'arancel' || clave === 'iva' ? pesos(baseCop) : '', derecha: true, etiqueta: `${concepto}: base` };
+    campos[base] = { valor: hay || clave === 'arancel' || clave === 'iva' ? (r.largoPlazo ? aUsd(baseCop) : pesos(baseCop)) : '', derecha: true, etiqueta: `${concepto}: base` };
     campos[liquidado] = { valor: enPesos(r[clave]), derecha: true, etiqueta: `${concepto}: total liquidado` };
     campos[pagar] = { valor: enPesos(r[clave]), derecha: true, etiqueta: `${concepto}: total a pagar` };
     campos[enUsd] = { valor: enDolares(r[clave]), derecha: true, etiqueta: `${concepto}: total en dólares` };
@@ -158,7 +159,8 @@ function Form500() {
         pie={(
           <div className="no-imprimir">
             {r.requiereDAV && <p className="ho-alerta" role="status">El valor FOB es de USD 5.000 o más: debes presentar la Declaración Andina del Valor (formulario 560) como documento soporte.</p>}
-            {r.temporal && <p className="ho-alerta" role="status">Importación temporal: los tributos se liquidan en dólares (columna «Total liquidado dólares») y las columnas en pesos quedan en cero. Con esta declaración no se pagan: quedan suspendidos y respaldados con la garantía.</p>}
+            {r.largoPlazo && <p className="ho-alerta" role="status">Importación temporal de largo plazo: los tributos se liquidan en dólares. La columna «Base» y la columna «Total liquidado dólares» van en dólares, y las columnas en pesos quedan en cero. Con esta declaración no se pagan: se cancelan después, en cuotas semestrales.</p>}
+            {r.temporal && !r.largoPlazo && <p className="ho-alerta" role="status">Importación temporal de corto plazo: los tributos se liquidan en pesos y la columna de dólares queda en cero. Con esta declaración no se pagan: quedan suspendidos y respaldados con la garantía.</p>}
             {vistos.length > 0 && <p className="ho-alerta" role="status"><strong>Vistos buenos requeridos:</strong> {vistos.join(' | ')}</p>}
             <p className="ho-nota">Simulador educativo de BonCloud, sin validez ante la DIAN. La hoja reproduce la distribución y la numeración del formulario 500 oficial; la declaración real se presenta con firma digital en los servicios informáticos de la DIAN. Las casillas sombreadas en verde se calculan solas.</p>
           </div>
@@ -225,7 +227,7 @@ export default {
     54: 'Código del modo de transporte con el que llegó la mercancía (marítimo, aéreo, terrestre...).',
     58: 'Tasa de cambio representativa del mercado del último día hábil de la semana anterior a la presentación y aceptación de la declaración, con dos decimales. No es la TRM del día.',
     59: 'Subpartida arancelaria a 10 dígitos. Cada declaración ampara una sola subpartida: si llegan mercancías de varias subpartidas, se presenta una declaración por cada una. Si escribes una del catálogo de BonCloud, se proponen su arancel y su IVA.',
-    62: 'Modalidad de importación (Anexo 1 de la Resolución DIAN 46 de 2019). C100 es la importación ordinaria; las temporales empiezan por S (S100, corto plazo).',
+    62: 'Modalidad de importación (Anexo 1 de la Resolución DIAN 46 de 2019). C100 es la importación ordinaria; las temporales empiezan por S (S100, corto plazo; S120, largo plazo; S130, arrendamiento).',
     66: 'País donde se produjo la mercancía. Es obligatoria y define si puede pedirse una preferencia por acuerdo comercial.',
     67: 'Código del acuerdo comercial con el que se pide trato preferencial. Vacío si se paga el arancel general.',
     68: 'Código de la forma de pago de la mercancía al proveedor (no de los tributos).',
@@ -245,20 +247,20 @@ export default {
     86: 'Número de aprobación del registro o licencia de importación (VUCE), si la subpartida lo exige.',
     91: 'Descripción de la mercancía con marcas, seriales y demás datos que la identifiquen. No se empieza copiando el texto del arancel.',
     92: 'Tarifa del arancel para la subpartida declarada.',
-    93: 'Base del arancel: valor en aduana (84) convertido a pesos con la tasa de cambio (58).',
+    93: 'Base del arancel: valor en aduana (84) convertido a pesos con la tasa de cambio (58). En la importación temporal de largo plazo va en dólares.',
     94: 'Arancel liquidado: base (93) × tarifa (92), aproximado al múltiplo de mil más cercano.',
     95: 'Arancel que se paga con esta declaración.',
     97: 'Tarifa del IVA de la subpartida declarada.',
-    98: 'Base del IVA: base del arancel (93) + arancel liquidado (94). Los derechos antidumping y la salvaguardia no se suman (Concepto DIAN 626 de 2020).',
+    98: 'Base del IVA: base del arancel (93) + arancel liquidado (94). Los derechos antidumping y la salvaguardia no se suman (Concepto DIAN 626 de 2020). En la importación temporal de largo plazo va en dólares.',
     99: 'IVA liquidado: base (98) × tarifa (97), aproximado al múltiplo de mil más cercano.',
     102: 'Tarifa de la medida de salvaguardia, si la mercancía está sujeta a ella.',
     107: 'Tarifa de los derechos compensatorios, si la mercancía está sujeta a ellos.',
     112: 'Tarifa de los derechos antidumping, si la mercancía está sujeta a ellos.',
     119: 'Sanción liquidada, cuando corresponda según la normatividad vigente.',
     123: 'Rescate liquidado, cuando la mercancía se legaliza.',
-    96: 'Total liquidado en dólares. Solo se usa en la importación temporal; en las demás modalidades queda en cero, porque los tributos se liquidan en pesos.',
-    125: 'Suma de los totales liquidados de todos los conceptos, en pesos. En la importación temporal queda en cero.',
-    126: 'Total liquidado en dólares. Solo se usa en la importación temporal; en las demás modalidades queda en cero.',
+    96: 'Total liquidado en dólares. Solo se usa en la importación temporal de largo plazo; en las demás modalidades queda en cero, porque los tributos se liquidan en pesos.',
+    125: 'Suma de los totales liquidados de todos los conceptos, en pesos. En la importación temporal de largo plazo queda en cero.',
+    126: 'Total liquidado en dólares. Solo se usa en la importación temporal de largo plazo; en las demás modalidades queda en cero.',
     127: 'Valor ya pagado con una declaración anterior, cuando esta se corrige o modifica.',
     980: 'Pago total: suma de los «total a pagar» de arancel, IVA, salvaguardia, compensatorios, antidumping, sanción y rescate, menos los pagos anteriores (127).',
   },

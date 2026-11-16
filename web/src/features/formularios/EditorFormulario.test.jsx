@@ -19,7 +19,7 @@ describe('formularios DIAN en React', () => {
     expect(screen.queryByText(/Vistos buenos requeridos/)).toBeNull(); // las bombas no los exigen
   });
 
-  it('500: en la ordinaria la columna de dólares queda en cero; en la temporal es al revés', async () => {
+  it('500: en la ordinaria la columna de dólares queda en cero; en la temporal de largo plazo es al revés, con la base en dólares', async () => {
     abrir('500');
     fireEvent.click(await screen.findByText(/Cargar caso de la Ruta/, {}, ESPERA));
     const val = (etiqueta) => screen.getByLabelText(etiqueta).value;
@@ -28,15 +28,21 @@ describe('formularios DIAN en React', () => {
     expect(val('Arancel: total en dólares')).toBe('0');
     expect(val('IVA: total en dólares')).toBe('0');
     expect(val('Total liquidado en dólares')).toBe('0');
-    // Importación temporal (S100): dólares sí, pesos en cero, y no se paga
+    // Temporal de corto plazo (S100): sigue en pesos, pero no se paga
     fireEvent.change(screen.getByLabelText('Cód. Modalidad'), { target: { value: 'S100' } });
+    expect(val('Arancel: total liquidado')).toBe('13.079.000');
+    expect(val('Arancel: total en dólares')).toBe('0');
+    expect(val('Pago total')).toBe('0');
+    // Temporal de largo plazo (S120): base y liquidación en dólares, pesos en cero
+    fireEvent.change(screen.getByLabelText('Cód. Modalidad'), { target: { value: 'S120' } });
+    expect(val('Arancel: base')).toBe(val('Valor aduana USD'));
     expect(val('Arancel: total en dólares')).toBe('3.190,00');
     expect(val('Total liquidado en dólares')).toBe('15.918,05');
     expect(val('Arancel: total liquidado')).toBe('0');
     expect(val('Arancel: total a pagar')).toBe('0');
     expect(val('Total liquidado')).toBe('0');
     expect(val('Pago total')).toBe('0');
-    expect(screen.getByText(/Importación temporal: los tributos se liquidan en dólares/)).toBeTruthy();
+    expect(screen.getByText(/Importación temporal de largo plazo: los tributos se liquidan en dólares/)).toBeTruthy();
   });
 
   it('500: una subpartida del catálogo propone arancel e IVA y avisa los vistos buenos', async () => {

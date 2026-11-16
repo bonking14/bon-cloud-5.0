@@ -7,6 +7,10 @@ const n = (v) => parseFloat(v) || 0;
 //   84 valor en aduana USD = 78 FOB + 82 (79 fletes + 80 seguros + 81 otros gastos) + 83 ajuste
 //   93 base arancel = 84 × 58 tasa de cambio · 98 base IVA = 93 + 94 arancel
 // Cada concepto tiene: base, total liquidado, total a pagar con esta declaración y total en USD.
+// Anexo 1 de la Resolución DIAN 46 de 2019: temporal de largo plazo (S120, S220, S320), de largo
+// plazo precedida de una de corto plazo (S310) y de mercancías en arrendamiento (S130, S230, S330)
+export const MODALIDADES_LARGO_PLAZO = ['S120', 'S220', 'S320', 'S310', 'S130', 'S230', 'S330'];
+
 export function calcular500(v) {
   const fob = n(v.v_fob);
   const gastos = n(v.v_fletes) + n(v.v_seguros) + n(v.v_otros);
@@ -26,12 +30,15 @@ export function calcular500(v) {
   const sancion = n(v.total_sancion);
   const rescate = n(v.total_rescate);
   const total = arancel + iva + salvaguardia + compensatorios + antidumping + sancion + rescate;
-  // Importación temporal (modalidades que empiezan por S): los tributos se liquidan en dólares
-  // (columna «Total liquidado dólares») y no en pesos, y no se pagan con esta declaración.
-  // En las demás modalidades es al revés: se liquidan en pesos y la columna de dólares va en cero.
-  const temporal = /^S/i.test(String(v.modalidad ?? '').trim());
+  // Importación temporal (modalidades que empiezan por S): los tributos no se pagan con esta
+  // declaración. Solo en la de LARGO PLAZO (y en el arrendamiento, que sigue sus reglas) se
+  // liquidan en dólares, con la base también en dólares, y las columnas en pesos van en cero.
+  // En la de corto plazo y en las demás modalidades se liquida en pesos y los dólares van en cero.
+  const modalidad = String(v.modalidad ?? '').trim().toUpperCase();
+  const temporal = /^S/.test(modalidad);
+  const largoPlazo = MODALIDADES_LARGO_PLAZO.includes(modalidad);
   return {
-    temporal,
+    temporal, largoPlazo,
     fob, gastos, aduanaUSD, aduanaCOP,
     arancel, salvaguardia, compensatorios, antidumping, baseIVA, iva, sancion, rescate,
     // Casilla 125: total liquidado · 126: su equivalente en dólares

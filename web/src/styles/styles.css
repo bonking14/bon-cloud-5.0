@@ -1100,3 +1100,10 @@ button.sp-card, button.glosario-card { font: inherit; text-align: left; width: 1
 .btn-modulo-link:hover { background: #1d4ed8; }
 button.relacionado-tag { font: inherit; cursor: pointer; }
 .cargando-pagina { padding: 40px 0; color: var(--text-muted); font-size: 0.8125rem; }
+
+/* Subpartidas agrupadas por sección del Arancel de Aduanas (I a XXI) */
+.sp-seccion-arancel { margin-bottom: 22px; }
+.sp-seccion-titulo { font-size: 0.875rem; font-weight: 600; margin: 0 0 10px; padding-bottom: 6px; border-bottom: 1px solid rgba(128, 128, 128, 0.25); line-height: 1.4; }
+.sp-seccion-titulo small { font-weight: 400; opacity: 0.65; font-size: 0.75rem; }
+.sp-seccion-num { display: inline-block; background: #172035; color: #7da7ee; padding: 2px 8px; border-radius: 4px; font-size: 0.75rem; margin-right: 6px; }
+.sp-seccion-vacia { font-size: 0.75rem; opacity: 0.6; margin: 0; }

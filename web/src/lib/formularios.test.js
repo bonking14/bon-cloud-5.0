@@ -39,11 +39,16 @@ describe('formulario 500', () => {
     expect(calcular500({ ...caso, v_fob: '4999.99' }).requiereDAV).toBe(false);
   });
 
-  it('solo la importación temporal (modalidad S...) liquida en dólares y no paga con la declaración', () => {
+  it('la importación temporal no paga con la declaración, y solo la de largo plazo liquida en dólares', () => {
     expect(calcular500({ ...caso, modalidad: 'C100' }).temporal).toBe(false);
-    expect(calcular500(caso).temporal).toBe(false);
-    const t = calcular500({ ...caso, modalidad: 's100' });
-    expect(t.temporal).toBe(true);
+    expect(calcular500(caso).largoPlazo).toBe(false);
+    const corto = calcular500({ ...caso, modalidad: 's100' });
+    expect(corto.temporal).toBe(true);
+    expect(corto.largoPlazo).toBe(false);
+    expect(corto.pago).toBe(0);
+    const t = calcular500({ ...caso, modalidad: 's120' });
+    expect(t.largoPlazo).toBe(true);
+    expect(calcular500({ ...caso, modalidad: 'S130' }).largoPlazo).toBe(true);
     expect(t.pago).toBe(0);
     expect(t.totalUSD).toBeCloseTo(15918.05, 2);
   });

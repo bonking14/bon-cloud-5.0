@@ -2,11 +2,17 @@ import { useMemo, useState } from 'react';
 import { useSearchParams } from 'react-router-dom';
 import { subpartidas } from '../../data/subpartidas.js';
 import { normalizar, soloDigitos, contiene } from '../../lib/texto.js';
+import { SECCIONES_ARANCEL, seccionDe, capitulos } from '../../lib/arancel.js';
 import Buscador from '../../components/Buscador.jsx';
 import Filtros from '../../components/Filtros.jsx';
 import Modal from '../../components/Modal.jsx';
 
-const SECCIONES = [{ valor: 'todas', texto: 'Todas' }, ...[...new Set(subpartidas.map((s) => s.seccion))]];
+// El catálogo va en el orden del Arancel de Aduanas: de la sección I a la XXI y, dentro de
+// cada una, por código
+const ORDENADAS = subpartidas
+  .map((sp) => ({ ...sp, arancelSeccion: seccionDe(sp.codigo) }))
+  .sort((a, b) => a.arancelSeccion.orden - b.arancelSeccion.orden || a.codigo.localeCompare(b.codigo));
+const SECCIONES = [{ valor: 'todas', texto: 'Todas' }, ...SECCIONES_ARANCEL.map((s) => ({ valor: s.numero, texto: s.numero }))];
 
 // Carga tributaria total sobre el valor en aduana: el IVA se liquida sobre
 // (valor en aduana + arancel), así que no basta con sumar los porcentajes.
@@ -21,12 +27,19 @@ export default function Subpartidas() {
   const resultado = useMemo(() => {
     const q = normalizar(busqueda.trim());
     const qDigitos = soloDigitos(q);
-    return subpartidas.filter((sp) =>
-      (seccion === 'todas' || sp.seccion === seccion) &&
+    return ORDENADAS.filter((sp) =>
+      (seccion === 'todas' || sp.arancelSeccion.numero === seccion) &&
       (q === '' || contiene(sp.titulo, q) || contiene(sp.desc, q) ||
         (qDigitos.length >= 2 && soloDigitos(sp.codigo).startsWith(qDigitos)) ||
         sp.keywords.some((k) => contiene(k, q))));
   }, [busqueda, seccion]);
+
+  // Una lista por sección, en orden. Sin búsqueda se muestran las 21, también las que el
+  // catálogo aún no cubre; al buscar o filtrar, solo las que tienen resultados.
+  const sinFiltro = busqueda.trim() === '' && seccion === 'todas';
+  const grupos = SECCIONES_ARANCEL
+    .map((s) => ({ s, items: resultado.filter((sp) => sp.arancelSeccion.numero === s.numero) }))
+    .filter((g) => g.items.length > 0 || sinFiltro || (seccion === g.s.numero && busqueda.trim() === ''));
 
   return (
     <>
@@ -39,8 +52,8 @@ export default function Subpartidas() {
       <div className="buscador-section">
         <Buscador valor={busqueda} onChange={setBusqueda} placeholder="Busca por producto o código... Ej: bombas, café, zapatos, 8413" />
         <div className="filtros-seccion">
-          <span className="filtros-label">Sectores:</span>
-          <Filtros opciones={SECCIONES} activa={seccion} onChange={setSeccion} etiqueta="Sectores" />
+          <span className="filtros-label">Sección del arancel:</span>
+          <Filtros opciones={SECCIONES} activa={seccion} onChange={setSeccion} etiqueta="Secciones del arancel" />
         </div>
       </div>
 
@@ -49,19 +62,30 @@ export default function Subpartidas() {
         <span className="stats-hint">Haz clic en una tarjeta para ver el detalle completo</span>
       </div>
 
-      <div className="sp-grid">
-        {resultado.map((sp) => (
-          <button type="button" key={sp.codigo} className="sp-card" onClick={() => setAbierta(sp)}>
-            <div className="sp-card-code">{sp.codigo}</div>
-            <div className="sp-card-title">{sp.titulo}</div>
-            <div className="sp-card-desc">{sp.desc}</div>
-            <div className="sp-card-footer">
-              <span className="sp-arancel">Arancel ref.: {sp.arancel}%</span>
-              <span className="sp-seccion">{sp.seccion}</span>
+      {grupos.map(({ s, items }) => (
+        <section key={s.numero} className="sp-seccion-arancel" aria-labelledby={`sec-${s.numero}`}>
+          <h2 id={`sec-${s.numero}`} className="sp-seccion-titulo">
+            <span className="sp-seccion-num">Sección {s.numero}</span> {s.titulo} <small>({capitulos(s)})</small>
+          </h2>
+          {items.length === 0 ? (
+            <p className="sp-seccion-vacia">Este catálogo todavía no tiene subpartidas de esta sección.</p>
+          ) : (
+            <div className="sp-grid">
+              {items.map((sp) => (
+                <button type="button" key={sp.codigo} className="sp-card" onClick={() => setAbierta(sp)}>
+                  <div className="sp-card-code">{sp.codigo}</div>
+                  <div className="sp-card-title">{sp.titulo}</div>
+                  <div className="sp-card-desc">{sp.desc}</div>
+                  <div className="sp-card-footer">
+                    <span className="sp-arancel">Arancel ref.: {sp.arancel}%</span>
+                    <span className="sp-seccion">{sp.seccion}</span>
+                  </div>
+                </button>
+              ))}
             </div>
-          </button>
-        ))}
-      </div>
+          )}
+        </section>
+      ))}
 
       {resultado.length === 0 && (
         <div className="sin-resultados">
@@ -87,7 +111,7 @@ function DetalleSubpartida({ sp }) {
       <div className="modal-grid">
         <div className="modal-stat"><div className="modal-stat-label">Arancel (referencia)</div><div className="modal-stat-value">{sp.arancel}%</div></div>
         <div className="modal-stat"><div className="modal-stat-label">IVA</div><div className="modal-stat-value azul">{sp.iva}%</div></div>
-        <div className="modal-stat"><div className="modal-stat-label">Sector</div><div className="modal-stat-value amarillo" style={{ fontSize: 14 }}>{sp.seccion}</div></div>
+        <div className="modal-stat"><div className="modal-stat-label">Sección del arancel</div><div className="modal-stat-value amarillo" style={{ fontSize: 14 }}>{sp.arancelSeccion.numero} · {sp.seccion}</div></div>
         <div className="modal-stat"><div className="modal-stat-label">Tributos sobre el valor en aduana</div><div className="modal-stat-value">{cargaTributaria(sp).toLocaleString('es-CO', { maximumFractionDigits: 2 })}%</div></div>
       </div>
       <p className="modal-nota">El IVA se calcula sobre el valor en aduana más el arancel, por eso la carga total es (1 + arancel) × (1 + IVA) − 1 y no la suma de los dos porcentajes.</p>
