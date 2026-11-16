@@ -902,7 +902,7 @@ export const lecciones = [
     contenido: `
       <h4>Los pasos (arts. 347 a 363 del Decreto 1165 de 2019)</h4>
       <ol>
-        <li><strong><span class="term-glosario" data-glosario="SAE">Solicitud de autorización de embarque (SAE)</span>:</strong> el exportador o su agencia la presenta en los servicios informáticos de la DIAN, ante la seccional donde está la mercancía. Puede ser un embarque único o una autorización global con embarques fraccionados, con datos definitivos o provisionales.</li>
+        <li><strong><span class="term-glosario" data-glosario="SAE">Solicitud de autorización de embarque (SAE)</span>, formulario 602:</strong> el exportador o su agencia la presenta en los servicios informáticos de la DIAN, ante la seccional donde está la mercancía. Puede ser un embarque único o una autorización global con embarques fraccionados, con datos definitivos o provisionales. <a href="#/formularios/602">Practica la SAE del caso en el formulario 602</a>.</li>
         <li><strong>Vigencia de un mes:</strong> dentro de ese mes la mercancía debe trasladarse e ingresar a la zona primaria (el puerto) y embarcarse. Si vence, hay que presentar una nueva SAE (art. 352).</li>
         <li><strong>Ingreso a zona primaria y gestión de riesgo:</strong> la DIAN autoriza el embarque directamente o después de una inspección documental, física o no intrusiva.</li>
         <li><strong>Embarque:</strong> se carga la mercancía en el medio de transporte, con la autorización de la aduana.</li>

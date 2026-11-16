@@ -139,7 +139,7 @@ export default function HojaOficial({ trazado, numero, titulo, campos = {}, extr
             : <line key={i} x1={pos} y1={a} x2={pos} y2={b} stroke={trazado.linea || LINEA} strokeWidth="0.57" />))}
           {trazado.textos.map((t, i) => (
             <text key={i} x={t.x} y={t.y} fontSize={t.s} fontWeight={t.b ? 700 : 400} fill={COLOR[t.c] || TINTA}
-              textAnchor={t.a === 'm' ? 'middle' : undefined} textLength={t.t.length > 1 ? t.w : undefined} lengthAdjust="spacingAndGlyphs">{t.t}</text>
+              textAnchor={{ m: 'middle', e: 'end' }[t.a]} textLength={t.t.length > 1 ? t.w : undefined} lengthAdjust="spacingAndGlyphs">{t.t}</text>
           ))}
           {trazado.verticales.map((t, i) => (
             <text key={i} transform={`translate(${t.x + 2} ${(t.y0 + t.y1) / 2}) rotate(-90)`} textAnchor="middle" fontSize={t.s} fontWeight="700" fill={COLOR[t.c] || TINTA}>{t.t}</text>

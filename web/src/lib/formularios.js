@@ -56,6 +56,22 @@ export function calcular600(v) {
   return { fob, total: fob + n(v.t_fletes) + n(v.t_seguros) + n(v.t_otros) };
 }
 
+// Formulario 602 (SAE): los totales de la hoja principal salen de las series de la hoja 3.
+// 88 = suma del FOB de las series (128) · 89 = 88 + fletes (85) + seguros (86) + otros (87)
+// 92 = series con subpartida · 93 = suma de bultos (125) · 94 = suma del peso bruto (126)
+export function calcular602(v, series = 2) {
+  const idx = Array.from({ length: series }, (_, i) => i + 1);
+  const suma = (num) => idx.reduce((t, i) => t + n(v[`c${num}_${i}`]), 0);
+  const fob = suma(128);
+  return {
+    fob,
+    total: fob + n(v.c85) + n(v.c86) + n(v.c87),
+    series: idx.filter((i) => String(v[`c117_${i}`] ?? '').trim()).length,
+    bultos: suma(125),
+    peso: suma(126),
+  };
+}
+
 // Formulario 560 (DAV), columna USD:
 // 97 = 94 + 96 · 123 = adiciones · 134 = deducciones · 135 = 97 + 123 − 134
 export const CASILLAS_ADICIONES = [99, 101, 103, 105, 107, 109, 111, 113, 116, 118, 120, 122];

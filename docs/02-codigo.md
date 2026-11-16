@@ -106,8 +106,8 @@ Es la parte más particular del código.
 4. `EditorFormulario.jsx` guarda los valores, carga el caso de práctica, valida los
    obligatorios e imprime.
 
-El RUT es la excepción: como la DIAN no publica su hoja en blanco, su trazado se arma a mano
-en `trazados/rut.js`. En las hojas 3 a 8 del formulario 600 los campos se generan solos a
+El RUT y la SAE son la excepción: como la DIAN no publica sus hojas en blanco, su trazado se
+arma a mano en `trazados/rut.js` y `trazados/sae.js`. En las hojas 3 a 8 del formulario 600 los campos se generan solos a
 partir de los recuadros vacíos (`kit/recuadros.js`).
 
 ### Sesión y progreso

@@ -37,7 +37,7 @@ pagarían. Se valida en las entrevistas de la sección 9.
 
 | Necesidad | Qué ofrece BonCloud |
 |---|---|
-| Practicar el trámite | Formularios 001, 500, 560, 600 y 650 con la apariencia de los originales, ayuda por casilla y cálculo automático |
+| Practicar el trámite | Formularios 001, 500, 560, 602, 600 y 650 con la apariencia de los originales, ayuda por casilla y cálculo automático |
 | Entender el proceso completo | 15 lecciones en tres módulos, cada uno con un caso de principio a fin |
 | Calcular | Calculadoras de importación y exportación y un simulador logístico |
 | Consultar | Incoterms, subpartidas, vistos buenos y glosario |

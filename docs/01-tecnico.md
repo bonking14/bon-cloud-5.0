@@ -175,6 +175,6 @@ Lo que no tiene pruebas automáticas: el envío real de correos, el despliegue y
    salvo las fuentes de Google.
 6. **Textos legales sin revisión jurídica** y contenido sin firma de un profesional de
    aduanas.
-7. **RUT reconstruido.** La DIAN no publica su hoja en blanco; las casillas son las del
-   instructivo oficial, pero la distribución es aproximada.
+7. **RUT y SAE (602) reconstruidos.** La DIAN no publica sus hojas en blanco; las casillas y
+   su numeración son las oficiales, pero la distribución es aproximada.
 8. **Sin pasarela de pago.** Las licencias se registran a mano.

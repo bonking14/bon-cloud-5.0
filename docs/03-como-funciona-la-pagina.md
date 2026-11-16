@@ -71,8 +71,8 @@ nota y la fecha, sin necesidad de cuenta.
 - **Importación:** calcula valor en aduana, arancel e IVA en tres modalidades (ordinaria,
   con franquicia y temporal de corto plazo) y las compara.
 - **Exportación:** valor FOB y modalidades (definitiva, temporal, menaje).
-- **Formularios:** los formularios 001 (RUT), 500 (importación), 560 (valor), 600
-  (exportación) y 650 (tránsito), con la apariencia de los originales. Cada casilla explica
+- **Formularios:** los formularios 001 (RUT), 500 (importación), 560 (valor), 602
+  (solicitud de autorización de embarque), 600 (exportación) y 650 (tránsito), con la apariencia de los originales. Cada casilla explica
   qué se escribe en ella, los totales se calculan solos y se pueden imprimir o guardar en
   PDF. Llevan una marca que dice que son simuladores sin validez. En celular se llenan como
   una lista de casillas.

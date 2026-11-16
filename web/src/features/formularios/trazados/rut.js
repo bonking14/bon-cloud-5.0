@@ -8,7 +8,7 @@ const VERDE = '#1e8c45';
 const BANDA = '#cfe8d6';
 const SUB = '#e6f3ea';
 
-function lienzo() {
+export function lienzo() {
   const t = { w: 612, h: 792, linea: VERDE, numero: VERDE, lineas: [], fondos: [], textos: [], verticales: [], celdas: {} };
   const marco = (x, y, w, h) => {
     t.lineas.push(['h', y, x, x + w], ['h', y + h, x, x + w], ['v', x, y, y + h], ['v', x + w, y, y + h]);

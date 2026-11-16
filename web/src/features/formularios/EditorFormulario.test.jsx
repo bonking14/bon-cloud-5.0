@@ -105,6 +105,27 @@ describe('formularios DIAN en React', () => {
     expect(screen.getAllByLabelText('Descripción, registro 1').some((el) => el.tagName === 'TEXTAREA')).toBe(true); // hoja 8
   });
 
+  it('602: carga la SAE del café, suma los totales de las series y repite al exportador', async () => {
+    abrir('602');
+    fireEvent.click(await screen.findByText(/Cargar caso de la Ruta/, {}, ESPERA));
+    expect(screen.getAllByRole('tab')).toHaveLength(4);
+    expect(screen.getByLabelText('Valor total FOB USD').value).toBe('162.000,00');
+    expect(screen.getByLabelText('Valor total exportaciones USD').value).toBe('162.000,00');
+    expect(screen.getByLabelText('Total series').value).toBe('1');
+    expect(screen.getByLabelText('Total número de bultos').value).toBe('720');
+    expect(screen.getByLabelText('Aduana despacho: código').value).toBe('48');
+    expect(screen.getByLabelText('Número de identificación del exportador (hoja 3)').value).toBe('890900123');
+    // una segunda serie se suma a los totales
+    fireEvent.change(screen.getByLabelText('Subpartida, serie 2'), { target: { value: '0901.21.20.00' } });
+    fireEvent.change(screen.getByLabelText('Valor FOB USD, serie 2'), { target: { value: '8000' } });
+    expect(screen.getByLabelText('Total series').value).toBe('2');
+    expect(screen.getByLabelText('Valor total FOB USD').value).toBe('170.000,00');
+    expect(screen.getByText(/deben coincidir/)).toBeTruthy(); // la factura (57) ya no cuadra con las series
+    expect(screen.getByLabelText('Tipo documento, documento 7')).toBeTruthy(); // hoja 2: siete documentos
+    expect(screen.getByLabelText('No. de Programa, fila 10')).toBeTruthy(); // hoja 3: diez filas de sistemas especiales
+    expect(screen.queryByLabelText('No. de aceptación')).toBeNull(); // lo asigna la DIAN
+  });
+
   it('560: la hoja 2 continúa los ítems del 4 al 25', async () => {
     abrir('560');
     fireEvent.click(await screen.findByText(/Cargar caso de la Ruta/, {}, ESPERA));

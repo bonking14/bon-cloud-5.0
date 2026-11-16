@@ -1,5 +1,11 @@
 import { describe, it, expect } from 'vitest';
-import { calcular500, calcular600, calcularDAV, sumaCapital, faltantes } from './formularios.js';
+import { calcular500, calcular600, calcular602, calcularDAV, sumaCapital, faltantes } from './formularios.js';
+
+it('formulario 602: los totales salen de las series', () => {
+  const v = { c117_1: '0901.21.10.00', c128_1: '162000', c125_1: '720', c126_1: '18360', c128_2: '500', c86: '100' };
+  expect(calcular602(v)).toEqual({ fob: 162500, total: 162600, series: 1, bultos: 720, peso: 18360 });
+  expect(calcular602({})).toEqual({ fob: 0, total: 0, series: 0, bultos: 0, peso: 0 });
+});
 
 describe('formulario 500', () => {
   // Caso de la Ruta: 500 bombas × USD 120, flete 3.500, seguro 300, TRM 4.100, arancel 5%

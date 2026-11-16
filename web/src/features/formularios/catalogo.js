@@ -10,9 +10,11 @@ export const formularios = [
     desc: 'Identifica la mercancía, declara el valor en aduana y liquida arancel e IVA.', cargar: () => import('./hojas/Form500.jsx') },
   { id: '650', nombre: 'Formulario 650 - Declaración de Tránsito Aduanero y/o Cabotaje (DTA)', tipo: 'Tránsito',
     desc: 'Traslado bajo control aduanero entre aduanas, con tributos suspendidos.', cargar: () => import('./hojas/Form650.jsx') },
+  { id: '602', nombre: 'Formulario 602 - Solicitud de Autorización de Embarque (SAE)', tipo: 'Exportación',
+    desc: 'Primer paso de la exportación: se presenta antes de llevar la mercancía al puerto y vale un mes.', cargar: () => import('./hojas/Form602.jsx') },
   { id: '600', nombre: 'Formulario 600 - Declaración de Exportación (DEX)', tipo: 'Exportación',
     desc: 'Ampara la salida de mercancías; va precedida de la solicitud de autorización de embarque.', cargar: () => import('./hojas/Form600.jsx') },
 ];
 
 // Identificadores anteriores que siguen funcionando en enlaces viejos
-export const ALIAS = { DTA: '650' };
+export const ALIAS = { DTA: '650', SAE: '602' };
