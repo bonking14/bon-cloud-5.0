@@ -35,7 +35,7 @@ export default function Glosario() {
   return (
     <>
       <div className="dashboard-header">
-        <h1>📖 Glosario de Comercio Exterior y Aduanas</h1>
+        <h1>📖 Glosario de comercio exterior y aduanas</h1>
         <p>Consulta términos clave, normativas DIAN, Incoterms y conceptos operativos portuarios</p>
       </div>
 

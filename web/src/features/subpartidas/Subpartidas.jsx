@@ -50,7 +50,7 @@ export default function Subpartidas() {
   return (
     <>
       <div className="dashboard-header">
-        <h1>🔢 Subpartidas Arancelarias</h1>
+        <h1>🔢 Arancel y subpartidas</h1>
         <p>El Arancel de Aduanas completo, de la Sección I a la XXI, y fichas de práctica con IVA, vistos buenos y documentos</p>
       </div>
 

@@ -110,7 +110,7 @@ export default function Simulador() {
   return (
     <>
       <div className="dashboard-header" style={{ marginBottom: 24 }}>
-        <h1>Simulador Logístico</h1>
+        <h1>Simulador logístico</h1>
         <p>Estima el valor en aduana, los tributos, los tiempos y los riesgos de una importación por el Puerto de Cartagena.</p>
         <p className="buscador-hint" style={{ marginTop: 4 }}>Usa reglas y valores de referencia (fletes, gastos portuarios, tiempos de tránsito). Sirve para aprender y comparar escenarios; no reemplaza una cotización ni la liquidación oficial.</p>
       </div>

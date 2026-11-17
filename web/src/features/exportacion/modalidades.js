@@ -24,7 +24,7 @@ const DATOS = 'Datos de la operación';
 
 export const modalidades = {
   definitiva: {
-    titulo: 'Exportación Definitiva',
+    titulo: 'Exportación definitiva',
     badge: 'DEX 600',
     subtitulo: 'Salida de mercancías nacionales o nacionalizadas para uso o consumo definitivo en el exterior',
     info: '<strong>Cómo funciona:</strong> se presenta la solicitud de autorización de embarque, se embarca la mercancía y luego se presenta la declaración de exportación (DEX, formulario 600). Se declara el valor FOB. No se paga arancel y la venta está exenta de IVA, con derecho a devolución del IVA pagado en los insumos.',
@@ -36,7 +36,7 @@ export const modalidades = {
     ],
   },
   temporal: {
-    titulo: 'Exportación Temporal',
+    titulo: 'Exportación temporal',
     badge: 'DEX 600',
     subtitulo: 'Para reimportación en el mismo estado: ferias, exposiciones, reparación en el exterior',
     info: '<strong>Cómo funciona:</strong> la mercancía sale por un plazo determinado y debe regresar sin haber sufrido transformación. Al reimportarla dentro del plazo no paga tributos. Si no regresa a tiempo, la operación debe terminarse como exportación definitiva.',
@@ -52,7 +52,7 @@ export const modalidades = {
     },
   },
   menaje: {
-    titulo: 'Exportación de Menaje',
+    titulo: 'Exportación de menaje',
     badge: 'DEX 600',
     subtitulo: 'Bienes del hogar de residentes que se trasladan a vivir al exterior',
     info: '<strong>Cómo funciona:</strong> los muebles y enseres usados del hogar salen con una declaración de exportación de menaje. No pagan tributos. Conviene llevar un inventario detallado con valores, porque es la base de la declaración.',

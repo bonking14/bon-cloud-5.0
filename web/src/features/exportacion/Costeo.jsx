@@ -32,7 +32,7 @@ export default function Costeo() {
         <div className="modal-header-info">
           <span className="modal-badge">Incoterms® 2020</span>
           <div>
-            <h1>Costeo de la Exportación</h1>
+            <h1>Costeo de la exportación</h1>
             <p>Qué costos asume el vendedor según el Incoterm y a qué precio debe cotizar</p>
           </div>
         </div>

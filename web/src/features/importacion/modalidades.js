@@ -12,8 +12,8 @@ export const campos = {
   transporte: { etiqueta: 'Transporte interno (COP)', placeholder: 'Ej: 300,000', permiteCero: true },
 };
 
-const BASE = 'Valores Base';
-const LOCAL = 'Tasas y Gastos Locales';
+const BASE = 'Valores de la mercancía';
+const LOCAL = 'Tasas y gastos en Colombia';
 const exigeArancel = (_v, crudos) => (String(crudos.arancel ?? '').trim() === '' ? 'Escribe el arancel de la subpartida (puede ser 0).' : '');
 // Si no se escribe la prima se usa un supuesto de práctica: en una declaración real se
 // soporta con la póliza o con la cotización de la prima habitual (art. 340 Res. 46 de 2019)
@@ -21,7 +21,7 @@ const seguroLabel = (r, largo) => (r.seguroSupuesto ? (largo ? '+ Seguro (supues
 
 export const modalidades = {
   ordinaria: {
-    titulo: 'Importación Ordinaria',
+    titulo: 'Importación ordinaria',
     badge: 'C100',
     subtitulo: 'Mercancías para consumo definitivo en Colombia',
     info: 'Importación ordinaria: mercancías para consumo definitivo en Colombia. El arancel se liquida sobre el valor en aduana (CIF) y el IVA del 19% sobre el valor en aduana más el arancel. Cada tributo se aproxima al múltiplo de mil.',
@@ -45,7 +45,7 @@ export const modalidades = {
     },
   },
   franquicia: {
-    titulo: 'Importación con Franquicia',
+    titulo: 'Importación con franquicia',
     badge: 'C160',
     subtitulo: 'Exención de tributos concedida por una norma o tratado',
     info: 'Importación con franquicia: modalidad para mercancías que, por una ley o un tratado, están exentas total o parcialmente de tributos. Este cálculo supone una franquicia total (arancel e IVA en cero). El código depende de la norma que la concede: por ejemplo C160 para franquicia total por tratados o convenios, o C150 si solo exonera el arancel (Anexo 1 de la Resolución DIAN 46 de 2019). Antes de usarla verifica qué norma la concede, su alcance y sus condiciones.',
@@ -66,7 +66,7 @@ export const modalidades = {
     },
   },
   'temporal-corto': {
-    titulo: 'Importación Temporal Corto Plazo',
+    titulo: 'Importación temporal de corto plazo',
     badge: 'S100',
     subtitulo: 'Reexportación en el mismo estado — tributos suspendidos con garantía',
     info: 'Importación temporal de corto plazo: para ferias, exposiciones, eventos o equipos que vuelven a salir sin transformarse. Los tributos no se pagan sino que se suspenden y se respaldan con una garantía ante la DIAN. El costo de la póliza lo fija la aseguradora: aquí se usa un supuesto del 1,5% de los tributos garantizados. Si la mercancía no se reexporta a tiempo, se deben pagar los tributos.',

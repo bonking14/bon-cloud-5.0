@@ -7,9 +7,11 @@
     <link rel="preconnect" href="https://fonts.googleapis.com" />
     <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Ubuntu:ital,wght@0,300;0,400;0,500;0,700;1,400&family=Ubuntu+Mono:wght@400;700&display=swap" />
     <script>
-      // Aplica tema y tamaño de letra antes de pintar, para evitar el parpadeo
+      // Aplica tema y tamaño de letra antes de pintar, para evitar el parpadeo.
+      // El tema claro es el de siempre; el oscuro solo si la persona lo eligió.
+      document.documentElement.classList.add('light-mode');
       try {
-        if (localStorage.getItem('boncloud-theme') === 'light') document.documentElement.classList.add('light-mode');
+        if (localStorage.getItem('boncloud-theme') === 'dark') document.documentElement.classList.remove('light-mode');
         var fs = localStorage.getItem('boncloud-fontsize');
         if (fs) document.documentElement.style.fontSize = fs;
       } catch (e) {}

@@ -26,7 +26,7 @@ export default function Incoterms() {
   return (
     <>
       <div className="dashboard-header">
-        <h1>🌍 Guía de Incoterms 2020</h1>
+        <h1>🌍 Guía de los Incoterms 2020</h1>
         <p>Términos internacionales de comercio — quién paga qué en cada etapa</p>
       </div>
 

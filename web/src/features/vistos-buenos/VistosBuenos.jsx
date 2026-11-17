@@ -26,7 +26,7 @@ export default function VistosBuenos() {
   return (
     <>
       <div className="dashboard-header">
-        <h1>✅ Vistos Buenos</h1>
+        <h1>✅ Vistos buenos</h1>
         <p>Consulta los permisos y requisitos según el tipo de producto</p>
         <p className="buscador-hint" style={{ marginTop: 6 }}>La mayoría de mercancías son de libre importación (Decreto 925 de 2013). Esta guía muestra los casos más frecuentes; los requisitos exactos dependen de la subpartida y se verifican en la VUCE antes de embarcar.</p>
       </div>

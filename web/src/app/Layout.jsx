@@ -4,7 +4,8 @@ import { useAuth } from '../auth/AuthContext.jsx';
 import { useTheme } from '../hooks/useTheme.js';
 import { useFontSize, TAMANOS } from '../hooks/useFontSize.js';
 import Icono, { ICONO_LUNA, ICONO_SOL, ICONO_MENU, ICONO_SALIR } from '../components/Icono.jsx';
-import { modulos } from './modulos.js';
+import { GRUPOS, ICONO_EXAMEN, ICONO_GRUPOS, ICONO_INICIO, modulos } from './modulos.js';
+import PiePagina from './PiePagina.jsx';
 import css from './Layout.module.css';
 
 const claseNav = ({ isActive }) => `nav-item${isActive ? ' active' : ''}`;
@@ -41,25 +42,38 @@ export default function Layout() {
       <aside className={`sidebar no-imprimir ${css.sidebar} ${menuAbierto ? css.abierto : ''}`}>
         <div className="sidebar-brand"><h2>BonCloud</h2></div>
         <nav aria-label="Módulos">
-          <NavLink to="/inicio" className={claseNav}>Inicio</NavLink>
-          {modulos.map((m) => (
-            <div key={m.ruta}>
-              <NavLink to={m.submodulos ? m.submodulos[0].ruta : m.ruta} className={() =>
-                claseNav({ isActive: location.pathname.startsWith(m.ruta) })}>
-                {m.titulo}
-              </NavLink>
-              {m.submodulos && location.pathname.startsWith(m.ruta) && (
-                <div className="nav-submenu open">
-                  {m.submodulos.map((s) => (
-                    <NavLink key={s.ruta} to={s.ruta} className={({ isActive }) => `nav-subitem${isActive ? ' active' : ''}`}>
-                      {s.titulo}
-                    </NavLink>
-                  ))}
+          {GRUPOS.map(([grupo, nombre]) => (
+            <div key={grupo} className={css.grupo}>
+              <h3 className={css.tituloGrupo}>{nombre}</h3>
+              {grupo === 'aprender' && <NavLink to="/inicio" className={claseNav}><span className={css.filaIcono}><Icono d={ICONO_INICIO} tamano={16} />Inicio</span></NavLink>}
+              {modulos.filter((m) => m.grupo === grupo).map((m) => (
+                <div key={m.ruta}>
+                  <NavLink to={m.submodulos ? m.submodulos[0].ruta : m.ruta} className={() =>
+                    claseNav({ isActive: location.pathname.startsWith(m.ruta) })}>
+                    <span className={css.filaIcono}><Icono d={m.icono} tamano={16} />{m.titulo}</span>
+                  </NavLink>
+                  {m.submodulos && location.pathname.startsWith(m.ruta) && (
+                    <div className="nav-submenu open">
+                      {m.submodulos.map((s) => (
+                        <NavLink key={s.ruta} to={s.ruta} className={({ isActive }) => `nav-subitem${isActive ? ' active' : ''}`}>
+                          {s.titulo}
+                        </NavLink>
+                      ))}
+                    </div>
+                  )}
                 </div>
-              )}
+              ))}
+              {grupo === 'aprender' && <NavLink to="/examen" className={claseNav}><span className={css.filaIcono}><Icono d={ICONO_EXAMEN} tamano={16} />Examen final</span></NavLink>}
             </div>
           ))}
-          <NavLink to="/examen" className={claseNav}>Examen final</NavLink>
+          {(rol === 'profesor' || rol === 'administrador') && (
+            <div className={css.grupo}>
+              <h3 className={css.tituloGrupo}>Docencia</h3>
+              <NavLink to="/grupos" className={claseNav}><span className={css.filaIcono}><Icono d={ICONO_GRUPOS} tamano={16} />Grupos</span></NavLink>
+              {rol === 'administrador' && <NavLink to="/admin/usuarios" className={claseNav}>Usuarios</NavLink>}
+              {rol === 'administrador' && <NavLink to="/admin/instituciones" className={claseNav}>Licencias</NavLink>}
+            </div>
+          )}
         </nav>
         <div className="sidebar-footer">
           <div className={css.tamanos} role="group" aria-label="Tamaño de letra">
@@ -73,9 +87,6 @@ export default function Layout() {
           <button type="button" className="nav-item theme-switch" role="switch" aria-checked={!esClaro} onClick={alternar}>
             <span className={css.filaIcono}><Icono d={esClaro ? ICONO_LUNA : ICONO_SOL} tamano={16} />{esClaro ? 'Tema oscuro' : 'Tema claro'}</span>
           </button>
-          {(rol === 'profesor' || rol === 'administrador') && <NavLink to="/grupos" className={claseNav}>Grupos</NavLink>}
-          {rol === 'administrador' && <NavLink to="/admin/usuarios" className={claseNav}>Usuarios</NavLink>}
-          {rol === 'administrador' && <NavLink to="/admin/instituciones" className={claseNav}>Licencias</NavLink>}
           {esInvitado
             ? <span className={css.usuario}>{usuario?.nombre}</span>
             : <NavLink to="/perfil" className={claseNav} title="Mi perfil">{usuario?.nombre}</NavLink>}
@@ -89,6 +100,7 @@ export default function Layout() {
         <Suspense fallback={<div className="cargando-pagina" role="status">Cargando…</div>}>
           <Outlet />
         </Suspense>
+        <PiePagina />
       </main>
     </div>
   );

@@ -155,7 +155,7 @@ export default function Examenes() {
               <span>Mejor nota: <strong>{m.mejorNota === null ? '—' : m.mejorNota}</strong></span>
               <span className={m.aprobado ? css.si : css.no}>{m.aprobado ? 'Aprobado' : 'Sin aprobar'}</span>
             </div>
-            {!m.aprobado && !m.leccionesCompletas && <p className={css.pista} style={{ margin: '10px 0 0' }}>Te faltan {m.leccionesFaltantes} lecciones de este módulo en la <Link to="/curso">Ruta Guiada</Link> para poder presentarlo.</p>}
+            {!m.aprobado && !m.leccionesCompletas && <p className={css.pista} style={{ margin: '10px 0 0' }}>Te faltan {m.leccionesFaltantes} lecciones de este módulo en la <Link to="/curso">Ruta guiada</Link> para poder presentarlo.</p>}
             {!m.aprobado && m.leccionesCompletas && restantes <= 0 && !m.enCurso && <p className={css.pista} style={{ margin: '10px 0 0' }}>Ya usaste todos los intentos. Habla con tu profesor o con el administrador.</p>}
             {puede && <button type="button" className="btn-card btn-calcular" style={{ marginTop: 12 }} onClick={() => iniciar(m)}>{m.enCurso ? 'Continuar examen en curso' : 'Presentar examen'}</button>}
           </section>

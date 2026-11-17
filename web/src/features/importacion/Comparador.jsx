@@ -19,7 +19,7 @@ export default function Comparador({ valoresRef }) {
     <section className={css.comparador}>
       <div className={css.encabezado}>
         <div>
-          <h3>⚖️ Comparador de Modalidades de Importación</h3>
+          <h3>⚖️ Comparador de modalidades de importación</h3>
           <p>Analiza de un vistazo las diferencias en arancel, IVA y total a pagar entre los 3 regímenes principales.</p>
         </div>
         <button type="button" className="btn-calcular" onClick={comparar}>Comparar valores 🔄</button>
@@ -32,7 +32,7 @@ export default function Comparador({ valoresRef }) {
               <th>Concepto</th>
               <th className={css.azul}>Ordinaria (C100)</th>
               <th className={css.verde}>Con Franquicia (C160)</th>
-              <th className={css.ambar}>Temporal Corto (S100)</th>
+              <th className={css.ambar}>Temporal de corto plazo (S100)</th>
             </tr>
           </thead>
           <tbody>

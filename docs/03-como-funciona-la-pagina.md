@@ -35,8 +35,14 @@ hora. Tras cinco contraseñas incorrectas la cuenta se bloquea 15 minutos.
 
 ### Inicio
 
-Muestra el avance en la ruta, la hora de Cartagena, la tasa de cambio oficial del día y un
-acceso a cada módulo.
+Tiene forma de reporte: la siguiente lección por hacer, los indicadores del día (tasa de
+cambio oficial, hora de Cartagena y código de la aduana), una tabla con el avance de cada
+módulo de la ruta y las herramientas agrupadas en «Practicar» y «Consultar».
+
+El menú lateral está agrupado en Aprender, Practicar y Consultar (y Docencia para profesores y
+administradores). Todas las páginas internas terminan con un pie de página con el aviso de
+que el contenido es de referencia y los enlaces a términos, política de datos y verificación
+de certificados.
 
 ### Ruta Guiada
 
@@ -109,7 +115,8 @@ Se abre haciendo clic en el nombre, abajo en el menú. Ahí se puede:
 
 ### Ajustes de lectura
 
-En el menú hay tres tamaños de letra y tema claro u oscuro.
+En el menú hay tres tamaños de letra y la opción de tema oscuro. La página abre en tema claro;
+si la persona elige el oscuro, se recuerda en su navegador.
 
 ## 4. Lo que ve el profesor
 

@@ -89,8 +89,8 @@ export default function Landing() {
   const irA = (nuevo) => { setModo(nuevo); setMensaje(''); };
   const alternarModo = () => irA(modo === 'login' ? 'registro' : 'login');
 
-  const textoBoton = exito ? 'ACCESO CONCEDIDO' : cargando ? 'VERIFICANDO...'
-    : modo === 'registro' ? 'CREAR CUENTA' : modo === 'recuperar' ? 'ENVIAR ENLACE' : 'BIENVENIDO';
+  const textoBoton = exito ? 'Ingresando…' : cargando ? 'Verificando…'
+    : modo === 'registro' ? 'Crear cuenta' : modo === 'recuperar' ? 'Enviar enlace' : 'Ingresar';
 
   return (
     <div className={css.landing}>
@@ -104,25 +104,26 @@ export default function Landing() {
         <form className={css.tarjeta} onSubmit={enviar} noValidate>
           <div className={css.logo}>
             <h1>BonCloud</h1>
-            <p>PLATAFORMA DE APRENDIZAJE · PUERTO DE CARTAGENA</p>
+            <p>Plataforma educativa de comercio exterior · Puerto de Cartagena</p>
+            <h2 className={css.accion}>{modo === 'registro' ? 'Crear una cuenta' : modo === 'recuperar' ? 'Recuperar la contraseña' : 'Iniciar sesión'}</h2>
           </div>
 
           <div className={css.campos}>
             {modo === 'registro' && (
               <div className={css.campo}>
-                <label htmlFor="nombre">NOMBRE</label>
+                <label htmlFor="nombre">Nombre</label>
                 <input id="nombre" name="nombre" autoComplete="name" value={campos.nombre} onChange={cambiar} placeholder="Tu nombre" />
               </div>
             )}
             <div className={css.campo}>
-              <label htmlFor="email">CORREO</label>
-              <input id="email" name="email" type="email" autoComplete="email" value={campos.email} onChange={cambiar} placeholder="operations@boncloud.com" />
+              <label htmlFor="email">Correo electrónico</label>
+              <input id="email" name="email" type="email" autoComplete="email" value={campos.email} onChange={cambiar} placeholder="nombre@correo.com" />
             </div>
             {modo === 'recuperar' ? (
               <span className={css.pista}>Te enviaremos un enlace para crear una contraseña nueva. Vence en 1 hora.</span>
             ) : (
               <div className={css.campo}>
-                <label htmlFor="password">CONTRASEÑA</label>
+                <label htmlFor="password">Contraseña</label>
                 <input id="password" name="password" type="password" value={campos.password} onChange={cambiar}
                   autoComplete={modo === 'registro' ? 'new-password' : 'current-password'} placeholder="••••••••" />
                 {modo === 'registro' && <span className={css.pista}>Mínimo 8 caracteres, una mayúscula, un número y un símbolo.</span>}
@@ -158,7 +159,7 @@ export default function Landing() {
         </form>
       </div>
 
-      <div className={css.credito}>Bahía de Cartagena • Plataforma educativa de comercio exterior • <Link to="/terminos">Términos</Link> • <Link to="/privacidad">Datos personales</Link> • <Link to="/verificar">Verificar certificado</Link></div>
+      <div className={css.credito}>Bahía de Cartagena · <Link to="/terminos">Términos de uso</Link> · <Link to="/privacidad">Política de datos</Link> · <Link to="/verificar">Verificar un certificado</Link></div>
     </div>
   );
 }

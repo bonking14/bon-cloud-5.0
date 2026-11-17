@@ -3,7 +3,7 @@ import { useCallback, useEffect, useState } from 'react';
 const CLAVE = 'boncloud-theme';
 const leer = () => document.documentElement.classList.contains('light-mode');
 
-// Tema oscuro por defecto; la clase "light-mode" en <html> activa el claro.
+// Tema claro por defecto; la clase "light-mode" en <html> lo activa y quitarla deja el oscuro.
 // index.html ya la aplica antes de pintar para evitar el parpadeo.
 export function useTheme() {
   const [esClaro, setEsClaro] = useState(leer);

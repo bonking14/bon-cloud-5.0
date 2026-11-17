@@ -450,3 +450,78 @@ body {
 @media (prefers-reduced-motion: reduce) {
   .ruta-card-relleno { transition: none; }
 }
+
+/* ============================================================
+   Sistema único de botones: una sola forma, dos jerarquías
+   - Principal (relleno): la acción principal de la pantalla
+   - Secundario (borde): las demás acciones
+   Filtros: rectangulares, del mismo radio que los botones
+   ============================================================ */
+:root { --radio-control: 6px; }
+.btn, .btn-cta, .btn-calcular, .btn-card, .btn-secondary {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  font-family: var(--font-texto);
+  font-size: 0.8125rem;
+  font-weight: 500;
+  line-height: 1.2;
+  letter-spacing: 0;
+  text-transform: none;
+  text-decoration: none;
+  border-radius: var(--radio-control);
+  padding: 9px 16px;
+  cursor: pointer;
+  transition: background 0.15s, border-color 0.15s, color 0.15s;
+  box-shadow: none;
+  transform: none;
+}
+.btn-primary, .btn-cta, .btn-calcular {
+  background: var(--text-accent);
+  border: 1px solid var(--text-accent);
+  color: #fff;
+}
+.btn-primary:hover, .btn-cta:hover, .btn-calcular:hover {
+  background: var(--text-accent);
+  color: #fff;
+  filter: brightness(1.12);
+  box-shadow: none;
+  transform: none;
+}
+.btn-card, .btn-secondary {
+  background: transparent;
+  border: 1px solid var(--border-accent);
+  color: var(--text-accent);
+}
+.btn-card:hover, .btn-secondary:hover { background: var(--bg-active); color: var(--text-accent); }
+.btn-card.activo, .btn-card[aria-pressed="true"], .btn-card[aria-selected="true"] { background: var(--text-accent); border-color: var(--text-accent); color: #fff; }
+.btn:disabled, .btn-cta:disabled, .btn-calcular:disabled, .btn-card:disabled { opacity: 0.55; cursor: not-allowed; filter: none; }
+.btn-cta { width: 100%; margin-top: 10px; padding: 11px 16px; }
+.btn-calcular { margin-top: 4px; }
+
+.filtro-btn {
+  border-radius: var(--radio-control);
+  font-family: var(--font-texto);
+  box-shadow: none;
+}
+.filtro-btn.active { box-shadow: none; background: var(--text-accent); border-color: var(--text-accent); color: #fff; }
+
+/* ── Pie de página institucional ── */
+.pie-pagina {
+  margin-top: 40px;
+  padding-top: 16px;
+  border-top: 1px solid var(--border);
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: space-between;
+  gap: 8px 24px;
+  font-size: 0.75rem;
+  line-height: 1.55;
+  color: var(--text-hint);
+}
+.pie-pagina p { margin: 0; max-width: 72ch; }
+.pie-pagina strong { color: var(--text-muted); font-weight: 500; }
+.pie-pagina nav { display: flex; flex-wrap: wrap; gap: 6px 16px; }
+.pie-pagina a { color: var(--text-muted); text-decoration: underline; text-underline-offset: 2px; }
+.pie-pagina a:hover { color: var(--text-accent); }

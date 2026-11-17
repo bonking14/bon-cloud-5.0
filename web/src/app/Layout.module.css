@@ -1,4 +1,15 @@
-.filaIcono { display: inline-flex; align-items: center; gap: 8px; }
+.filaIcono { display: inline-flex; align-items: center; gap: 10px; }
+.filaIcono svg { flex-shrink: 0; opacity: 0.8; }
+
+/* Menú por grupos: Aprender, Practicar, Consultar */
+.grupo { display: flex; flex-direction: column; margin-bottom: 10px; }
+.tituloGrupo {
+  font: 600 0.6875rem var(--font-texto);
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--text-hint);
+  margin: 10px 14px 4px;
+}
 
 .usuario { padding: 4px 14px; color: var(--text-muted); font-size: 0.75rem; }
 
