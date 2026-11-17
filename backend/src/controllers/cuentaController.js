@@ -46,7 +46,7 @@ const cambiarPassword = async (req, res) => {
 const exportarDatos = async (req, res) => {
   const id = req.usuario.id;
   const q = (sql) => pool.query(sql, [id]).then((r) => r.rows);
-  const [cuenta, progreso, intentos, examenes, certificados, grupos, gruposPropios] = await Promise.all([
+  const [cuenta, progreso, intentos, examenes, certificados, grupos, gruposPropios, practicas] = await Promise.all([
     q('SELECT id, nombre, email, rol, email_verificado, creado_en, ultimo_login, terminos_aceptados_en, terminos_version FROM usuarios WHERE id = $1'),
     q('SELECT leccion_id, completada_en FROM progreso_usuario WHERE usuario_id = $1 ORDER BY leccion_id'),
     q('SELECT leccion_id, aciertos, total, aprobado, creado_en FROM intentos_quiz WHERE usuario_id = $1 ORDER BY id'),
@@ -54,9 +54,10 @@ const exportarDatos = async (req, res) => {
     q('SELECT codigo, nombre, nota, emitido_en FROM certificados WHERE usuario_id = $1'),
     q('SELECT g.nombre, m.unido_en FROM grupo_miembros m JOIN grupos g ON g.id = m.grupo_id WHERE m.usuario_id = $1'),
     q('SELECT nombre, codigo, archivado, creado_en FROM grupos WHERE profesor_id = $1'),
+    q('SELECT practica, errores, con_solucion, completada_en FROM practicas WHERE usuario_id = $1 ORDER BY id'),
   ]);
   if (!cuenta.length) return res.status(404).json({ error: 'La cuenta ya no existe.' });
-  res.json({ generadoEn: new Date().toISOString(), cuenta: cuenta[0], progreso, intentosDeQuiz: intentos, examenes, certificados, gruposALosQuePertenece: grupos, gruposQueDirige: gruposPropios });
+  res.json({ generadoEn: new Date().toISOString(), cuenta: cuenta[0], progreso, intentosDeQuiz: intentos, examenes, certificados, gruposALosQuePertenece: grupos, gruposQueDirige: gruposPropios, practicasEnSimuladores: practicas });
 };
 
 // Derecho a suprimir: borra la cuenta y, en cascada, su progreso, notas, exámenes, certificado,

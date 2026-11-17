@@ -100,12 +100,13 @@ No necesitan base de datos: reemplazan `src/config/db.js` por un pool falso.
 | Método | Ruta | Descripción |
 |---|---|---|
 | `POST` | `/api/intentos` | Requiere token. `{ leccionId, aciertos, total }`. Guarda un quiz terminado; el servidor decide si aprobó (70%). Tope de 120 por hora. |
+| `POST` | `/api/practicas` | Requiere token. `{ practica, errores, conSolucion }`. Guarda una práctica terminada en un simulador (hoy, `sigloxxii-importacion`). Tope de 30 por hora. |
 | `GET` | `/api/mis-grupos` | Requiere token. Grupos a los que pertenece el estudiante. |
 | `POST` | `/api/mis-grupos` | Requiere token. `{ codigo }`. Se une al grupo abierto con ese código. |
 | `DELETE` | `/api/mis-grupos/:id` | Requiere token. Sale del grupo. |
 | `GET` | `/api/grupos` | Profesor: sus grupos. Administrador: todos. |
 | `POST` | `/api/grupos` | Profesor. `{ nombre }`. Crea el grupo con un código de 6 caracteres. |
-| `GET` | `/api/grupos/:id` | Panel: cada estudiante con sus lecciones aprobadas y, por lección, mejor nota, intentos y fechas. |
+| `GET` | `/api/grupos/:id` | Panel: cada estudiante con sus lecciones aprobadas y, por lección, mejor nota, intentos y fechas, y las prácticas de simulador que terminó. |
 | `PUT` | `/api/grupos/:id` | `{ nombre?, archivado? }`. Un grupo archivado no admite más estudiantes. |
 | `DELETE` | `/api/grupos/:id` | Elimina el grupo y sus membresías. El progreso de los estudiantes se conserva. |
 | `DELETE` | `/api/grupos/:id/miembros/:usuarioId` | Retira a un estudiante. |

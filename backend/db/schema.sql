@@ -134,3 +134,17 @@ CREATE TABLE IF NOT EXISTS instituciones (
 );
 -- Un profesor pertenece, como mucho, a una institución; sin institución no tiene límite de cupos
 ALTER TABLE usuarios ADD COLUMN IF NOT EXISTS institucion_id INTEGER REFERENCES instituciones(id) ON DELETE SET NULL;
+
+-- ── Prácticas en simuladores (SIGLO XXII): un registro por cada práctica terminada ──
+CREATE TABLE IF NOT EXISTS practicas (
+  id            SERIAL PRIMARY KEY,
+  usuario_id    INTEGER     NOT NULL REFERENCES usuarios(id) ON DELETE CASCADE,
+  -- Identificador de la práctica, por ejemplo 'sigloxxii-importacion'
+  practica      VARCHAR(40) NOT NULL,
+  -- Veces que el sistema le devolvió una pantalla con errores antes de terminar
+  errores       INTEGER     NOT NULL DEFAULT 0 CHECK (errores >= 0),
+  -- Si usó el botón «Ver la solución» en alguna pantalla
+  con_solucion  BOOLEAN     NOT NULL DEFAULT FALSE,
+  completada_en TIMESTAMPTZ NOT NULL DEFAULT NOW()
+);
+CREATE INDEX IF NOT EXISTS practicas_usuario_idx ON practicas (usuario_id, practica);

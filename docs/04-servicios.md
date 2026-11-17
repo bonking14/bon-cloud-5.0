@@ -21,7 +21,7 @@ falla y qué límites tiene. Hoy todos están en su plan gratuito.
 ### GitHub, Actions y Pages
 
 El código vive en GitHub. Cada vez que se publica un cambio en la rama `main` que toque la
-carpeta `web/`, GitHub Actions instala, corre las 76 pruebas, compila y entrega el resultado
+carpeta `web/`, GitHub Actions instala, corre las pruebas, compila y entrega el resultado
 a GitHub Pages, que lo sirve en `https://bonking14.github.io/bon-cloud-5.0/`.
 
 - **Si falla:** la web no carga. Es poco frecuente.

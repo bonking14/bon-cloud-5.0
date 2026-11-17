@@ -1,8 +1,10 @@
-import { useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import { Link } from 'react-router-dom';
+import { pedir } from '../../auth/api.js';
+import { useAuth } from '../../auth/AuthContext.jsx';
 import {
-  ADMINISTRACION, CASO, CODIGOS_EMPRESA, CREDENCIALES, DEPARTAMENTOS, FORMAS_PAGO, RUTA_MENU, TASA_SEMANA, TIPOS_IMPORTACION,
-  dvImportador, liquidar, opcionesMenu, validarEncabezado, validarSubpartida,
+  ADMINISTRACION, CASO, CODIGOS_EMPRESA, CREDENCIALES, DEPARTAMENTOS, FORMAS_PAGO, PRACTICA, RUTA_MENU, TASA_SEMANA, TIPOS_IMPORTACION,
+  dvImportador, liquidar, opcionesMenu, usuarioDePractica, validarEncabezado, validarSubpartida,
 } from '../../lib/sigloxxii.js';
 import css from './SigloXXII.module.css';
 
@@ -19,7 +21,7 @@ const PASOS = [
   ['fin', 'Declaración guardada'],
 ];
 const AYUDA = {
-  login: `Entra con el usuario de práctica ${CREDENCIALES.usuario} y la contraseña ${CREDENCIALES.clave}. En el sistema real, el usuario lo asigna la DIAN a cada agencia de aduanas o usuario aduanero.`,
+  login: 'En el sistema real, el usuario lo asigna la DIAN a cada agencia de aduanas o usuario aduanero.',
   menu: `Para abrir una declaración nueva sigue esta ruta en la barra azul: ${RUTA_MENU.join(' → ')}.`,
   previos: 'Antes del encabezado el sistema pregunta el tipo de declaración (Inicial), el departamento del importador y el documento que respalda la importación (el documento de transporte).',
   encabezado: 'Llena el encabezado con los documentos del caso que están abajo. Los códigos van como aparecen en los documentos. Al terminar, pulsa SALVAR: el sistema te dirá qué falta o qué no coincide.',
@@ -48,6 +50,14 @@ function Campo({ nombre, rotulo, v, poner, malos, ancho, soloLectura, valor, opc
 }
 
 export default function SigloXXII() {
+  const { usuario, tokenApi } = useAuth();
+  // Cada cuenta tiene su propio usuario del simulador; el invitado usa el de ejemplo
+  const miUsuario = usuarioDePractica(usuario);
+  // Lo que se le reporta al profesor: pantallas devueltas con errores y si usó la solución
+  const [errores, setErrores] = useState(0);
+  const [conSolucion, setConSolucion] = useState(false);
+  const [registro, setRegistro] = useState(null); // null | 'guardando' | 'ok' | 'fallo'
+  const enviado = useRef(false);
   const [paso, setPaso] = useState('login');
   const [ruta, setRuta] = useState([]);
   const [mensaje, setMensaje] = useState(null); // { texto, errores?, tipo }
@@ -61,15 +71,17 @@ export default function SigloXXII() {
   const ir = (p) => { setPaso(p); setMensaje(null); setMalos(new Set()); };
   const ponerEnc = (k, val) => setEnc((x) => ({ ...x, [k]: val }));
   const ponerSub = (k, val) => { setSub((x) => ({ ...x, [k]: val })); setLiq(null); };
+  const fallo = (m) => { setErrores((n) => n + 1); setMensaje(m); };
   const reiniciar = () => {
+    setErrores(0); setConSolucion(false); setRegistro(null); enviado.current = false;
     setRuta([]); setAcceso({ usuario: '', clave: '' }); setPrevios({ etapa: 1, tipo: 'Inicial', departamento: '', respaldo: 'DOCUMENTO DE TRANSPORTE' });
     setEnc({ administracion: ADMINISTRACION.codigo }); setSub({ cuotas: '0', otros: '0', ajuste: '0' }); setLiq(null); ir('login');
   };
 
   const entrar = (e) => {
     e.preventDefault();
-    if (acceso.usuario.trim().toUpperCase() !== CREDENCIALES.usuario || acceso.clave !== CREDENCIALES.clave) {
-      setMensaje({ tipo: 'error', texto: `Usuario o contraseña incorrectos. Usa el usuario de práctica ${CREDENCIALES.usuario} y la contraseña ${CREDENCIALES.clave}.` });
+    if (acceso.usuario.trim().toUpperCase() !== miUsuario || acceso.clave !== CREDENCIALES.clave) {
+      fallo({ tipo: 'error', texto: `Usuario o contraseña incorrectos. Tu usuario de práctica es ${miUsuario} y la contraseña es ${CREDENCIALES.clave}.` });
       return;
     }
     ir('menu');
@@ -78,7 +90,7 @@ export default function SigloXXII() {
   const elegir = (opcion) => {
     const esperado = RUTA_MENU[ruta.length];
     if (opcion !== esperado) {
-      setMensaje({ tipo: 'error', texto: `«${opcion}» no hace parte de esta práctica. Para ingresar una declaración sigue por «${esperado}».` });
+      fallo({ tipo: 'error', texto: `«${opcion}» no hace parte de esta práctica. Para ingresar una declaración sigue por «${esperado}».` });
       return;
     }
     const nueva = [...ruta, opcion];
@@ -88,21 +100,31 @@ export default function SigloXXII() {
   };
 
   const salvarEncabezado = () => {
-    const errores = validarEncabezado(enc);
-    setMalos(new Set(errores.map((x) => x.campo)));
-    if (errores.length) { setMensaje({ tipo: 'error', texto: 'El encabezado no se puede guardar todavía:', errores: errores.map((x) => x.mensaje) }); return; }
+    const faltas = validarEncabezado(enc);
+    setMalos(new Set(faltas.map((x) => x.campo)));
+    if (faltas.length) { fallo({ tipo: 'error', texto: 'El encabezado no se puede guardar todavía:', errores: faltas.map((x) => x.mensaje) }); return; }
     ir('subpartida');
     setMensaje({ texto: 'Encabezado guardado. Ahora ingresa la subpartida de la declaración.' });
   };
 
   const autoliquidar = () => { setLiq(liquidar(sub)); setMensaje(null); };
   const salvarSubpartida = () => {
-    const errores = validarSubpartida(sub);
-    setMalos(new Set(errores.map((x) => x.campo)));
-    if (errores.length) { setMensaje({ tipo: 'error', texto: 'La subpartida no se puede guardar todavía:', errores: errores.map((x) => x.mensaje) }); return; }
-    if (!liq) { setMensaje({ tipo: 'error', texto: 'Falta la autoliquidación: pulsa AUTOLIQUIDACIÓN para calcular los tributos antes de guardar.' }); return; }
+    const faltas = validarSubpartida(sub);
+    setMalos(new Set(faltas.map((x) => x.campo)));
+    if (faltas.length) { fallo({ tipo: 'error', texto: 'La subpartida no se puede guardar todavía:', errores: faltas.map((x) => x.mensaje) }); return; }
+    if (!liq) { fallo({ tipo: 'error', texto: 'Falta la autoliquidación: pulsa AUTOLIQUIDACIÓN para calcular los tributos antes de guardar.' }); return; }
     ir('fin');
   };
+
+  // Al llegar al final, la práctica se registra una sola vez a nombre de la cuenta
+  useEffect(() => {
+    if (paso !== 'fin' || !tokenApi || enviado.current) return;
+    enviado.current = true;
+    setRegistro('guardando');
+    pedir('/practicas', { metodo: 'POST', token: tokenApi, cuerpo: { practica: PRACTICA, errores, conSolucion } })
+      .then(() => setRegistro('ok'))
+      .catch(() => setRegistro('fallo'));
+  }, [paso, tokenApi, errores, conSolucion]);
 
   const indice = PASOS.findIndex(([id]) => id === paso);
   const r = liq || {};
@@ -146,7 +168,7 @@ export default function SigloXXII() {
                 <form className={css.login} onSubmit={entrar}>
                   <div>
                     <strong>Usuarios Siglo XXII</strong>
-                    <p>Para entrar a la aplicación, usted deberá estar registrado y autorizado. En esta práctica se usa un usuario de ejemplo.</p>
+                    <p>Para entrar a la aplicación, usted deberá estar registrado y autorizado.</p>
                     <div className={css.marca}>SIGLO XXII</div>
                     <div>ADMINISTRACIÓN</div>
                     <div className={css.admin}>{ADMINISTRACION.codigo} - {ADMINISTRACION.nombre}</div>
@@ -165,7 +187,7 @@ export default function SigloXXII() {
               {paso === 'menu' && (
                 <div className={css.bienvenida}>
                   <div>
-                    Bienvenido <strong>{CREDENCIALES.usuario}</strong><br />
+                    Bienvenido <strong>{miUsuario}</strong><br />
                     Módulo de [IMPORTACIONES]<br />
                     Administración {ADMINISTRACION.codigo} - {ADMINISTRACION.nombre}<br />
                     Hora de entrada {HOY.toLocaleString('es-CO')}
@@ -211,13 +233,13 @@ export default function SigloXXII() {
                       <tr><td colSpan={2} className={css.pie}>
                         {previos.etapa === 1 ? (
                           <button type="button" className={css.boton} onClick={() => {
-                            if (previos.tipo !== 'Inicial') { setMensaje({ tipo: 'error', texto: 'En el caso se presenta por primera vez la declaración: el tipo es «Inicial».' }); return; }
+                            if (previos.tipo !== 'Inicial') { fallo({ tipo: 'error', texto: 'En el caso se presenta por primera vez la declaración: el tipo es «Inicial».' }); return; }
                             setMensaje(null); setPrevios({ ...previos, etapa: 2 });
                           }}>SIGUIENTE</button>
                         ) : (
                           <button type="button" className={css.boton} onClick={() => {
-                            if (previos.departamento !== CASO.encabezado.imp_departamento) { setMensaje({ tipo: 'error', texto: 'El importador del caso está en Cartagena: su departamento es BOLIVAR (13).' }); return; }
-                            if (previos.respaldo !== 'DOCUMENTO DE TRANSPORTE') { setMensaje({ tipo: 'error', texto: 'La mercancía llegó con un B/L: el respaldo es el documento de transporte.' }); return; }
+                            if (previos.departamento !== CASO.encabezado.imp_departamento) { fallo({ tipo: 'error', texto: 'El importador del caso está en Cartagena: su departamento es BOLIVAR (13).' }); return; }
+                            if (previos.respaldo !== 'DOCUMENTO DE TRANSPORTE') { fallo({ tipo: 'error', texto: 'La mercancía llegó con un B/L: el respaldo es el documento de transporte.' }); return; }
                             setEnc((x) => ({ ...x, imp_departamento: previos.departamento }));
                             ir('encabezado');
                           }}>INGRESAR</button>
@@ -300,6 +322,12 @@ export default function SigloXXII() {
                   <p className={css.mensaje} role="status"><strong>Declaración guardada.</strong> Número de radicación de práctica: 48-{HOY.getFullYear()}-000457 (ficticio).</p>
                   <p>Resumen: {sub.cantidad} unidades de la subpartida {sub.subpartida}, modalidad {String(sub.modalidad).toUpperCase()}. Valor en aduana USD {r.aduanaUSD?.toLocaleString('es-CO')}; arancel ${pesos(r.arancel)}; IVA ${pesos(r.iva)}; <strong>total a pagar ${pesos(r.total)}</strong>.</p>
                   <p>En el sistema real, después de guardar se registran los documentos soporte, la DIAN acepta la declaración, se paga en el banco y se obtiene el levante. Esos pasos todavía no hacen parte de esta práctica.</p>
+                  <p aria-live="polite" data-testid="sx-registro">
+                    {!tokenApi && 'Entraste como invitado: esta práctica no queda registrada. Con una cuenta, tu profesor puede ver que la terminaste.'}
+                    {tokenApi && registro === 'guardando' && 'Registrando tu práctica…'}
+                    {tokenApi && registro === 'ok' && `Tu práctica quedó registrada${conSolucion ? ' (usaste la solución en alguna pantalla)' : ''}: el sistema te devolvió ${errores} ${errores === 1 ? 'pantalla' : 'pantallas'} con errores. Tu profesor puede verla en el panel de su grupo.`}
+                    {tokenApi && registro === 'fallo' && 'No se pudo registrar la práctica en el servidor. Revisa la conexión y vuelve a hacerla.'}
+                  </p>
                   <div className={css.acciones}>
                     <button type="button" className={css.boton} onClick={reiniciar}>Hacer la práctica otra vez</button>
                     <Link className={css.boton} to="/formularios/500" style={{ textDecoration: 'none' }}>Ver esta declaración en el formulario 500</Link>
@@ -315,11 +343,15 @@ export default function SigloXXII() {
           <ol className={css.pasos}>
             {PASOS.map(([id, texto], i) => <li key={id} className={i === indice ? css.actual : i < indice ? css.hecho : undefined}>{i + 1}. {texto}</li>)}
           </ol>
-          <p className={css.ayuda}>{AYUDA[paso]}</p>
+          <p className={css.ayuda}>
+            {paso === 'login' && <>Tu usuario de práctica es <strong>{miUsuario}</strong> y la contraseña es <strong>{CREDENCIALES.clave}</strong>. {tokenApi ? 'Es solo tuyo: al terminar, la práctica queda registrada a tu nombre. ' : 'Como invitado usas el usuario de ejemplo y la práctica no queda registrada. '}</>}
+            {AYUDA[paso]}
+          </p>
           {(paso === 'encabezado' || paso === 'subpartida') && (
             <div className={css.acciones} style={{ marginBottom: 10 }}>
               <button type="button" className="btn-card" onClick={() => {
                 if (paso === 'encabezado') setEnc({ ...CASO.encabezado }); else { setSub({ ...CASO.subpartida }); setLiq(null); }
+                setConSolucion(true);
                 setMalos(new Set()); setMensaje({ texto: 'Se llenó la pantalla con los datos del caso. Revísalos contra los documentos y continúa.' });
               }}>Ver la solución de esta pantalla</button>
             </div>

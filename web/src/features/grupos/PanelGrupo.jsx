@@ -4,7 +4,7 @@ import { pedir } from '../../auth/api.js';
 import { useAuth } from '../../auth/AuthContext.jsx';
 import { lecciones, modulos } from '../../data/lecciones.js';
 import { descargarCsv } from '../../lib/csv.js';
-import { fechaCorta, filasCsv, nota, resumir } from './resumen.js';
+import { PRACTICAS, fechaCorta, filasCsv, nota, resumir, textoPractica } from './resumen.js';
 import css from '../cuenta/Cuenta.module.css';
 
 // Panel de un grupo: avance y notas de cada estudiante
@@ -67,7 +67,7 @@ export default function PanelGrupo() {
         <div className={`${css.panel} ${css.desplazable}`}>
           <table className={css.tabla}>
             <thead>
-              <tr><th>Estudiante</th><th>Lecciones aprobadas</th><th>Promedio</th><th>Intentos</th><th>Última actividad</th><th /></tr>
+              <tr><th>Estudiante</th><th>Lecciones aprobadas</th><th>Promedio</th><th>Intentos</th><th>SIGLO XXII</th><th>Última actividad</th><th /></tr>
             </thead>
             <tbody>
               {estudiantes.map((e) => {
@@ -83,12 +83,13 @@ export default function PanelGrupo() {
                       <td><span className={css.barra}><i style={{ width: `${(r.aprobadas / r.total) * 100}%` }} /></span>{r.aprobadas} de {r.total}</td>
                       <td>{r.promedio === null ? '—' : `${r.promedio}%`}</td>
                       <td>{r.intentos}</td>
+                      <td className={e.practicas?.[PRACTICAS[0][0]]?.veces ? css.si : undefined}>{textoPractica(e.practicas?.[PRACTICAS[0][0]])}</td>
                       <td>{fechaCorta(r.ultimaActividad) || '—'}</td>
                       <td><button type="button" className="btn-card" onClick={(ev) => { ev.stopPropagation(); retirar(e); }}>Retirar</button></td>
                     </tr>
                     {visible && (
                       <tr className={css.detalle}>
-                        <td colSpan={6}>
+                        <td colSpan={7}>
                           <table>
                             <thead><tr><th>Lección</th><th>Estado</th><th>Mejor nota</th><th>Intentos</th><th>Último intento</th></tr></thead>
                             <tbody>
@@ -105,6 +106,18 @@ export default function PanelGrupo() {
                                   </tr>
                                 );
                               })}
+                              {PRACTICAS.map(([idPractica, nombre]) => {
+                                const p = e.practicas?.[idPractica] || {};
+                                return (
+                                  <tr key={idPractica}>
+                                    <td>Simulador: {nombre}</td>
+                                    <td className={p.veces ? css.si : css.no}>{p.veces ? 'Terminada' : 'Sin hacer'}</td>
+                                    <td>{p.veces ? `${p.menosErrores} ${p.menosErrores === 1 ? 'pantalla' : 'pantallas'} con errores${p.sinSolucion ? '' : ' (con la solución)'}` : '—'}</td>
+                                    <td>{p.veces || '—'}</td>
+                                    <td>{fechaCorta(p.ultima) || '—'}</td>
+                                  </tr>
+                                );
+                              })}
                             </tbody>
                           </table>
                         </td>
@@ -115,7 +128,7 @@ export default function PanelGrupo() {
               })}
             </tbody>
           </table>
-          <p className={css.pista} style={{ marginTop: 10 }}>El promedio usa la mejor nota de cada lección con quiz registrado. Las lecciones aprobadas antes de que existiera el registro de notas aparecen como aprobadas, sin nota.</p>
+          <p className={css.pista} style={{ marginTop: 10 }}>El promedio usa la mejor nota de cada lección con quiz registrado. Las lecciones aprobadas antes de que existiera el registro de notas aparecen como aprobadas, sin nota. La columna SIGLO XXII indica si el estudiante terminó la práctica del simulador; en el detalle se ve cuántas pantallas le devolvió el sistema con errores en su mejor intento y si usó el botón de la solución.</p>
         </div>
       )}
     </div>

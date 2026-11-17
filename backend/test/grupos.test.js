@@ -42,6 +42,30 @@ describe('intentos de quiz', () => {
   });
 });
 
+describe('prácticas en simuladores', () => {
+  const pedir = (cuerpo) => request(app).post('/api/practicas').set('Authorization', sesion()).send(cuerpo);
+
+  test('pide sesión y valida los datos', async () => {
+    assert.equal((await request(app).post('/api/practicas').send({ practica: 'sigloxxii-importacion', errores: 0, conSolucion: false })).status, 401);
+    for (const cuerpo of [{}, { practica: 'otra', errores: 0, conSolucion: false }, { practica: 'sigloxxii-importacion', errores: -1, conSolucion: false },
+      { practica: 'sigloxxii-importacion', errores: 1.5, conSolucion: false }, { practica: 'sigloxxii-importacion', errores: 2 }, { practica: 'sigloxxii-importacion', errores: 2, conSolucion: 'no' }]) {
+      assert.equal((await pedir(cuerpo)).status, 400);
+    }
+    assert.equal(db.consultas.length, 0);
+  });
+
+  test('guarda con el usuario del token, no con el que diga el cuerpo', async () => {
+    db.responder = async () => ({ rows: [{ id: 1 }] });
+    const res = await pedir({ practica: 'sigloxxii-importacion', errores: 3, conSolucion: true, usuarioId: 99 });
+    assert.equal(res.status, 201);
+    assert.deepEqual(db.consultas[0].params.slice(0, 4), [7, 'sigloxxii-importacion', 3, true]);
+  });
+
+  test('con el tope por hora alcanzado responde 429', async () => {
+    assert.equal((await pedir({ practica: 'sigloxxii-importacion', errores: 0, conSolucion: false })).status, 429);
+  });
+});
+
 describe('grupos del profesor', () => {
   test('un estudiante no puede crear, listar ni ver grupos', async () => {
     db.responder = base('estudiante');
@@ -97,6 +121,7 @@ describe('grupos del profesor', () => {
     db.responder = base('profesor', (s) => {
       if (/FROM grupo_miembros m JOIN usuarios u/.test(s)) return { rows: [{ id: 20, nombre: 'Ana', email: 'ana@example.com', ultimo_login: null, unido_en: 'u', password: 'NO' }, { id: 21, nombre: 'Luis', email: 'luis@example.com', ultimo_login: null, unido_en: 'u' }] };
       if (/FROM progreso_usuario p/.test(s)) return { rows: [{ usuario_id: 20, leccion_id: 1, completada_en: 'f1' }, { usuario_id: 99, leccion_id: 1, completada_en: 'x' }] };
+      if (/FROM practicas p/.test(s)) return { rows: [{ usuario_id: 20, practica: 'sigloxxii-importacion', veces: '2', ultima: 'f4', menos_errores: 1, sin_solucion: true }, { usuario_id: 99, practica: 'sigloxxii-importacion', veces: '1', ultima: 'x', menos_errores: 0, sin_solucion: true }] };
       if (/FROM intentos_quiz i/.test(s)) return { rows: [{ usuario_id: 20, leccion_id: 1, intentos: '3', ultimo: 'f2', mejor_aciertos: 4, mejor_total: 4 }, { usuario_id: 20, leccion_id: 2, intentos: '1', ultimo: 'f3', mejor_aciertos: 1, mejor_total: 4 }] };
       return null;
     });
@@ -108,8 +133,10 @@ describe('grupos del profesor', () => {
       2: { aprobada: false, intentos: 1, mejorAciertos: 1, mejorTotal: 4, ultimoIntento: 'f3' },
     });
     assert.deepEqual(luis.lecciones, {});
+    assert.deepEqual(ana.practicas, { 'sigloxxii-importacion': { veces: 2, ultima: 'f4', menosErrores: 1, sinSolucion: true } });
+    assert.deepEqual(luis.practicas, {});
     assert.equal(ana.password, undefined);
-    // Las tres consultas se limitan a los miembros de este grupo
+    // Las consultas se limitan a los miembros de este grupo
     for (const c of sql(/grupo_miembros/)) assert.deepEqual(c.params, [3]);
   });
 

@@ -7,6 +7,13 @@ import { normalizar } from './texto.js';
 // parámetros previos, encabezado y subpartida con autoliquidación). Todos los datos son ficticios.
 
 export const CREDENCIALES = { usuario: 'ALUMNO01', clave: 'practica' };
+// Identificador con el que la práctica terminada se guarda en el servidor
+export const PRACTICA = 'sigloxxii-importacion';
+// Cada cuenta de BonCloud tiene su propio usuario del simulador, como el código que la DIAN le
+// asigna a cada usuario aduanero. El invitado usa el de ejemplo.
+export const usuarioDePractica = (usuario) => (usuario && !usuario.invitado && Number.isInteger(usuario.id)
+  ? `A${String(usuario.id).padStart(6, '0')}`
+  : CREDENCIALES.usuario);
 export const ADMINISTRACION = { codigo: '48', nombre: 'Cartagena' };
 export const TASA_SEMANA = 4100;
 

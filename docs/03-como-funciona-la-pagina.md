@@ -85,7 +85,9 @@ nota y la fecha, sin necesidad de cuenta.
   el sistema informático aduanero: ingreso con un usuario de práctica, menú en cascada,
   parámetros previos, encabezado, subpartida y autoliquidación. El sistema valida cada pantalla
   contra los documentos del caso y dice qué falta o qué no coincide. Es un simulador: no se
-  conecta con la DIAN. Aún no incluye documentos soporte, aceptación, pago ni levante.
+  conecta con la DIAN. Aún no incluye documentos soporte, aceptación, pago ni levante. Cada
+  cuenta tiene su propio usuario de práctica (por ejemplo `A000042`); al terminar, la práctica
+  queda registrada a su nombre. El invitado usa un usuario de ejemplo y no se le registra.
 
 ### Material de consulta
 
@@ -114,7 +116,9 @@ Además de todo lo anterior, tiene el menú **Grupos**.
 1. Crea un grupo y recibe un **código de seis caracteres**.
 2. Comparte el código. Cada estudiante lo escribe en «Mi perfil» → «Mis grupos».
 3. En el panel del grupo ve a cada estudiante con sus lecciones aprobadas, su promedio, sus
-   intentos y su última actividad. Al abrir un estudiante ve el detalle lección por lección.
+   intentos, si terminó la práctica de SIGLO XXII y su última actividad. Al abrir un estudiante
+   ve el detalle lección por lección y, de la práctica, cuántas pantallas le devolvió el
+   sistema con errores y si usó el botón de la solución.
 4. Puede **descargar todo a Excel**, retirar a un estudiante, cerrar el grupo (el código
    deja de servir) o eliminarlo.
 
@@ -147,7 +151,7 @@ grupos de sus profesores. Cuando un estudiante intenta unirse a un grupo:
 ## 7. Qué datos se guardan
 
 Nombre, correo, contraseña cifrada, lecciones aprobadas, notas de quizzes y exámenes,
-certificado y grupos. No se piden datos de pago ni datos sensibles. El detalle está en la
+prácticas terminadas en los simuladores, certificado y grupos. No se piden datos de pago ni datos sensibles. El detalle está en la
 política de datos, enlazada desde la página de ingreso.
 
 ## 8. Cosas que conviene saber

@@ -1,7 +1,7 @@
 import { describe, expect, it } from 'vitest';
 import { aCsv } from '../../lib/csv.js';
 import { lecciones } from '../../data/lecciones.js';
-import { filasCsv, nota, resumir } from './resumen.js';
+import { filasCsv, nota, resumir, textoPractica } from './resumen.js';
 
 const ana = {
   nombre: 'Ana', email: 'ana@example.com',
@@ -25,7 +25,7 @@ describe('panel del profesor', () => {
 
   it('el archivo para Excel trae una fila por estudiante y lección', () => {
     const filas = filasCsv([ana]);
-    expect(filas).toHaveLength(1 + lecciones.length);
+    expect(filas).toHaveLength(1 + lecciones.length + 1); // las lecciones y la práctica del simulador
     expect(filas[1].slice(0, 2)).toEqual(['Ana', 'ana@example.com']);
     expect(filas[1][5]).toBe('Sí');
     expect(filas[2][5]).toBe('No');
@@ -40,5 +40,18 @@ describe('CSV', () => {
 
   it('un nombre que empieza como fórmula no se ejecuta en Excel', () => {
     expect(aCsv([['=HYPERLINK("http://x")', '+57 300', '-1', '@x']])).toBe('﻿"\'=HYPERLINK(""http://x"")";\'+57 300;\'-1;\'@x\r\n');
+  });
+
+  it('la práctica del simulador sale en el panel y en el archivo para Excel', () => {
+    expect(textoPractica(undefined)).toBe('—');
+    expect(textoPractica({ veces: 1, sinSolucion: true })).toBe('Hecha');
+    expect(textoPractica({ veces: 3, sinSolucion: false })).toBe('Hecha (3 veces), con la solución');
+    const conPractica = { ...ana, practicas: { 'sigloxxii-importacion': { veces: 2, ultima: '2026-11-20T10:00:00Z', menosErrores: 1, sinSolucion: true } } };
+    const fila = filasCsv([conPractica]).at(-1);
+    expect(fila.slice(2, 6)).toEqual(['Simuladores', '', 'SIGLO XXII · Declaración de importación', 'Sí']);
+    expect(fila[9]).toBe(2);
+    expect(filasCsv([ana]).at(-1)[5]).toBe('No');
+    // terminar la práctica cuenta como última actividad
+    expect(resumir(conPractica).ultimaActividad).toBe('2026-11-20T10:00:00Z');
   });
 });

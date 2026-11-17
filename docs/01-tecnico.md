@@ -67,6 +67,7 @@ cascada todo lo suyo.
 | `grupos` | Grupos de un profesor, con su código de ingreso |
 | `grupo_miembros` | Qué estudiante está en qué grupo |
 | `intentos_quiz` | Cada quiz terminado: lección, aciertos, total y si aprobó |
+| `practicas` | Cada práctica terminada en un simulador (SIGLO XXII): pantallas devueltas con errores y si usó la solución |
 | `examenes` | Cada examen final: preguntas que le tocaron, orden de opciones, vencimiento y nota |
 | `certificados` | Un certificado por persona: código público, nombre y nota al emitirlo |
 | `instituciones` | Licencias: cupos, vencimiento y estado |
@@ -143,9 +144,9 @@ nueva hablando con una API vieja. Las funciones nuevas darán error hasta que la
 
 ## 6. Pruebas
 
-- **API:** 84 pruebas (`npm test` en `backend/`). Usan una base de datos simulada, así que no
+- **API:** 87 pruebas (`npm test` en `backend/`). Usan una base de datos simulada, así que no
   necesitan PostgreSQL. Cubren validaciones, permisos, calificación y licencias.
-- **Web:** 76 pruebas (`npm test` en `web/`). Cubren cálculos, quizzes, sesión, formularios,
+- **Web:** 102 pruebas (`npm test` en `web/`). Cubren cálculos, quizzes, sesión, formularios,
   integridad del contenido y las pantallas de cuenta.
 - **Recorridos manuales:** cada entrega grande se probó además en un navegador automatizado
   contra una base PostgreSQL real. Esos recorridos no están guardados en el repositorio.
@@ -166,8 +167,8 @@ Lo que no tiene pruebas automáticas: el envío real de correos, el despliegue y
 1. **Banco de preguntas del examen compartido con los quizzes.** Un estudiante con
    conocimientos técnicos puede hallar las respuestas en el código de la web. Hace falta un
    banco propio, validado por un experto, que solo exista en el servidor.
-2. **Nota de los quizzes calculada en el navegador.** Sirve para seguimiento, no para
-   certificar.
+2. **Nota de los quizzes y prácticas del simulador calculadas en el navegador.** Sirven para
+   seguimiento, no para certificar.
 3. **Correos solo al dueño de la cuenta de Resend**, hasta verificar un dominio propio.
 4. **Sin copias de seguridad automáticas** ni monitoreo de caídas.
 5. **Sesión en el almacenamiento del navegador.** Es lo habitual en aplicaciones de este

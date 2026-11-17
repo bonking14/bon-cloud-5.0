@@ -1,7 +1,7 @@
 // Textos legales de BonCloud. Son una versión preliminar redactada para el proyecto: deben
 // ser revisados por un abogado antes de vender el servicio. Al cambiarlos hay que subir
 // VERSION, porque queda guardada con la aceptación de cada usuario.
-export const VERSION = '2026-11';
+export const VERSION = '2026-11-17';
 // Correo de contacto para ejercer derechos sobre los datos (VITE_CONTACTO_EMAIL al compilar)
 export const CONTACTO = import.meta.env.VITE_CONTACTO_EMAIL || '';
 const contacto = CONTACTO ? `escribiendo a ${CONTACTO}` : 'por medio de su profesor o de la institución que le dio acceso';
@@ -52,7 +52,7 @@ export const privacidad = {
     ]],
     ['2. Qué datos tratamos', [
       'Datos de la cuenta: nombre, correo electrónico y contraseña (guardada cifrada de forma irreversible; nadie puede leerla).',
-      'Datos de aprendizaje: lecciones aprobadas, notas e intentos de los quizzes y de los exámenes, certificados y grupos a los que pertenece.',
+      'Datos de aprendizaje: lecciones aprobadas, notas e intentos de los quizzes y de los exámenes, prácticas terminadas en los simuladores, certificados y grupos a los que pertenece.',
       'Datos técnicos: fecha de registro y de último ingreso, e intentos fallidos de inicio de sesión, para proteger la cuenta.',
       'No pedimos datos sensibles ni datos de pago. Quien entra como invitado no entrega datos: su avance se guarda solo en su navegador y se borra al salir.',
     ]],

@@ -209,7 +209,7 @@ describe('datos personales', () => {
     db.responder = async (s) => (/FROM usuarios WHERE id/.test(s) ? { rows: [{ id: 7, nombre: 'Ana', email: 'ana@example.com' }] } : { rows: [] });
     const res = await request(app).get('/api/cuenta/datos').set('Authorization', sesion());
     assert.equal(res.status, 200);
-    assert.deepEqual(Object.keys(res.body), ['generadoEn', 'cuenta', 'progreso', 'intentosDeQuiz', 'examenes', 'certificados', 'gruposALosQuePertenece', 'gruposQueDirige']);
+    assert.deepEqual(Object.keys(res.body), ['generadoEn', 'cuenta', 'progreso', 'intentosDeQuiz', 'examenes', 'certificados', 'gruposALosQuePertenece', 'gruposQueDirige', 'practicasEnSimuladores']);
     assert.ok(db.consultas.every((c) => c.params.length === 1 && c.params[0] === 7));
     assert.ok(db.consultas.every((c) => !/SELECT[^F]*\bpassword\b/.test(c.sql)));
     assert.equal((await request(app).get('/api/cuenta/datos')).status, 401);

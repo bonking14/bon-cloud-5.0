@@ -97,7 +97,7 @@ const eliminarGrupo = async (req, res) => {
 const verGrupo = async (req, res) => {
   const g = await grupoPropio(req, res);
   if (!g) return;
-  const [miembros, progreso, intentos] = await Promise.all([
+  const [miembros, progreso, intentos, practicas] = await Promise.all([
     pool.query(
       `SELECT u.id, u.nombre, u.email, u.ultimo_login, m.unido_en
          FROM grupo_miembros m JOIN usuarios u ON u.id = m.usuario_id
@@ -119,9 +119,18 @@ const verGrupo = async (req, res) => {
         GROUP BY i.usuario_id, i.leccion_id`,
       [g.id]
     ),
+    // Prácticas en simuladores: cuántas veces terminó cada una y su mejor resultado sin ayuda
+    pool.query(
+      `SELECT p.usuario_id, p.practica, COUNT(*) AS veces, MAX(p.completada_en) AS ultima,
+              MIN(p.errores) AS menos_errores, BOOL_OR(NOT p.con_solucion) AS sin_solucion
+         FROM practicas p JOIN grupo_miembros m ON m.usuario_id = p.usuario_id
+        WHERE m.grupo_id = $1
+        GROUP BY p.usuario_id, p.practica`,
+      [g.id]
+    ),
   ]);
   const porUsuario = new Map(miembros.rows.map((u) => [u.id, {
-    id: u.id, nombre: u.nombre, email: u.email, unidoEn: u.unido_en, ultimoIngreso: u.ultimo_login, lecciones: {},
+    id: u.id, nombre: u.nombre, email: u.email, unidoEn: u.unido_en, ultimoIngreso: u.ultimo_login, lecciones: {}, practicas: {},
   }]));
   const leccion = (usuarioId, leccionId) => {
     const u = porUsuario.get(usuarioId);
@@ -133,6 +142,10 @@ const verGrupo = async (req, res) => {
   intentos.rows.forEach((i) => {
     const l = leccion(i.usuario_id, i.leccion_id);
     if (l) Object.assign(l, { intentos: Number(i.intentos), mejorAciertos: i.mejor_aciertos, mejorTotal: i.mejor_total, ultimoIntento: i.ultimo });
+  });
+  practicas.rows.forEach((p) => {
+    const u = porUsuario.get(p.usuario_id);
+    if (u) u.practicas[p.practica] = { veces: Number(p.veces), ultima: p.ultima, menosErrores: p.menos_errores, sinSolucion: p.sin_solucion };
   });
   res.json({ grupo: publico(g), estudiantes: [...porUsuario.values()] });
 };
