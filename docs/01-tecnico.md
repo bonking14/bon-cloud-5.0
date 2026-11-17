@@ -179,5 +179,5 @@ Lo que no tiene pruebas automáticas: el envío real de correos, el despliegue y
 7. **RUT, SAE (602) y DUTA (651) sin hoja oficial en blanco.** La DIAN no los publica en
    blanco. El RUT y la SAE se arman a mano con las casillas oficiales y una distribución
    aproximada; el DUTA se extrajo de un borrador diligenciado, conservando solo rótulos y
-   líneas (la hoja 4 no venía en el borrador y no está).
+   líneas, salvo la hoja 4, que sale del formato en blanco que publica la DIAN.
 8. **Sin pasarela de pago.** Las licencias se registran a mano.

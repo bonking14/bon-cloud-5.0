@@ -127,11 +127,16 @@ describe('formularios DIAN en React', () => {
     expect(screen.queryByLabelText('No. de aceptación')).toBeNull(); // lo asigna la DIAN
   });
 
-  it('651: carga el DUTA del módulo 3 con sus seis hojas y calcula los DV', async () => {
+  it('651: carga el DUTA del módulo 3 con sus siete hojas y calcula los DV', async () => {
     abrir('651');
     fireEvent.click(await screen.findByText(/Cargar caso de la Ruta/, {}, ESPERA));
-    expect(screen.getAllByRole('tab')).toHaveLength(6);
+    expect(screen.getAllByRole('tab')).toHaveLength(7);
     expect(screen.getByLabelText('Aduana de partida').value).toBe('Cartagena');
+    // hoja 4: cuatro documentos de transporte, cada uno con su destinatario y su remitente
+    expect(screen.getByLabelText('Razón social del destinatario, documento de transporte 1').value).toMatch(/Andina Pack/);
+    expect(screen.getByLabelText('Razón social del remitente, documento de transporte 1').value).toMatch(/Linea Pack/);
+    expect(screen.getByLabelText('DV del destinatario, documento de transporte 1').value).toBe(String(digitoVerificacion('901234567')));
+    expect(screen.getByLabelText('Razón social del remitente, documento de transporte 4')).toBeTruthy();
     expect(screen.getByLabelText('Aduana de partida: código').value).toBe('48');
     expect(screen.getAllByLabelText('DV')[0].value).toBe(String(digitoVerificacion('900555123')));
     expect(screen.getByLabelText('DV, transportador 1').value).toBe(String(digitoVerificacion('800444987')));

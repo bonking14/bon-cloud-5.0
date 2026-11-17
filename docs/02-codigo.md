@@ -111,7 +111,8 @@ Es la parte más particular del código.
 El RUT y la SAE son la excepción: como la DIAN no publica sus hojas en blanco, su trazado se
 arma a mano en `trazados/rut.js` y `trazados/sae.js`. El DUTA (651) se extrajo de un
 borrador diligenciado con `extraer_formulario.py ... sin-datos`, que descarta los datos (letra de
-7 puntos o más) y conserva rótulos y líneas; el código de barras se quitó del JSON. En las hojas 3 a 8 del formulario 600 los campos se generan solos a
+7 puntos o más) y conserva rótulos y líneas; el código de barras se quitó del JSON. Su hoja 4 sale del formato
+en blanco de la DIAN (`Formato_651_declaracion_de_transito_aduanero.pdf`). En las hojas 3 a 8 del formulario 600 los campos se generan solos a
 partir de los recuadros vacíos (`kit/recuadros.js`).
 
 ### Sesión y progreso

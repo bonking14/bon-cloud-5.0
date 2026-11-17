@@ -6,34 +6,36 @@ import { soloDigitos } from '../kit/formato.js';
 import h1 from '../trazados/651-1.json';
 import h2 from '../trazados/651-2.json';
 import h3 from '../trazados/651-3.json';
+import h4 from '../trazados/651-4.json';
 import h5 from '../trazados/651-5.json';
 import h6 from '../trazados/651-6.json';
 import h7 from '../trazados/651-7.json';
 
 // Formulario 651, Documento Único para Tránsito Aduanero / Operaciones de Transporte (DUTA),
 // que reemplazó a la declaración de tránsito aduanero (DTA, formulario 650). Se diligencia en
-// línea en MUISCA y la DIAN no publica la hoja en blanco: el trazado se extrajo de un borrador
-// diligenciado con scripts/extraer_formulario.py en modo «sin-datos», que conserva solo los
-// rótulos y las líneas. Cada casilla se guarda como c<número> (c<número>_cod para su código);
+// línea en MUISCA. Las hojas 1, 2, 3, 5, 6 y 7 se extrajeron de un borrador diligenciado con
+// scripts/extraer_formulario.py en modo «sin-datos», que conserva solo los rótulos y las líneas;
+// la hoja 4, del formato en blanco que publica la DIAN (Formato_651_declaracion_de_transito_aduanero.pdf). Cada casilla se guarda como c<número> (c<número>_cod para su código);
 // en las hojas de bloques repetidos, como c<número>_<bloque>.
 const HOJAS = [
   ['1', 'Hoja principal', h1],
   ['2', 'Hoja 2 · Documentos de transporte y unidades de carga', h2],
   ['3', 'Hoja 3 · Transportador', h3],
+  ['4', 'Hoja 4 · Destinatarios y remitentes', h4],
   ['5', 'Hoja 5 · Rutas y plazos', h5],
   ['6', 'Hoja 6 · Mercancías', h6],
   ['7', 'Hoja 7 · Documentos soporte', h7],
 ];
-const BLOQUE = { 2: 'unidad de carga', 3: 'transportador', 5: 'ruta', 6: 'ítem', 7: 'documento' };
+const BLOQUE = { 2: 'unidad de carga', 3: 'transportador', 4: 'documento de transporte', 5: 'ruta', 6: 'ítem', 7: 'documento' };
 // Números que el extractor toma por casillas y no lo son («formato 1165», «Aduana de paso 10»)
 const NO_SON = new Set(['1165', '1166', '1167', '10', '11', '12']);
 // Las llena la DIAN
 const RESERVADAS = [4, 86, 87, 88, 89, 90, 91, 92, 93, 94, 95, 96, 97, 222, 223];
 // DV que se calcula con el número de identificación de la casilla indicada
-const DV_DE = { 6: 18, 30: 29, 42: 41, 54: 53, 133: 132, 207: 206, 1004: 1003 };
+const DV_DE = { 6: 18, 30: 29, 42: 41, 54: 53, 133: 132, 147: 146, 159: 158, 207: 206, 1004: 1003 };
 const SI_NO = [118, 120, 121, 130, 218, 220, 224, 226];
 const TIPOS_DOCUMENTO = [['31', 'NIT'], ['13', 'Cédula de ciudadanía'], ['22', 'Cédula de extranjería'], ['41', 'Pasaporte'], ['43', 'Sin identificación del exterior']];
-const DOCUMENTOS = new Set([20, 28, 40, 52, 131, 205, 1002]);
+const DOCUMENTOS = new Set([20, 28, 40, 52, 131, 145, 157, 205, 1002]);
 // En la hoja principal el año, el concepto y la firma no tienen celda propia: se ubican a mano
 const A_MANO = {
   1: [50, 61.5, 36, 9.5], 2: [165, 61.5, 14, 9.5],
@@ -50,6 +52,9 @@ const A_MANO = {
 const ROTULOS = {
   105: 'Fecha del documento de transporte', 224: '¿Unidad de carga precintable?', 120: '¿Trae precintos de seguridad?',
   1001: 'Apellidos y nombres', 1002: 'Tipo doc.', 1003: 'No. identificación',
+  // Hoja 4: el destinatario y el remitente repiten los mismos rótulos
+  ...Object.fromEntries(['Tipo de documento', 'Número de identificación', 'DV', 'Primer apellido', 'Segundo apellido', 'Primer nombre', 'Otros nombres', 'Razón social', 'Dirección', 'País', 'Departamento', 'Ciudad']
+    .flatMap((r, i) => [[145 + i, `${r} del destinatario`], [157 + i, `${r} del remitente`]])),
 };
 
 const numeros = (t) => Object.keys(t.celdas).filter((n) => !NO_SON.has(n));
@@ -114,14 +119,14 @@ function Form651() {
         const { caja, cod } = manual ? (Array.isArray(manual) ? { caja: manual } : manual) : cajasDe(trazado, celda, numero === 200 ? { alto: 160 } : {});
         const etiqueta = `${rotulo}${sufijo}`;
         let def = { nombre, caja, etiqueta };
-        if (DV_DE[num]) def = { valor: digitoVerificacion(v[varios ? `c${DV_DE[num]}_${i + 1}` : `c${DV_DE[num]}`]), caja, etiqueta: `DV${sufijo}`, centro: true };
+        if (DV_DE[num]) def = { valor: digitoVerificacion(v[varios ? `c${DV_DE[num]}_${i + 1}` : `c${DV_DE[num]}`]), caja, etiqueta: `${ROTULOS[num] || 'DV'}${sufijo}`, centro: true };
         else if (SI_NO.includes(numero)) {
           // Se marca con X, como en el documento que genera MUISCA
           const caja2 = cuadrito(trazado, celda);
           def = { ...def, caja: caja2 || caja, max: 1, centro: true, placeholder: '', formato: (t) => t.toUpperCase().replace(/[^X]/g, '') };
         }
         else if (DOCUMENTOS.has(numero)) Object.assign(def, { sugerencias: TIPOS_DOCUMENTO, centro: true });
-        if ([18, 29, 41, 53, 132, 206, 1003].includes(numero)) Object.assign(def, { inputMode: 'numeric', formato: soloDigitos });
+        if ([18, 29, 41, 53, 132, 146, 158, 206, 1003].includes(numero)) Object.assign(def, { inputMode: 'numeric', formato: soloDigitos });
         if (numero === 200) def.multilinea = true;
         partes.push(def);
         if (cod) partes.push({ nombre: varios ? `c${num}_cod_${i + 1}` : `c${num}_cod`, caja: cod, etiqueta: `${rotulo}: código${sufijo}`, centro: true });
@@ -139,7 +144,7 @@ function Form651() {
         <HojaOficial key={id} trazado={trazado} numero="651" titulo={`Documento Único para Tránsito Aduanero${id === '1' ? '' : `, hoja ${id}`}`}
           campos={camposDe(id, trazado)} soloConfiguradas oculta={hoja !== id} imprimir={conDatos(id)} />
       ))}
-      <p className="ho-nota no-imprimir" style={{ width: 980, maxWidth: '100%', margin: '10px auto 0' }}>Simulador educativo de BonCloud, sin validez ante la DIAN. El DUTA real se diligencia en línea en MUISCA (Tránsito Aduanero), lo revisa la DIAN y lo firma digitalmente el declarante. La hoja reproduce la distribución y la numeración del documento que genera el sistema. La hoja 4 no se incluye porque no aparece en el borrador de referencia.</p>
+      <p className="ho-nota no-imprimir" style={{ width: 980, maxWidth: '100%', margin: '10px auto 0' }}>Simulador educativo de BonCloud, sin validez ante la DIAN. El DUTA real se diligencia en línea en MUISCA (Tránsito Aduanero), lo revisa la DIAN y lo firma digitalmente el declarante. La hoja reproduce la distribución y la numeración del documento que genera el sistema.</p>
     </>
   );
 }
@@ -159,7 +164,7 @@ export default {
   // Caso del módulo 3 de la Ruta: la llenadora de Andina Pack (datos ficticios)
   caso: {
     boton: 'Cargar caso de la Ruta de Aprendizaje',
-    mensaje: 'Se cargó el caso del módulo 3: tránsito aduanero de la máquina llenadora desde el Puerto de Cartagena hasta una zona franca de la Sabana de Bogotá. Revisa también las hojas 2, 3, 5, 6 y 7.',
+    mensaje: 'Se cargó el caso del módulo 3: tránsito aduanero de la máquina llenadora desde el Puerto de Cartagena hasta una zona franca de la Sabana de Bogotá. Revisa también las hojas 2 a 7.',
     valores: () => {
       const anio = String(new Date().getFullYear());
       return {
@@ -183,6 +188,12 @@ export default {
         c120_1: 'X', c224_1: 'X', c122_1: 'PR-000123 (ficticio)', c196_1: '4200', c190_1: '1',
         // Hoja 3: el transportador
         c131_1: '31', c132_1: '800444987', c138_1: 'Transportes Andinos de Carga S.A. (empresa ficticia)', c140_1: 'Colombia', c140_cod_1: '169', c143_1: 'Transporte carretero', c143_cod_1: '3',
+        // Hoja 4: quién recibe y quién envía la carga del documento de transporte
+        c144_1: 'GOACTG-2026-0311', c219_1: `${anio}-03-02`,
+        c145_1: '31', c146_1: '901234567', c152_1: 'Andina Pack S.A.S. (usuario de zona franca, empresa ficticia)',
+        c153_1: 'Zona Franca de la Sabana, bodega 12 (dirección ficticia)', c154_1: 'Colombia', c154_cod_1: '169',
+        c155_1: 'Cundinamarca', c155_cod_1: '25', c156_1: 'Tocancipá', c156_cod_1: '817',
+        c157_1: '43', c164_1: 'Linea Pack S.p.A. (proveedor ficticio)', c165_1: 'Via Industria 40 (dirección ficticia)', c166_1: 'Italia', c166_cod_1: '386',
         // Hoja 5: la ruta
         c169_1: 'Cartagena - Bogotá', c170_1: 'Aduana de Cartagena - Aduana de Bogotá', c171_1: 'Día calendario o continuo', c171_cod_1: '2', c172_1: '6',
         // Hoja 6: la mercancía
@@ -269,6 +280,18 @@ export default {
     132: 'NIT del transportador, que figura en la póliza. En MUISCA, al escribirlo el sistema trae los demás datos.',
     138: 'Razón social de la empresa transportadora.',
     143: 'Modo de transporte, con su código; el carretero es 3.',
+    144: 'Número del documento de transporte (B/L, guía o carta de porte) cuyos destinatario y remitente se registran.',
+    219: 'Fecha del documento de transporte.',
+    145: 'Tipo de documento del destinatario; 31 es NIT.',
+    146: 'Número de identificación del destinatario: quien recibe la carga según el documento de transporte.',
+    147: 'Dígito de verificación del destinatario. Se calcula solo.',
+    152: 'Razón social del destinatario.',
+    153: 'Dirección del destinatario, con país, departamento y ciudad y sus códigos (casillas 154 a 156).',
+    157: 'Tipo de documento del remitente; 43 si es del exterior y no tiene identificación colombiana.',
+    158: 'Número de identificación del remitente, si lo tiene.',
+    159: 'Dígito de verificación del remitente. Se calcula solo.',
+    164: 'Razón social del remitente: quien envía la carga según el documento de transporte.',
+    165: 'Dirección del remitente, con país, departamento y ciudad y sus códigos (casillas 166 a 168).',
     169: 'Ruta autorizada para el tránsito, con su código.',
     170: 'Descripción de la ruta: aduana de partida y aduana de destino.',
     171: 'Unidad en que se mide el plazo de la ruta.',
