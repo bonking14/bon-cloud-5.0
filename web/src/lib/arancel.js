@@ -21,7 +21,8 @@ export const SECCIONES_ARANCEL = [
   ['XVIII', 'Instrumentos de óptica, medida y medicoquirúrgicos; relojería; instrumentos musicales', 90, 92],
   ['XIX', 'Armas, municiones, y sus partes y accesorios', 93, 93],
   ['XX', 'Mercancías y productos diversos', 94, 96],
-  ['XXI', 'Objetos de arte o colección y antigüedades', 97, 97],
+  // El capítulo 98 (disposiciones de tratamiento especial) es propio del arancel colombiano
+  ['XXI', 'Objetos de arte o colección y antigüedades; disposiciones de tratamiento especial', 97, 98],
 ].map(([numero, titulo, desde, hasta], i) => ({ numero, titulo, desde, hasta, orden: i }));
 
 export const capituloDe = (codigo) => parseInt(String(codigo).replace(/\D/g, '').slice(0, 2), 10);
@@ -32,4 +33,4 @@ export function seccionDe(codigo) {
   return SECCIONES_ARANCEL.find((s) => cap >= s.desde && cap <= s.hasta) || null;
 }
 
-export const capitulos = (s) => (s.desde === s.hasta ? `capítulo ${s.desde}` : `capítulos ${s.desde} a ${s.hasta}`);
+export const capitulos = (s) => (s.desde === s.hasta ? `capítulo ${s.desde}` : `capítulos ${s.desde} ${s.hasta - s.desde === 1 ? "y" : "a"} ${s.hasta}`);

@@ -76,7 +76,8 @@ styles/      hojas de estilo globales
 | Una lección o su quiz | `data/lecciones.js` (y luego `npm run banco` en `backend/`) |
 | El mapa de etapas de un módulo | `features/curso/MapaRuta.jsx` |
 | Un término del glosario | `data/glosario.js` |
-| Una subpartida | `data/subpartidas.js` |
+| Una ficha de subpartida | `data/subpartidas.js` |
+| El arancel completo | `data/arancel.json`, generado con `python3 scripts/arancel.py decreto_1881_2021.htm` (página del normograma de la DIAN) |
 | Un visto bueno o un Incoterm | `data/vistosBuenos.js`, `data/incoterms.js` |
 | Qué va en una casilla de un formulario | `features/formularios/hojas/Form<número>.jsx` |
 | Una fórmula de tributos | `lib/importacion.js`, `lib/formularios.js` |

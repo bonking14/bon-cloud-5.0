@@ -84,8 +84,10 @@ nota y la fecha, sin necesidad de cuenta.
 
 ### Material de consulta
 
-Incoterms 2020 con animación de quién asume cada costo, buscador de subpartidas con arancel
-de referencia, vistos buenos por entidad y un glosario.
+Incoterms 2020 con animación de quién asume cada costo; el **Arancel de Aduanas completo**
+(Decreto 1881 de 2021: 21 secciones, 98 capítulos y cerca de 8.000 subpartidas con su gravamen),
+con buscador por código o palabras; fichas de práctica de subpartidas con IVA y vistos buenos,
+ordenadas por sección; vistos buenos por entidad y un glosario.
 
 ### Mi perfil
 

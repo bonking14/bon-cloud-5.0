@@ -6,12 +6,15 @@ import { SECCIONES_ARANCEL, seccionDe, capitulos } from '../../lib/arancel.js';
 import Buscador from '../../components/Buscador.jsx';
 import Filtros from '../../components/Filtros.jsx';
 import Modal from '../../components/Modal.jsx';
+import ArancelCompleto from './ArancelCompleto.jsx';
 
 // El catálogo va en el orden del Arancel de Aduanas: de la sección I a la XXI y, dentro de
 // cada una, por código
 const ORDENADAS = subpartidas
   .map((sp) => ({ ...sp, arancelSeccion: seccionDe(sp.codigo) }))
   .sort((a, b) => a.arancelSeccion.orden - b.arancelSeccion.orden || a.codigo.localeCompare(b.codigo));
+const FICHAS = new Set(subpartidas.map((sp) => sp.codigo));
+const VISTAS = [{ valor: 'arancel', texto: 'Arancel completo' }, { valor: 'fichas', texto: 'Fichas de práctica (con IVA y vistos buenos)' }];
 const SECCIONES = [{ valor: 'todas', texto: 'Todas' }, ...SECCIONES_ARANCEL.map((s) => ({ valor: s.numero, texto: s.numero }))];
 
 // Carga tributaria total sobre el valor en aduana: el IVA se liquida sobre
@@ -23,6 +26,9 @@ export default function Subpartidas() {
   const [busqueda, setBusqueda] = useState(params.get('buscar') || ''); // la Ruta abre ?buscar=8413
   const [seccion, setSeccion] = useState('todas');
   const [abierta, setAbierta] = useState(null);
+  // La Ruta abre ?buscar=8413 para ver la ficha de su caso
+  const [vista, setVista] = useState(params.get('buscar') ? 'fichas' : 'arancel');
+  const verFicha = (codigo) => setAbierta(ORDENADAS.find((sp) => sp.codigo === codigo) || null);
 
   const resultado = useMemo(() => {
     const q = normalizar(busqueda.trim());
@@ -45,9 +51,15 @@ export default function Subpartidas() {
     <>
       <div className="dashboard-header">
         <h1>🔢 Subpartidas Arancelarias</h1>
-        <p>Busca el código arancelario de tu producto y consulta su arancel de referencia</p>
-        <p className="buscador-hint" style={{ marginTop: 6 }}>Catálogo educativo con subpartidas a 10 dígitos (Sistema Armonizado 2022). El arancel y el IVA son valores de referencia: antes de una operación real confírmalos en el Arancel de Aduanas vigente de la DIAN.</p>
+        <p>El Arancel de Aduanas completo, de la Sección I a la XXI, y fichas de práctica con IVA, vistos buenos y documentos</p>
       </div>
+
+      <div className="filtros-seccion" style={{ marginBottom: 14 }}>
+        <Filtros opciones={VISTAS} activa={vista} onChange={setVista} etiqueta="Vista" />
+      </div>
+
+      {vista === 'arancel' ? <ArancelCompleto fichas={FICHAS} onVerFicha={verFicha} /> : (<>
+      <p className="buscador-hint" style={{ marginBottom: 10 }}>Catálogo educativo con subpartidas a 10 dígitos (Sistema Armonizado 2022). El arancel y el IVA son valores de referencia: antes de una operación real confírmalos en el Arancel de Aduanas vigente de la DIAN.</p>
 
       <div className="buscador-section">
         <Buscador valor={busqueda} onChange={setBusqueda} placeholder="Busca por producto o código... Ej: bombas, café, zapatos, 8413" />
@@ -90,9 +102,10 @@ export default function Subpartidas() {
       {resultado.length === 0 && (
         <div className="sin-resultados">
           <p>No se encontraron productos para tu búsqueda.</p>
-          <p>Intenta con otro término o código arancelario.</p>
+          <p>Intenta con otro término o código arancelario, o búscalo en el arancel completo.</p>
         </div>
       )}
+      </>)}
 
       <Modal abierto={Boolean(abierta)} onCerrar={() => setAbierta(null)} etiqueta={abierta?.titulo}>
         {abierta && <DetalleSubpartida sp={abierta} />}
