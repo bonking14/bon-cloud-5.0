@@ -61,6 +61,12 @@ export const modulos = [
     icono: 'M18 2H6c-1.1 0-2 .9-2 2v16c0 1.1.9 2 2 2h12c1.1 0 2-.9 2-2V4c0-1.1-.9-2-2-2zM6 4h5v8l-2.5-1.5L6 12V4z',
   },
   {
+    ruta: '/sigloxxii', titulo: 'SIGLO XXII', accion: 'Practicar',
+    descripcion: 'Ingresa una declaración de importación paso a paso, como en el sistema aduanero.',
+    color: 'linear-gradient(135deg, #1e3a8a 0%, #00009c 100%)',
+    icono: 'M20 3H4c-1.1 0-2 .9-2 2v11c0 1.1.9 2 2 2h6v2H8v2h8v-2h-2v-2h6c1.1 0 2-.9 2-2V5c0-1.1-.9-2-2-2zm0 13H4V5h16v11z',
+  },
+  {
     ruta: '/simulador', titulo: 'Simulador Logístico', accion: 'Simular',
     descripcion: 'Estima costos, tiempos y riesgos de una importación.',
     color: 'linear-gradient(135deg, #6366f1 0%, #4f46e5 100%)',

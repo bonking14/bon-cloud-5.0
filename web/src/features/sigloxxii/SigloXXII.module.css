@@ -1,0 +1,63 @@
+.envoltura { display: grid; grid-template-columns: minmax(0, 1.7fr) minmax(250px, 1fr); gap: 16px; align-items: start; }
+@media (max-width: 1000px) { .envoltura { grid-template-columns: 1fr; } }
+
+/* La pantalla imita un sistema antiguo: siempre clara, con barra azul y tablas grises */
+.pantalla { background: #fff; color: #111; border: 1px solid #9aa0ad; border-radius: 6px; overflow: hidden; font-family: Arial, Helvetica, sans-serif; min-height: 520px; }
+.aviso { background: #fff7cc; color: #5c4a00; font-size: 11px; padding: 4px 10px; border-bottom: 1px solid #e6d98a; }
+.barra { background: #00009c; color: #fff; font-size: 12px; min-height: 22px; padding: 3px 8px; display: flex; flex-wrap: wrap; gap: 2px 14px; align-items: center; }
+.barra2 { background: #1f1f99; border-top: 1px solid #fff; min-height: 26px; }
+.miga { color: #ffe85c; }
+.opcion { background: none; border: none; color: #fff; font: inherit; cursor: pointer; padding: 1px 2px; }
+.opcion:hover, .opcion:focus-visible { text-decoration: underline; color: #ffe85c; }
+.cuerpo { padding: 18px 14px 22px; font-family: 'Times New Roman', Times, serif; font-size: 14px; }
+.centro { max-width: 620px; margin: 0 auto; }
+.mensaje { background: #eef3ff; border: 1px solid #b9c7ee; color: #1b2a66; font-family: Arial, sans-serif; font-size: 12px; padding: 7px 10px; margin: 0 0 12px; border-radius: 4px; }
+.error { background: #fdecec; border-color: #f0b4b4; color: #8a1c1c; }
+.error ul { margin: 4px 0 0; padding-left: 18px; }
+
+.login { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; font-family: Arial, sans-serif; font-size: 13px; }
+@media (max-width: 560px) { .login { grid-template-columns: 1fr; } }
+.entrada { border: 1px solid #333; padding: 12px; }
+.entrada label { display: block; margin: 8px 0 3px; }
+.entrada input { width: 100%; font: inherit; padding: 4px 6px; border: 1px solid #777; background: #fff; color: #111; }
+.marca { font-size: 22px; font-weight: 700; letter-spacing: 1px; color: #00009c; margin: 10px 0 2px; }
+.admin { color: #a00020; font-weight: 700; font-family: 'Times New Roman', serif; }
+.boton { font: inherit; font-family: Arial, sans-serif; font-size: 12px; padding: 4px 14px; border: 1px solid #555; background: #d4d4d4; color: #111; cursor: pointer; margin-top: 10px; }
+.boton:hover { background: #c4c4c4; }
+
+.bienvenida { display: flex; flex-wrap: wrap; gap: 18px; align-items: flex-start; }
+.calendario { border: 2px solid #333; border-collapse: collapse; font-size: 12px; background: #ddd; }
+.calendario caption { font-weight: 700; background: #ccc; border: 2px solid #333; border-bottom: none; padding: 2px; }
+.calendario td, .calendario th { border: 1px solid #333; width: 20px; height: 18px; text-align: center; color: #c00020; background: #f3f3f3; padding: 0; }
+.calendario th { color: #111; }
+.calendario .hoy { color: #0000c0; font-weight: 700; }
+
+.tabla { width: 100%; border: 2px solid #222; border-collapse: collapse; font-family: Arial, sans-serif; }
+.tabla td { border: 1px solid #555; padding: 2px 4px; vertical-align: top; }
+.tabla .titulo { background: #cfcfcf; font-family: 'Times New Roman', serif; font-weight: 700; text-align: center; font-size: 15px; }
+.tabla .seccion { background: #cfcfcf; font-size: 10px; text-transform: uppercase; padding: 1px 4px; }
+.campo { display: flex; flex-direction: column; gap: 1px; }
+.campo span { font-size: 9.5px; text-transform: uppercase; color: #222; }
+.campo input, .campo select { font: inherit; font-size: 12.5px; padding: 2px 4px; border: 1px solid #777; background: #fff; color: #111; width: 100%; min-width: 0; }
+.campo input[readonly] { background: #eee; }
+.mal input, .mal select { border-color: #c00020; background: #fff1f1; }
+.pie { text-align: right; background: #fff; }
+.liq td { text-align: right; font-size: 12.5px; }
+.liq td:first-child { text-align: left; font-size: 10px; text-transform: uppercase; background: #e4e4e4; }
+.liq .cab td { background: #cfcfcf; text-align: center; font-size: 10px; font-weight: 700; text-transform: uppercase; }
+.liq input { width: 52px; font: inherit; padding: 1px 3px; border: 1px solid #777; text-align: right; background: #fff; color: #111; }
+.scroll { overflow-x: auto; }
+
+.guia { background: var(--bg-panel); border: 1px solid var(--border); border-radius: 12px; padding: 14px; font-size: 12.5px; color: var(--text-primary); }
+.guia h3 { font-size: 13px; margin: 0 0 8px; }
+.pasos { list-style: none; padding: 0; margin: 0 0 12px; display: flex; flex-direction: column; gap: 4px; }
+.pasos li { padding: 4px 8px; border-radius: 6px; color: var(--text-muted); }
+.pasos .actual { background: var(--bg-active); color: var(--text-accent); font-weight: 700; }
+.pasos .hecho { color: var(--text-hint); text-decoration: line-through; }
+.ayuda { line-height: 1.55; color: var(--text-muted); margin: 0 0 12px; }
+.doc { border-top: 1px solid var(--border); padding: 8px 0 2px; }
+.doc summary { cursor: pointer; font-weight: 600; }
+.doc dl { display: grid; grid-template-columns: auto 1fr; gap: 2px 10px; margin: 6px 0; }
+.doc dt { color: var(--text-hint); }
+.doc dd { margin: 0; }
+.acciones { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 10px; }

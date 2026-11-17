@@ -18,6 +18,7 @@ const Formularios = lazy(() => import('../features/formularios/Formularios.jsx')
 const Glosario = lazy(() => import('../features/glosario/Glosario.jsx'));
 const Curso = lazy(() => import('../features/curso/Curso.jsx'));
 const Simulador = lazy(() => import('../features/simulador/Simulador.jsx'));
+const SigloXXII = lazy(() => import('../features/sigloxxii/SigloXXII.jsx'));
 const Perfil = lazy(() => import('../features/cuenta/Perfil.jsx'));
 const Legal = lazy(() => import('../features/legal/Legal.jsx'));
 const Examenes = lazy(() => import('../features/examen/Examenes.jsx'));
@@ -59,6 +60,7 @@ export default function App() {
                 <Route path="/formularios/:id" element={<Formularios />} />
                 <Route path="/glosario" element={<Glosario />} />
                 <Route path="/simulador" element={<Simulador />} />
+                <Route path="/sigloxxii" element={<SigloXXII />} />
                 <Route path="/perfil" element={<Perfil />} />
                 <Route path="/admin/usuarios" element={<AdminUsuarios />} />
                 <Route path="/admin/instituciones" element={<Instituciones />} />

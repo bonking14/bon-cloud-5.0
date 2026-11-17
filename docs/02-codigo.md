@@ -65,6 +65,7 @@ styles/      hojas de estilo globales
 | `incoterms/`, `subpartidas/`, `vistos-buenos/`, `glosario/` | Material de consulta | una ruta cada una |
 | `formularios/` | Formularios DIAN | `/formularios/:id` |
 | `simulador/` | Simulador logístico | `/simulador` |
+| `sigloxxii/` | SIGLO XXII, simulador del sistema aduanero (lógica en `lib/sigloxxii.js`) | `/sigloxxii` |
 | `grupos/` | Grupos del profesor, panel y «Mis grupos» | `/grupos`, `/grupos/:id` |
 | `cuenta/` | Perfil, usuarios, licencias, restablecer, verificar correo | `/perfil`, `/admin/...` |
 | `legal/` | Términos y política de datos | `/terminos`, `/privacidad` |

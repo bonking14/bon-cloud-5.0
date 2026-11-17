@@ -37,6 +37,7 @@ pagarían. Se valida en las entrevistas de la sección 9.
 
 | Necesidad | Qué ofrece BonCloud |
 |---|---|
+| Practicar en el sistema | SIGLO XXII: simulador paso a paso del ingreso de una declaración de importación en el sistema aduanero |
 | Practicar el trámite | Formularios 001, 500, 560, 602, 600, 650 y 651 con la apariencia de los originales, ayuda por casilla y cálculo automático |
 | Entender el proceso completo | 15 lecciones en tres módulos, cada uno con un caso de principio a fin |
 | Calcular | Calculadoras de importación y exportación, costeo de la exportación por Incoterm y un simulador logístico |
