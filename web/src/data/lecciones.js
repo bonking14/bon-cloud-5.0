@@ -1087,7 +1087,7 @@ export const lecciones = [
 
       <h4>Los pasos</h4>
       <ol>
-        <li><strong>Solicitud:</strong> una vez descargada la mercancía y <strong>sin ingresarla a depósito</strong> (art. 438), el declarante presenta la <span class="term-glosario" data-glosario="DTA">declaración de tránsito aduanero (DTA)</span> ante la <strong>aduana de partida</strong>, en los servicios informáticos de la DIAN (art. 439), soportada en el documento de transporte y en la factura comercial o proforma (art. 440).</li>
+        <li><strong>Solicitud:</strong> una vez descargada la mercancía y <strong>sin ingresarla a depósito</strong> (art. 438), el declarante presenta la <span class="term-glosario" data-glosario="DTA">declaración de tránsito aduanero (DTA)</span> ante la <strong>aduana de partida</strong>, en los servicios informáticos de la DIAN (art. 439), soportada en el documento de transporte y en la factura comercial o proforma (art. 440). Hoy se diligencia en línea en MUISCA, en el menú Tránsito Aduanero, como <strong>Documento Único para Tránsito Aduanero (DUTA, formulario 651)</strong>, que reemplazó al formulario 650.</li>
         <li><strong>Transportador:</strong> el tránsito solo se hace en vehículos de empresas inscritas y autorizadas por la DIAN (art. 434).</li>
         <li><strong>Garantías (art. 436):</strong> el declarante respalda los tributos y las sanciones. Una agencia de aduanas lo hace con su garantía global; quien no tiene garantía global constituye una específica por el <strong>40% del valor FOB</strong>. El transportador respalda con su garantía global la finalización del tránsito.</li>
         <li><strong>Precintos:</strong> la aduana autoriza el tránsito si la unidad de carga viene sellada y precintada. En la aduana de partida no hay inspección, salvo malas condiciones exteriores, diferencias de peso o señales de que se violaron los precintos (art. 443).</li>
@@ -1101,9 +1101,9 @@ export const lecciones = [
     `,
     etapaCaso: "El contenedor con la llenadora llega al Puerto de Cartagena. En el B/L viene consignado a Andina Pack, usuario de zona franca, así que el tránsito procede (art. 433). Su agencia de aduanas presenta la DTA ante la aduana de Cartagena, que es la aduana de partida, sin ingresar la carga a depósito. La aduana verifica que los precintos del contenedor estén intactos, autoriza el tránsito y fija el plazo. Un camión de una transportadora inscrita ante la DIAN lleva el contenedor por la ruta más directa hasta la zona franca, en la jurisdicción de la aduana de Bogotá. Allí el usuario operador revisa precintos, peso y bultos contra la DTA y registra la llegada: el tránsito termina.",
     practica: {
-      texto: "Practica el diligenciamiento de la declaración de tránsito aduanero (formulario 650)",
+      texto: "Practica el diligenciamiento del Documento Único para Tránsito Aduanero (DUTA, formulario 651)",
       moduloUrl: "/formularios",
-      parametros: { form: "650" }
+      parametros: { form: "651" }
     },
     quiz: [
       {

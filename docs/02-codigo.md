@@ -107,7 +107,9 @@ Es la parte más particular del código.
    obligatorios e imprime.
 
 El RUT y la SAE son la excepción: como la DIAN no publica sus hojas en blanco, su trazado se
-arma a mano en `trazados/rut.js` y `trazados/sae.js`. En las hojas 3 a 8 del formulario 600 los campos se generan solos a
+arma a mano en `trazados/rut.js` y `trazados/sae.js`. El DUTA (651) se extrajo de un
+borrador diligenciado con `extraer_formulario.py ... sin-datos`, que descarta los datos (letra de
+7 puntos o más) y conserva rótulos y líneas; el código de barras se quitó del JSON. En las hojas 3 a 8 del formulario 600 los campos se generan solos a
 partir de los recuadros vacíos (`kit/recuadros.js`).
 
 ### Sesión y progreso

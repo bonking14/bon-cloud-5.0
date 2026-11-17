@@ -72,7 +72,8 @@ nota y la fecha, sin necesidad de cuenta.
   con franquicia y temporal de corto plazo) y las compara.
 - **Exportación:** valor FOB y modalidades (definitiva, temporal, menaje).
 - **Formularios:** los formularios 001 (RUT), 500 (importación), 560 (valor), 602
-  (solicitud de autorización de embarque), 600 (exportación) y 650 (tránsito), con la apariencia de los originales. Cada casilla explica
+  (solicitud de autorización de embarque), 600 (exportación), 650 (tránsito, formato anterior)
+  y 651 (DUTA, el documento de tránsito actual), con la apariencia de los originales. Cada casilla explica
   qué se escribe en ella, los totales se calculan solos y se pueden imprimir o guardar en
   PDF. Llevan una marca que dice que son simuladores sin validez. En celular se llenan como
   una lista de casillas.

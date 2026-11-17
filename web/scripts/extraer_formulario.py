@@ -2,7 +2,8 @@
 """Extrae el trazado de un formulario oficial de la DIAN (PDF) a JSON.
 
 Uso: python3 scripts/extraer_formulario.py Formulario_500_2026.pdf 1 > src/features/formularios/trazados/500.json
-     (para el 600, que está dibujado con rectángulos superpuestos, se agrega «capas» al final)
+     (para el 600, que está dibujado con rectángulos superpuestos, se agrega «capas» al final;
+      para un formulario ya diligenciado, «sin-datos» deja solo los rótulos)
 
 Los PDF se descargan de https://www.dian.gov.co/atencionciudadano/formulariosinstructivos/
 (Formularios/<año>/Formulario_<número>_<año>.pdf). El JSON guarda las líneas, los
@@ -36,8 +37,18 @@ def clase_color(c):
 def hexa(c):
     return None if c is None else '#%02x%02x%02x' % tuple(round(x * 255) for x in c)
 
-def extraer(ruta, pagina, capas=False):
+def extraer(ruta, pagina, capas=False, sin_datos=False):
     p = pdfplumber.open(ruta).pages[pagina - 1]
+    if sin_datos:
+        # Formulario diligenciado (la DIAN no publica algunos en blanco): se descartan los datos,
+        # que van en letra normal de 7 puntos o más, y se conservan los rótulos (6 puntos), los
+        # textos en negrilla (número de hoja y de bloque), los girados y el rótulo de la casilla 4.
+        # Nunca se guardan datos de terceros en el trazado.
+        def rotulo(o):
+            if o.get('object_type') != 'char': return True
+            if o['size'] <= 6.4 or not o['upright'] or 'Bold' in o['fontname']: return True
+            return 78 <= o['top'] <= 88 and 320 <= o['x0'] <= 400  # «4. Número de formulario»
+        p = p.filter(rotulo)
     W, H = float(p.width), float(p.height)
     segs, fondos = [], []
 
@@ -116,6 +127,7 @@ def extraer(ruta, pagina, capas=False):
     hs = [(pos, a, b) for o, pos, a, b in lineas if o == 'h']
     vs = [(pos, a, b) for o, pos, a, b in lineas if o == 'v']
     celdas = {}
+    repetidas = {}
     tinta = [t for t in unidos if t.get('c') is None]
     for t in unidos:
         # "58." o "58.Tasa"; en las tablas de liquidación el número va solo ("94")
@@ -123,7 +135,7 @@ def extraer(ruta, pagina, capas=False):
         m = con_punto or re.match(r'^(\d{2,4})$', t['t'])
         if not m or t.get('c') in ('gris', 'blanco'): continue
         num = m.group(1)
-        if num in celdas: continue
+        if num in celdas and not sin_datos: continue
         x, y = t['x'] + 1, t['y'] - t['s'] * 0.4
         arriba = max([pos for pos, a, b in hs if pos <= y + 0.5 and a - 1 <= x <= b + 1] or [0])
         abajo = min([pos for pos, a, b in hs if pos > y + 0.5 and a - 1 <= x <= b + 1] or [H])
@@ -151,7 +163,9 @@ def extraer(ruta, pagina, capas=False):
             c['r'] = re.sub(r'^\d{1,4}\.\s*', '', ' '.join(u['t'] for u in sorted(del_rotulo, key=lambda u: (round(u['y']), u['x'])))).strip()
             c['lx'] = r1(max(u['x'] + u['w'] for u in del_rotulo)); c['ly'] = r1(rotulo_y[-1])
         if otros: c['ox'] = r1(max(u['x'] + u['w'] for u in otros))
-        celdas[num] = c
+        # En las hojas con bloques repetidos se guarda cada aparición de la casilla
+        repetidas.setdefault(num, []).append(c)
+        if num not in celdas: celdas[num] = c
 
     # Un sombreado con texto oscuro encima es claro en el original (zonas reservadas)
     for f in fondos:
@@ -170,9 +184,10 @@ def extraer(ruta, pagina, capas=False):
             ops.append(op)
         return {'w': W, 'h': H, 'capas': ops, 'lineas': [], 'fondos': [], 'textos': unidos, 'verticales': verticales, 'celdas': celdas}
 
+    extra = {'repetidas': {k: v for k, v in repetidas.items() if len(v) > 1}} if sin_datos else {}
     return {'w': W, 'h': H, 'lineas': [[o, pos, a, b] for o, pos, a, b in sorted(lineas)], 'fondos': fondos,
-            'textos': unidos, 'verticales': verticales, 'celdas': celdas}
+            'textos': unidos, 'verticales': verticales, 'celdas': celdas, **extra}
 
 if __name__ == '__main__':
-    datos = extraer(sys.argv[1], int(sys.argv[2]) if len(sys.argv) > 2 else 1, capas='capas' in sys.argv[3:])
+    datos = extraer(sys.argv[1], int(sys.argv[2]) if len(sys.argv) > 2 else 1, capas='capas' in sys.argv[3:], sin_datos='sin-datos' in sys.argv[3:])
     json.dump(datos, sys.stdout, ensure_ascii=False, separators=(',', ':'))

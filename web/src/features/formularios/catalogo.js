@@ -8,8 +8,10 @@ export const formularios = [
     desc: 'Soporta el valor en aduana. Obligatoria desde USD 5.000 FOB.', cargar: () => import('./hojas/Form560.jsx') },
   { id: '500', nombre: 'Formulario 500 - Declaración de Importación', tipo: 'Importación',
     desc: 'Identifica la mercancía, declara el valor en aduana y liquida arancel e IVA.', cargar: () => import('./hojas/Form500.jsx') },
+  { id: '651', nombre: 'Formulario 651 - Documento Único para Tránsito Aduanero (DUTA)', tipo: 'Tránsito',
+    desc: 'Reemplaza a la DTA: ampara el traslado de la mercancía entre aduanas, con sus unidades de carga, rutas y precintos.', cargar: () => import('./hojas/Form651.jsx') },
   { id: '650', nombre: 'Formulario 650 - Declaración de Tránsito Aduanero y/o Cabotaje (DTA)', tipo: 'Tránsito',
-    desc: 'Traslado bajo control aduanero entre aduanas, con tributos suspendidos.', cargar: () => import('./hojas/Form650.jsx') },
+    desc: 'Formato anterior, hoy reemplazado por el DUTA (651). Traslado bajo control aduanero entre aduanas, con tributos suspendidos.', cargar: () => import('./hojas/Form650.jsx') },
   { id: '602', nombre: 'Formulario 602 - Solicitud de Autorización de Embarque (SAE)', tipo: 'Exportación',
     desc: 'Primer paso de la exportación: se presenta antes de llevar la mercancía al puerto y vale un mes.', cargar: () => import('./hojas/Form602.jsx') },
   { id: '600', nombre: 'Formulario 600 - Declaración de Exportación (DEX)', tipo: 'Exportación',
@@ -17,4 +19,4 @@ export const formularios = [
 ];
 
 // Identificadores anteriores que siguen funcionando en enlaces viejos
-export const ALIAS = { DTA: '650', SAE: '602' };
+export const ALIAS = { DTA: '650', SAE: '602', DUTA: '651' };

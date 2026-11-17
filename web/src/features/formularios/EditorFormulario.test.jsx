@@ -2,6 +2,7 @@ import { describe, it, expect, vi, afterEach } from 'vitest';
 import { render, screen, fireEvent, cleanup } from '@testing-library/react';
 import EditorFormulario from './EditorFormulario.jsx';
 import { formularios } from './catalogo.js';
+import { digitoVerificacion } from '../../lib/nit.js';
 
 afterEach(cleanup);
 // Cada formulario se carga con import(): con toda la suite corriendo puede tardar más de 1 s
@@ -124,6 +125,26 @@ describe('formularios DIAN en React', () => {
     expect(screen.getByLabelText('Tipo documento, documento 7')).toBeTruthy(); // hoja 2: siete documentos
     expect(screen.getByLabelText('No. de Programa, fila 10')).toBeTruthy(); // hoja 3: diez filas de sistemas especiales
     expect(screen.queryByLabelText('No. de aceptación')).toBeNull(); // lo asigna la DIAN
+  });
+
+  it('651: carga el DUTA del módulo 3 con sus seis hojas y calcula los DV', async () => {
+    abrir('651');
+    fireEvent.click(await screen.findByText(/Cargar caso de la Ruta/, {}, ESPERA));
+    expect(screen.getAllByRole('tab')).toHaveLength(6);
+    expect(screen.getByLabelText('Aduana de partida').value).toBe('Cartagena');
+    expect(screen.getByLabelText('Aduana de partida: código').value).toBe('48');
+    expect(screen.getAllByLabelText('DV')[0].value).toBe(String(digitoVerificacion('900555123')));
+    expect(screen.getByLabelText('DV, transportador 1').value).toBe(String(digitoVerificacion('800444987')));
+    expect(screen.getByLabelText('No. identificación unidad de carga, unidad de carga 3')).toBeTruthy(); // tres unidades de carga
+    expect(screen.getByLabelText('Razón social, transportador 6')).toBeTruthy(); // seis transportadores
+    expect(screen.getByLabelText('Monto, documento 8')).toBeTruthy(); // ocho documentos soporte
+    // las casillas de marcar solo aceptan X
+    const marca = screen.getByLabelText('¿Trae precintos de seguridad?, unidad de carga 2');
+    fireEvent.change(marca, { target: { value: 'si' } });
+    expect(marca.value).toBe('');
+    fireEvent.change(marca, { target: { value: 'x' } });
+    expect(marca.value).toBe('X');
+    expect(screen.queryByLabelText('No. aceptación declaración')).toBeNull(); // lo asigna la DIAN
   });
 
   it('560: la hoja 2 continúa los ítems del 4 al 25', async () => {
