@@ -8,41 +8,45 @@ import { modulos } from '../../app/modulos.js';
 import Icono from '../../components/Icono.jsx';
 import css from './Dashboard.module.css';
 
-// Inicio con forma de reporte: la siguiente lección, los indicadores del día, el avance por
+// Inicio: el reloj de Cartagena y los datos del puerto, la siguiente lección, el avance por
 // módulo y las herramientas agrupadas.
 const ZONA = 'America/Bogota';
 
 function useReloj() {
   const [ahora, setAhora] = useState(() => new Date());
   useEffect(() => {
-    const id = setInterval(() => setAhora(new Date()), 30000);
+    const id = setInterval(() => setAhora(new Date()), 1000);
     return () => clearInterval(id);
   }, []);
   return ahora;
 }
 
-function Indicadores() {
+function Reloj() {
   const ahora = useReloj();
+  const hora = ahora.toLocaleTimeString('es-CO', { timeZone: ZONA, hour: '2-digit', minute: '2-digit', second: '2-digit', hour12: false });
+  const fecha = ahora.toLocaleDateString('es-CO', { timeZone: ZONA, weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' });
+  return (
+    <section className={css.widget}>
+      <span className={css.etiqueta}>Cartagena, Colombia</span>
+      <span className={css.hora}>{hora}</span>
+      <span className={css.fecha}>{fecha.charAt(0).toUpperCase() + fecha.slice(1)}</span>
+    </section>
+  );
+}
+
+function EstadoPuerto() {
   const [trm, setTrm] = useState(null);
   const [error, setError] = useState(false);
-  useEffect(() => { cargarTrmOficial().then(setTrm).catch(() => setError(true)); }, []);
-  const hora = ahora.toLocaleTimeString('es-CO', { timeZone: ZONA, hour: 'numeric', minute: '2-digit' });
-  const fecha = ahora.toLocaleDateString('es-CO', { timeZone: ZONA, weekday: 'long', day: 'numeric', month: 'long' });
+  useEffect(() => {
+    cargarTrmOficial().then(setTrm).catch(() => setError(true));
+  }, []);
   return (
-    <section className={`${css.panel} ${css.indicadores}`} aria-label="Indicadores del día">
-      <div className={css.indicador}>
-        <span>TRM oficial<small>{trm ? `Vigente el ${trm.fecha} · datos.gov.co` : 'Superintendencia Financiera, vía datos.gov.co'}</small></span>
-        {trm
-          ? <b>${trm.valor.toLocaleString('es-CO', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</b>
-          : <b className={css.textoNormal}>{error ? 'No disponible' : 'Consultando…'}</b>}
-      </div>
-      <div className={css.indicador}>
-        <span>Hora en Cartagena<small>{fecha.charAt(0).toUpperCase() + fecha.slice(1)}</small></span>
-        <b>{hora}</b>
-      </div>
-      <div className={css.indicador}>
-        <span>Aduana de Cartagena<small>Terminales: SPRC y Contecar</small></span>
-        <b>Cód. 48</b>
+    <section className={css.widget}>
+      <span className={css.etiqueta}>Puerto de Cartagena <em className={css.insignia}>Datos de referencia</em></span>
+      <div className={css.stats}>
+        <div><strong>{trm ? `$${trm.valor.toLocaleString('es-CO', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}` : error ? 'Sin conexión' : '—'}</strong><span>{trm ? `TRM oficial · ${trm.fecha}` : 'TRM oficial'}</span></div>
+        <div><strong>48</strong><span>Código aduana DIAN</span></div>
+        <div><strong>SPRC · Contecar</strong><span>Terminales</span></div>
       </div>
     </section>
   );
@@ -146,10 +150,12 @@ export default function Dashboard() {
         <p>Plataforma educativa de comercio exterior, con el Puerto de Cartagena como escenario</p>
       </div>
 
-      <div className={css.fila}>
-        <SiguienteLeccion />
-        <Indicadores />
+      <div className={css.widgets}>
+        <Reloj />
+        <EstadoPuerto />
       </div>
+
+      <SiguienteLeccion />
 
       <TablaModulos />
 

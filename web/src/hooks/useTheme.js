@@ -12,6 +12,8 @@ export function useTheme() {
     // Sincroniza varias instancias del hook (landing y sidebar)
     const obs = new MutationObserver(() => setEsClaro(leer()));
     obs.observe(document.documentElement, { attributes: true, attributeFilter: ['class'] });
+    // La portada cambia el tema al desmontarse, justo antes de este efecto: se vuelve a leer
+    setEsClaro(leer());
     return () => obs.disconnect();
   }, []);
 
