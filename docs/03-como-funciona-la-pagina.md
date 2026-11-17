@@ -70,7 +70,9 @@ nota y la fecha, sin necesidad de cuenta.
 
 - **Importación:** calcula valor en aduana, arancel e IVA en tres modalidades (ordinaria,
   con franquicia y temporal de corto plazo) y las compara.
-- **Exportación:** valor FOB y modalidades (definitiva, temporal, menaje).
+- **Exportación:** valor FOB y modalidades (definitiva, temporal, menaje), y **costeo por
+  Incoterm**: qué costos de la cadena logística asume el vendedor en cada una de las 11 reglas,
+  a qué precio debe cotizar y qué valor FOB va en la DEX.
 - **Formularios:** los formularios 001 (RUT), 500 (importación), 560 (valor), 602
   (solicitud de autorización de embarque), 600 (exportación), 650 (tránsito, formato anterior)
   y 651 (DUTA, el documento de tránsito actual), con la apariencia de los originales. Cada casilla explica

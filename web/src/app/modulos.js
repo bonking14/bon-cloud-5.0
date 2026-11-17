@@ -20,13 +20,14 @@ export const modulos = [
   },
   {
     ruta: '/exportacion', titulo: 'Exportación', accion: 'Calcular',
-    descripcion: 'Valor FOB, documentos y modalidades de exportación.',
+    descripcion: 'Valor FOB, modalidades y costeo de la exportación según el Incoterm.',
     color: 'linear-gradient(135deg, #f59e0b 0%, #ea580c 100%)',
     icono: 'M17 9H7V7h10v2zm0 4H7v-2h10v2zm-2 4H7v-2h8v2zm7-12v14c0 1.66-1.34 3-3 3H5c-1.66 0-3-1.34-3-3V5c0-1.66 1.34-3 3-3h14c1.66 0 3 1.34 3 3zm-2 0H5v14h14V5z',
     submodulos: [
       { ruta: '/exportacion/definitiva', titulo: 'Definitiva' },
       { ruta: '/exportacion/temporal', titulo: 'Temporal' },
       { ruta: '/exportacion/menaje', titulo: 'Menaje' },
+      { ruta: '/exportacion/costeo', titulo: 'Costeo por Incoterm' },
     ],
   },
   {
