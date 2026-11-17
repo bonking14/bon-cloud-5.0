@@ -10,42 +10,56 @@ import css from './SigloXXII.module.css';
 
 // SIGLO XXII: el estudiante hace, paso a paso, el trámite de una declaración de importación
 // como en el sistema informático aduanero: ingresa con usuario y contraseña, recorre el menú,
-// llena el encabezado y la subpartida, autoliquida y guarda. Es un simulador: no se conecta
-// con la DIAN y todos los datos son ficticios.
+// llena el encabezado y la subpartida, autoliquida y guarda. El recorrido y los campos son los
+// del sistema real; la apariencia es moderna. Es un simulador: no se conecta con la DIAN y
+// todos los datos son ficticios.
 const PASOS = [
-  ['login', 'Ingresar con usuario y contraseña'],
-  ['menu', 'Recorrer el menú hasta «Ingresar»'],
+  ['login', 'Ingreso'],
+  ['menu', 'Menú'],
   ['previos', 'Parámetros previos'],
-  ['encabezado', 'Encabezado de la declaración'],
-  ['subpartida', 'Subpartida y autoliquidación'],
-  ['fin', 'Declaración guardada'],
+  ['encabezado', 'Encabezado'],
+  ['subpartida', 'Subpartida'],
+  ['fin', 'Guardada'],
 ];
 const AYUDA = {
   login: 'En el sistema real, el usuario lo asigna la DIAN a cada agencia de aduanas o usuario aduanero.',
-  menu: `Para abrir una declaración nueva sigue esta ruta en la barra azul: ${RUTA_MENU.join(' → ')}.`,
+  menu: `Para abrir una declaración nueva sigue esta ruta: ${RUTA_MENU.join(' → ')}.`,
   previos: 'Antes del encabezado el sistema pregunta el tipo de declaración (Inicial), el departamento del importador y el documento que respalda la importación (el documento de transporte).',
-  encabezado: 'Llena el encabezado con los documentos del caso que están abajo. Los códigos van como aparecen en los documentos. Al terminar, pulsa SALVAR: el sistema te dirá qué falta o qué no coincide.',
-  subpartida: 'Llena los datos de la mercancía y los valores. Escribe los porcentajes de arancel e IVA y pulsa AUTOLIQUIDACIÓN para que el sistema calcule los tributos. Después, SALVAR.',
+  encabezado: 'Revisa el inventario del documento de transporte y llena el encabezado con los documentos del caso. Los códigos van como aparecen en los documentos. Al guardar, el sistema te dirá qué falta o qué no coincide.',
+  subpartida: 'Llena los datos de la mercancía y los valores. Escribe los porcentajes de arancel e IVA y pulsa «Autoliquidar» para que el sistema calcule los tributos. Después, «Guardar».',
   fin: 'Terminaste el recorrido. En el sistema real seguirían los documentos soporte, la aceptación, el pago y el levante.',
 };
 const pesos = (n) => Math.round(n || 0).toLocaleString('es-CO');
 const HOY = new Date();
+// Del mensaje de validación («Rótulo: falta. Pista») queda lo que va debajo del campo
+const sinRotulo = (m) => m.replace(/^[^:]+:\s*/, '').replace(/^./, (c) => c.toUpperCase());
 
-function Campo({ nombre, rotulo, v, poner, malos, ancho, soloLectura, valor, opciones, placeholder }) {
+function Campo({ nombre, rotulo, v, poner, malos, ancho = 1, soloLectura, valor, opciones, placeholder }) {
   const id = `sx-${nombre}`;
+  const error = malos?.get(nombre);
   return (
-    <label className={`${css.campo}${malos?.has(nombre) ? ` ${css.mal}` : ''}`} style={ancho ? { width: ancho } : undefined} htmlFor={id}>
-      <span>{rotulo}</span>
+    <div className={`${css.campo}${error ? ` ${css.mal}` : ''}`} style={{ gridColumn: `span ${ancho}` }}>
+      <label htmlFor={id}>{rotulo}</label>
       {opciones ? (
-        <select id={id} value={v[nombre] ?? ''} onChange={(e) => poner(nombre, e.target.value)}>
-          <option value="" />
+        <select id={id} value={v[nombre] ?? ''} aria-invalid={Boolean(error)} onChange={(e) => poner(nombre, e.target.value)}>
+          <option value="">Selecciona…</option>
           {opciones.map(([c, t]) => <option key={c} value={c}>{t}</option>)}
         </select>
       ) : (
-        <input id={id} type="text" autoComplete="off" placeholder={placeholder} readOnly={soloLectura}
+        <input id={id} type="text" autoComplete="off" placeholder={placeholder} readOnly={soloLectura} aria-invalid={Boolean(error)}
           value={soloLectura ? valor ?? '' : v[nombre] ?? ''} onChange={soloLectura ? undefined : (e) => poner(nombre, e.target.value)} />
       )}
-    </label>
+      {error && <small className={css.errorCampo}>{error}</small>}
+    </div>
+  );
+}
+
+function Seccion({ titulo, children }) {
+  return (
+    <fieldset className={css.seccion}>
+      <legend>{titulo}</legend>
+      <div className={css.rejilla}>{children}</div>
+    </fieldset>
   );
 }
 
@@ -66,9 +80,12 @@ export default function SigloXXII() {
   const [enc, setEnc] = useState({ administracion: ADMINISTRACION.codigo });
   const [sub, setSub] = useState({ cuotas: '0', otros: '0', ajuste: '0' });
   const [liq, setLiq] = useState(null);
-  const [malos, setMalos] = useState(new Set());
+  const [malos, setMalos] = useState(new Map());
+  const avisoRef = useRef(null);
+  // Un error lleva la vista al aviso, que puede quedar arriba del formulario largo
+  useEffect(() => { if (mensaje?.tipo === 'error') avisoRef.current?.scrollIntoView?.({ behavior: 'smooth', block: 'center' }); }, [mensaje]);
 
-  const ir = (p) => { setPaso(p); setMensaje(null); setMalos(new Set()); };
+  const ir = (p) => { setPaso(p); setMensaje(null); setMalos(new Map()); };
   const ponerEnc = (k, val) => setEnc((x) => ({ ...x, [k]: val }));
   const ponerSub = (k, val) => { setSub((x) => ({ ...x, [k]: val })); setLiq(null); };
   const fallo = (m) => { setErrores((n) => n + 1); setMensaje(m); };
@@ -99,10 +116,11 @@ export default function SigloXXII() {
     if (nueva.length === RUTA_MENU.length) ir('previos');
   };
 
+  const marcar = (faltas) => setMalos(new Map(faltas.map((x) => [x.campo, sinRotulo(x.mensaje)])));
   const salvarEncabezado = () => {
     const faltas = validarEncabezado(enc);
-    setMalos(new Set(faltas.map((x) => x.campo)));
-    if (faltas.length) { fallo({ tipo: 'error', texto: 'El encabezado no se puede guardar todavía:', errores: faltas.map((x) => x.mensaje) }); return; }
+    marcar(faltas);
+    if (faltas.length) { fallo({ tipo: 'error', texto: `Tiene ${faltas.length} ${faltas.length === 1 ? 'inconsistencia' : 'inconsistencias'}: el encabezado no se puede guardar todavía.`, errores: faltas.map((x) => x.mensaje) }); return; }
     ir('subpartida');
     setMensaje({ texto: 'Encabezado guardado. Ahora ingresa la subpartida de la declaración.' });
   };
@@ -110,10 +128,17 @@ export default function SigloXXII() {
   const autoliquidar = () => { setLiq(liquidar(sub)); setMensaje(null); };
   const salvarSubpartida = () => {
     const faltas = validarSubpartida(sub);
-    setMalos(new Set(faltas.map((x) => x.campo)));
-    if (faltas.length) { fallo({ tipo: 'error', texto: 'La subpartida no se puede guardar todavía:', errores: faltas.map((x) => x.mensaje) }); return; }
-    if (!liq) { fallo({ tipo: 'error', texto: 'Falta la autoliquidación: pulsa AUTOLIQUIDACIÓN para calcular los tributos antes de guardar.' }); return; }
+    marcar(faltas);
+    if (faltas.length) { fallo({ tipo: 'error', texto: `Tiene ${faltas.length} ${faltas.length === 1 ? 'inconsistencia' : 'inconsistencias'}: la subpartida no se puede guardar todavía.`, errores: faltas.map((x) => x.mensaje) }); return; }
+    if (!liq) { fallo({ tipo: 'error', texto: 'Falta la autoliquidación: pulsa «Autoliquidar» para calcular los tributos antes de guardar.' }); return; }
     ir('fin');
+  };
+
+  const verSolucion = () => {
+    if (paso === 'encabezado') setEnc({ ...CASO.encabezado }); else { setSub({ ...CASO.subpartida }); setLiq(null); }
+    setConSolucion(true);
+    setMalos(new Map());
+    setMensaje({ texto: 'Se llenó la pantalla con los datos del caso. Revísalos contra los documentos y continúa.' });
   };
 
   // Al llegar al final, la práctica se registra una sola vez a nombre de la cuenta
@@ -129,6 +154,7 @@ export default function SigloXXII() {
   const indice = PASOS.findIndex(([id]) => id === paso);
   const r = liq || {};
   const gastos = (parseFloat(sub.fletes) || 0) + (parseFloat(sub.seguros) || 0) + (parseFloat(sub.otros) || 0);
+  const conSesion = paso !== 'login';
 
   return (
     <>
@@ -142,219 +168,233 @@ export default function SigloXXII() {
         </div>
       </div>
 
+      <ol className={css.pasos} aria-label="Pasos de la práctica">
+        {PASOS.map(([id, texto], i) => (
+          <li key={id} className={paso === 'fin' ? css.hecho : i === indice ? css.actual : i < indice ? css.hecho : undefined} aria-current={i === indice ? 'step' : undefined}>
+            <span className={css.numPaso}>{i < indice || paso === 'fin' ? '✓' : i + 1}</span>{texto}
+          </li>
+        ))}
+      </ol>
+
       <div className={css.envoltura}>
-        <div className={css.pantalla}>
+        <section className={css.app} aria-label="Pantalla del sistema">
+          <header className={css.barra}>
+            <div className={css.marca}><span className={css.logo} aria-hidden="true">XXII</span>SIGLO XXII <small>· Importaciones</small></div>
+            {conSesion && (
+              <div className={css.sesion}>
+                <span className={css.chip}>Adm. {ADMINISTRACION.codigo} · {ADMINISTRACION.nombre}</span>
+                <span className={css.chip}>TRM semana ${TASA_SEMANA.toLocaleString('es-CO')}</span>
+                <span className={css.usuario} aria-label="Usuario">{miUsuario}</span>
+              </div>
+            )}
+          </header>
+          {conSesion && ruta.length > 0 && (
+            <nav className={css.migas} aria-label="Ruta del menú">
+              {ruta.map((o, i) => <span key={o}>{i > 0 && <span aria-hidden="true"> › </span>}{o}</span>)}
+            </nav>
+          )}
           <div className={css.aviso}>Simulador educativo de BonCloud. No es un sistema de la DIAN ni se conecta con ella; todos los datos son ficticios.</div>
-          <div className={css.barra} aria-label="Ruta del menú">
-            {paso !== 'login' && [...ruta].reverse().map((o) => <span key={o} className={css.miga}>{o}</span>)}
-            {paso !== 'login' && <span>SIGLOXXII</span>}
-          </div>
-          <div className={`${css.barra} ${css.barra2}`} role="menubar" aria-label="Menú">
-            {paso === 'menu' && opcionesMenu(ruta).filter((o) => o !== 'SIGLOXXII').map((o) => (
-              <button key={o} type="button" role="menuitem" className={css.opcion} onClick={() => elegir(o)}>{o}</button>
-            ))}
-          </div>
 
           <div className={css.cuerpo}>
-            <div className={css.centro}>
-              {mensaje && (
-                <div className={`${css.mensaje}${mensaje.tipo === 'error' ? ` ${css.error}` : ''}`} role={mensaje.tipo === 'error' ? 'alert' : 'status'}>
-                  {mensaje.texto}
-                  {mensaje.errores && <ul>{mensaje.errores.map((x) => <li key={x}>{x}</li>)}</ul>}
+            {mensaje && (
+              <div ref={avisoRef} className={`${css.mensaje}${mensaje.tipo === 'error' ? ` ${css.error}` : ''}`} role={mensaje.tipo === 'error' ? 'alert' : 'status'}>
+                <strong>{mensaje.texto}</strong>
+                {mensaje.errores && (
+                  <details>
+                    <summary>Ver la lista · cada campo marcado en rojo dice qué revisar</summary>
+                    <ul>{mensaje.errores.map((x) => <li key={x}>{x}</li>)}</ul>
+                  </details>
+                )}
+              </div>
+            )}
+
+            {paso === 'login' && (
+              <form className={css.login} onSubmit={entrar}>
+                <div className={css.loginLogo} aria-hidden="true">XXII</div>
+                <h2>Iniciar sesión</h2>
+                <p className={css.suave}>Para entrar a la aplicación, usted deberá estar registrado y autorizado.</p>
+                <div className={css.campo}>
+                  <label htmlFor="sx-usuario">Nombre</label>
+                  <input id="sx-usuario" autoComplete="off" placeholder="Tu usuario" value={acceso.usuario} onChange={(e) => setAcceso({ ...acceso, usuario: e.target.value })} />
                 </div>
-              )}
+                <div className={css.campo}>
+                  <label htmlFor="sx-clave">Contraseña</label>
+                  <input id="sx-clave" type="password" autoComplete="off" placeholder="••••••••" value={acceso.clave} onChange={(e) => setAcceso({ ...acceso, clave: e.target.value })} />
+                </div>
+                <button type="submit" className={css.primario}>Entrar</button>
+                <p className={css.suave}>Administración {ADMINISTRACION.codigo} · {ADMINISTRACION.nombre}</p>
+              </form>
+            )}
 
-              {paso === 'login' && (
-                <form className={css.login} onSubmit={entrar}>
-                  <div>
-                    <strong>Usuarios Siglo XXII</strong>
-                    <p>Para entrar a la aplicación, usted deberá estar registrado y autorizado.</p>
-                    <div className={css.marca}>SIGLO XXII</div>
-                    <div>ADMINISTRACIÓN</div>
-                    <div className={css.admin}>{ADMINISTRACION.codigo} - {ADMINISTRACION.nombre}</div>
-                  </div>
-                  <div className={css.entrada}>
-                    <strong>Entrada</strong>
-                    <label htmlFor="sx-usuario">Nombre</label>
-                    <input id="sx-usuario" autoComplete="off" value={acceso.usuario} onChange={(e) => setAcceso({ ...acceso, usuario: e.target.value })} />
-                    <label htmlFor="sx-clave">Contraseña</label>
-                    <input id="sx-clave" type="password" autoComplete="off" value={acceso.clave} onChange={(e) => setAcceso({ ...acceso, clave: e.target.value })} />
-                    <button type="submit" className={css.boton}>Entrar</button>
-                  </div>
-                </form>
-              )}
-
-              {paso === 'menu' && (
+            {paso === 'menu' && (
+              <>
                 <div className={css.bienvenida}>
                   <div>
-                    Bienvenido <strong>{miUsuario}</strong><br />
-                    Módulo de [IMPORTACIONES]<br />
-                    Administración {ADMINISTRACION.codigo} - {ADMINISTRACION.nombre}<br />
-                    Hora de entrada {HOY.toLocaleString('es-CO')}
-                  </div>
-                  <Calendario />
-                </div>
-              )}
-
-              {paso === 'previos' && (
-                <>
-                  <p style={{ textAlign: 'center', fontStyle: 'italic', fontWeight: 700 }}>Parámetros previos a la captura del encabezado de la declaración</p>
-                  <table className={css.tabla}>
-                    <tbody>
-                      <tr><td className={css.titulo} colSpan={2}>DECLARACIÓN DE IMPORTACIÓN</td></tr>
-                      <tr>
-                        <td colSpan={2}>
-                          <label className={css.campo} htmlFor="sx-tipo"><span>Tipo de declaración</span>
-                            <select id="sx-tipo" value={previos.tipo} disabled={previos.etapa === 2} onChange={(e) => setPrevios({ ...previos, tipo: e.target.value })}>
-                              {['Inicial', 'Corrección', 'Modificación', 'Legalización'].map((t) => <option key={t}>{t}</option>)}
-                            </select>
-                          </label>
-                        </td>
-                      </tr>
-                      {previos.etapa === 2 && (
-                        <tr>
-                          <td>
-                            <label className={css.campo} htmlFor="sx-depto"><span>Departamento importador</span>
-                              <select id="sx-depto" value={previos.departamento} onChange={(e) => setPrevios({ ...previos, departamento: e.target.value })}>
-                                <option value="" />
-                                {DEPARTAMENTOS.map(([c, n]) => <option key={c} value={c}>{n}. Cód: {c}</option>)}
-                              </select>
-                            </label>
-                          </td>
-                          <td>
-                            <label className={css.campo} htmlFor="sx-respaldo"><span>Tipo de documento respaldo de la importación</span>
-                              <select id="sx-respaldo" value={previos.respaldo} onChange={(e) => setPrevios({ ...previos, respaldo: e.target.value })}>
-                                {['DOCUMENTO DE TRANSPORTE', 'DECLARACIÓN ANTERIOR', 'PLANILLA DE ENVÍO'].map((t) => <option key={t}>{t}</option>)}
-                              </select>
-                            </label>
-                          </td>
-                        </tr>
-                      )}
-                      <tr><td colSpan={2} className={css.pie}>
-                        {previos.etapa === 1 ? (
-                          <button type="button" className={css.boton} onClick={() => {
-                            if (previos.tipo !== 'Inicial') { fallo({ tipo: 'error', texto: 'En el caso se presenta por primera vez la declaración: el tipo es «Inicial».' }); return; }
-                            setMensaje(null); setPrevios({ ...previos, etapa: 2 });
-                          }}>SIGUIENTE</button>
-                        ) : (
-                          <button type="button" className={css.boton} onClick={() => {
-                            if (previos.departamento !== CASO.encabezado.imp_departamento) { fallo({ tipo: 'error', texto: 'El importador del caso está en Cartagena: su departamento es BOLIVAR (13).' }); return; }
-                            if (previos.respaldo !== 'DOCUMENTO DE TRANSPORTE') { fallo({ tipo: 'error', texto: 'La mercancía llegó con un B/L: el respaldo es el documento de transporte.' }); return; }
-                            setEnc((x) => ({ ...x, imp_departamento: previos.departamento }));
-                            ir('encabezado');
-                          }}>INGRESAR</button>
-                        )}
-                      </td></tr>
-                    </tbody>
-                  </table>
-                </>
-              )}
-
-              {paso === 'encabezado' && <Encabezado v={enc} poner={ponerEnc} malos={malos} onSalvar={salvarEncabezado} />}
-
-              {paso === 'subpartida' && (
-                <div className={css.scroll}>
-                  <table className={css.tabla}>
-                    <tbody>
-                      <tr><td className={css.titulo} colSpan={4}>SUBPARTIDA DECLARACIÓN DE IMPORTACIÓN<br /><small>Tipo de declaración: Inicial · Tasa de cambio: {TASA_SEMANA.toLocaleString('es-CO')}</small></td></tr>
-                      <tr>
-                        <td><Campo nombre="modalidad" rotulo="Modalidad" v={sub} poner={ponerSub} malos={malos} /></td>
-                        <td><Campo nombre="cuotas" rotulo="No. cuotas o meses" v={sub} poner={ponerSub} malos={malos} /></td>
-                        <td colSpan={2}><Campo nombre="subpartida" rotulo="Subpartida arancelaria" v={sub} poner={ponerSub} malos={malos} /></td>
-                      </tr>
-                      <tr>
-                        <td><Campo nombre="pais_origen" rotulo="País origen" v={sub} poner={ponerSub} malos={malos} /></td>
-                        <td><Campo nombre="acuerdo" rotulo="Acuerdo" soloLectura valor="NO APLICA" v={sub} /></td>
-                        <td><Campo nombre="forma_pago" rotulo="Forma de pago importación" v={sub} poner={ponerSub} malos={malos} opciones={FORMAS_PAGO.map(([c, t]) => [c, `${c}-${t}`])} /></td>
-                        <td><Campo nombre="tipo_importacion" rotulo="Tipo de importación" v={sub} poner={ponerSub} malos={malos} opciones={TIPOS_IMPORTACION.map(([c, t]) => [c, `${c}-${t}`])} /></td>
-                      </tr>
-                      <tr>
-                        <td><Campo nombre="pais_compra" rotulo="País de compra" v={sub} poner={ponerSub} malos={malos} /></td>
-                        <td><Campo nombre="peso_bruto" rotulo="Peso bruto kgs" v={sub} poner={ponerSub} malos={malos} /></td>
-                        <td><Campo nombre="peso_neto" rotulo="Peso neto kgs" v={sub} poner={ponerSub} malos={malos} /></td>
-                        <td><Campo nombre="embalaje" rotulo="Embalaje" v={sub} poner={ponerSub} malos={malos} /></td>
-                      </tr>
-                      <tr>
-                        <td><Campo nombre="bultos" rotulo="Bultos" v={sub} poner={ponerSub} malos={malos} /></td>
-                        <td><Campo nombre="subpartidas" rotulo="Subpartidas" v={sub} poner={ponerSub} malos={malos} /></td>
-                        <td><Campo nombre="unidad_comercial" rotulo="Unidad comercial" v={sub} poner={ponerSub} malos={malos} /></td>
-                        <td><Campo nombre="cantidad" rotulo="Cantidad" v={sub} poner={ponerSub} malos={malos} /></td>
-                      </tr>
-                      <tr>
-                        <td><Campo nombre="fob" rotulo="Valor FOB US$" v={sub} poner={ponerSub} malos={malos} /></td>
-                        <td><Campo nombre="fletes" rotulo="Valor fletes US$" v={sub} poner={ponerSub} malos={malos} /></td>
-                        <td><Campo nombre="seguros" rotulo="Valor seguros US$" v={sub} poner={ponerSub} malos={malos} /></td>
-                        <td><Campo nombre="otros" rotulo="Valor otros gastos US$" v={sub} poner={ponerSub} malos={malos} /></td>
-                      </tr>
-                      <tr>
-                        <td colSpan={2}><Campo nombre="sumatoria" rotulo="Sumatoria fletes, seguros y otros gastos US$" soloLectura valor={gastos ? gastos.toLocaleString('es-CO') : '0'} v={sub} /></td>
-                        <td><Campo nombre="ajuste" rotulo="Ajuste valor US$" v={sub} poner={ponerSub} malos={malos} /></td>
-                        <td><Campo nombre="valor_aduana" rotulo="Valor aduana US$" soloLectura valor={liq ? r.aduanaUSD.toLocaleString('es-CO') : ''} v={sub} /></td>
-                      </tr>
-                      <tr><td colSpan={4} className={css.pie} style={{ textAlign: 'center' }}><button type="button" className={css.boton} onClick={autoliquidar}>AUTOLIQUIDACIÓN</button></td></tr>
-                      <tr><td colSpan={4} style={{ padding: 0 }}>
-                        <table className={`${css.tabla} ${css.liq}`} style={{ border: 'none' }}>
-                          <tbody>
-                            <tr className={css.cab}><td>Concepto</td><td>%</td><td>Base $</td><td>Subtotal $</td></tr>
-                            <tr>
-                              <td>Arancel</td>
-                              <td><input aria-label="Porcentaje de arancel" value={sub.arancel ?? ''} onChange={(e) => ponerSub('arancel', e.target.value)} /></td>
-                              <td>{liq ? pesos(r.baseArancel) : ''}</td><td>{liq ? pesos(r.arancel) : ''}</td>
-                            </tr>
-                            <tr>
-                              <td>IVA</td>
-                              <td><input aria-label="Porcentaje de IVA" value={sub.iva ?? ''} onChange={(e) => ponerSub('iva', e.target.value)} /></td>
-                              <td>{liq ? pesos(r.baseIVA) : ''}</td><td>{liq ? pesos(r.iva) : ''}</td>
-                            </tr>
-                            {['Salvaguardia', 'Derechos compensatorios', 'Antidumping', 'Rescate', 'Sanción'].map((c) => <tr key={c}><td>{c}</td><td>0</td><td>0</td><td>0</td></tr>)}
-                            <tr><td><strong>Total</strong></td><td /><td /><td data-testid="sx-total"><strong>{liq ? pesos(r.total) : ''}</strong></td></tr>
-                          </tbody>
-                        </table>
-                      </td></tr>
-                      <tr><td colSpan={4} className={css.pie}><button type="button" className={css.boton} onClick={salvarSubpartida}>SALVAR</button></td></tr>
-                    </tbody>
-                  </table>
-                </div>
-              )}
-
-              {paso === 'fin' && (
-                <div style={{ fontFamily: 'Arial, sans-serif', fontSize: 13, lineHeight: 1.6 }}>
-                  <p className={css.mensaje} role="status"><strong>Declaración guardada.</strong> Número de radicación de práctica: 48-{HOY.getFullYear()}-000457 (ficticio).</p>
-                  <p>Resumen: {sub.cantidad} unidades de la subpartida {sub.subpartida}, modalidad {String(sub.modalidad).toUpperCase()}. Valor en aduana USD {r.aduanaUSD?.toLocaleString('es-CO')}; arancel ${pesos(r.arancel)}; IVA ${pesos(r.iva)}; <strong>total a pagar ${pesos(r.total)}</strong>.</p>
-                  <p>En el sistema real, después de guardar se registran los documentos soporte, la DIAN acepta la declaración, se paga en el banco y se obtiene el levante. Esos pasos todavía no hacen parte de esta práctica.</p>
-                  <p aria-live="polite" data-testid="sx-registro">
-                    {!tokenApi && 'Entraste como invitado: esta práctica no queda registrada. Con una cuenta, tu profesor puede ver que la terminaste.'}
-                    {tokenApi && registro === 'guardando' && 'Registrando tu práctica…'}
-                    {tokenApi && registro === 'ok' && `Tu práctica quedó registrada${conSolucion ? ' (usaste la solución en alguna pantalla)' : ''}: el sistema te devolvió ${errores} ${errores === 1 ? 'pantalla' : 'pantallas'} con errores. Tu profesor puede verla en el panel de su grupo.`}
-                    {tokenApi && registro === 'fallo' && 'No se pudo registrar la práctica en el servidor. Revisa la conexión y vuelve a hacerla.'}
-                  </p>
-                  <div className={css.acciones}>
-                    <button type="button" className={css.boton} onClick={reiniciar}>Hacer la práctica otra vez</button>
-                    <Link className={css.boton} to="/formularios/500" style={{ textDecoration: 'none' }}>Ver esta declaración en el formulario 500</Link>
+                    <h2>Bienvenido, {miUsuario}</h2>
+                    <p className={css.suave}>Módulo de importaciones · Hora de entrada {HOY.toLocaleString('es-CO', { dateStyle: 'medium', timeStyle: 'short' })}</p>
                   </div>
                 </div>
-              )}
-            </div>
+                <h3 className={css.subtitulo}>{ruta.length ? ruta[ruta.length - 1] : 'Módulos'}</h3>
+                <div className={css.menu} role="menu" aria-label="Menú">
+                  {opcionesMenu(ruta).filter((o) => o !== 'SIGLOXXII').map((o) => (
+                    <button key={o} type="button" role="menuitem" aria-label={o} className={css.opcion} onClick={() => elegir(o)}>
+                      <span className={css.opcionIcono} aria-hidden="true">{o.charAt(0)}</span>
+                      <span>{o}</span>
+                      <span className={css.flecha} aria-hidden="true">›</span>
+                    </button>
+                  ))}
+                </div>
+                {ruta.length > 0 && <button type="button" className={css.secundario} onClick={() => { setRuta(ruta.slice(0, -1)); setMensaje(null); }}>← Volver</button>}
+              </>
+            )}
+
+            {paso === 'previos' && (
+              <div className={css.tarjeta}>
+                <h2>Declaración de importación</h2>
+                <p className={css.suave}>Parámetros previos a la captura del encabezado de la declaración</p>
+                <div className={css.rejilla}>
+                  <div className={css.campo} style={{ gridColumn: 'span 2' }}>
+                    <label htmlFor="sx-tipo">Tipo de declaración</label>
+                    <select id="sx-tipo" value={previos.tipo} disabled={previos.etapa === 2} onChange={(e) => setPrevios({ ...previos, tipo: e.target.value })}>
+                      {['Inicial', 'Corrección', 'Modificación', 'Legalización'].map((t) => <option key={t}>{t}</option>)}
+                    </select>
+                  </div>
+                  {previos.etapa === 2 && (
+                    <>
+                      <div className={css.campo} style={{ gridColumn: 'span 2' }}>
+                        <label htmlFor="sx-depto">Departamento importador</label>
+                        <select id="sx-depto" value={previos.departamento} onChange={(e) => setPrevios({ ...previos, departamento: e.target.value })}>
+                          <option value="">Selecciona…</option>
+                          {DEPARTAMENTOS.map(([c, n]) => <option key={c} value={c}>{n} · Cód. {c}</option>)}
+                        </select>
+                      </div>
+                      <div className={css.campo} style={{ gridColumn: 'span 2' }}>
+                        <label htmlFor="sx-respaldo">Tipo de documento respaldo de la importación</label>
+                        <select id="sx-respaldo" value={previos.respaldo} onChange={(e) => setPrevios({ ...previos, respaldo: e.target.value })}>
+                          {['DOCUMENTO DE TRANSPORTE', 'DECLARACIÓN ANTERIOR', 'PLANILLA DE ENVÍO'].map((t) => <option key={t}>{t}</option>)}
+                        </select>
+                      </div>
+                    </>
+                  )}
+                </div>
+                <div className={css.acciones}>
+                  {previos.etapa === 1 ? (
+                    <button type="button" className={css.primario} onClick={() => {
+                      if (previos.tipo !== 'Inicial') { fallo({ tipo: 'error', texto: 'En el caso se presenta por primera vez la declaración: el tipo es «Inicial».' }); return; }
+                      setMensaje(null); setPrevios({ ...previos, etapa: 2 });
+                    }}>Siguiente</button>
+                  ) : (
+                    <button type="button" className={css.primario} onClick={() => {
+                      if (previos.departamento !== CASO.encabezado.imp_departamento) { fallo({ tipo: 'error', texto: 'El importador del caso está en Cartagena: su departamento es BOLIVAR (13).' }); return; }
+                      if (previos.respaldo !== 'DOCUMENTO DE TRANSPORTE') { fallo({ tipo: 'error', texto: 'La mercancía llegó con un B/L: el respaldo es el documento de transporte.' }); return; }
+                      setEnc((x) => ({ ...x, imp_departamento: previos.departamento }));
+                      ir('encabezado');
+                    }}>Continuar</button>
+                  )}
+                </div>
+              </div>
+            )}
+
+            {paso === 'encabezado' && (
+              <>
+                <Inventario />
+                <Encabezado v={enc} poner={ponerEnc} malos={malos} onSalvar={salvarEncabezado} />
+              </>
+            )}
+
+            {paso === 'subpartida' && (
+              <div className={css.tarjeta}>
+                <div className={css.cabecera}>
+                  <h2>Subpartida de la declaración</h2>
+                  <span className={css.chip}>Inicial · TRM {TASA_SEMANA.toLocaleString('es-CO')}</span>
+                </div>
+                <Seccion titulo="Mercancía">
+                  <Campo nombre="modalidad" rotulo="Modalidad" v={sub} poner={ponerSub} malos={malos} />
+                  <Campo nombre="cuotas" rotulo="No. cuotas o meses" v={sub} poner={ponerSub} malos={malos} />
+                  <Campo nombre="subpartida" rotulo="Subpartida arancelaria" v={sub} poner={ponerSub} malos={malos} ancho={2} />
+                  <Campo nombre="pais_origen" rotulo="País origen" v={sub} poner={ponerSub} malos={malos} />
+                  <Campo nombre="acuerdo" rotulo="Acuerdo" soloLectura valor="No aplica" v={sub} />
+                  <Campo nombre="pais_compra" rotulo="País de compra" v={sub} poner={ponerSub} malos={malos} />
+                  <Campo nombre="unidad_comercial" rotulo="Unidad comercial" v={sub} poner={ponerSub} malos={malos} />
+                  <Campo nombre="forma_pago" rotulo="Forma de pago importación" v={sub} poner={ponerSub} malos={malos} ancho={2} opciones={FORMAS_PAGO.map(([c, t]) => [c, `${c} · ${t}`])} />
+                  <Campo nombre="tipo_importacion" rotulo="Tipo de importación" v={sub} poner={ponerSub} malos={malos} ancho={2} opciones={TIPOS_IMPORTACION.map(([c, t]) => [c, `${c} · ${t}`])} />
+                </Seccion>
+                <Seccion titulo="Bultos y pesos">
+                  <Campo nombre="peso_bruto" rotulo="Peso bruto kg" v={sub} poner={ponerSub} malos={malos} />
+                  <Campo nombre="peso_neto" rotulo="Peso neto kg" v={sub} poner={ponerSub} malos={malos} />
+                  <Campo nombre="embalaje" rotulo="Embalaje" v={sub} poner={ponerSub} malos={malos} />
+                  <Campo nombre="bultos" rotulo="Bultos" v={sub} poner={ponerSub} malos={malos} />
+                  <Campo nombre="subpartidas" rotulo="Subpartidas" v={sub} poner={ponerSub} malos={malos} />
+                  <Campo nombre="cantidad" rotulo="Cantidad" v={sub} poner={ponerSub} malos={malos} />
+                </Seccion>
+                <Seccion titulo="Valores en dólares">
+                  <Campo nombre="fob" rotulo="Valor FOB" v={sub} poner={ponerSub} malos={malos} />
+                  <Campo nombre="fletes" rotulo="Fletes" v={sub} poner={ponerSub} malos={malos} />
+                  <Campo nombre="seguros" rotulo="Seguros" v={sub} poner={ponerSub} malos={malos} />
+                  <Campo nombre="otros" rotulo="Otros gastos" v={sub} poner={ponerSub} malos={malos} />
+                  <Campo nombre="sumatoria" rotulo="Fletes, seguros y otros" soloLectura valor={gastos ? gastos.toLocaleString('es-CO') : '0'} v={sub} />
+                  <Campo nombre="ajuste" rotulo="Ajuste valor" v={sub} poner={ponerSub} malos={malos} />
+                  <Campo nombre="valor_aduana" rotulo="Valor en aduana" soloLectura valor={liq ? r.aduanaUSD.toLocaleString('es-CO') : ''} placeholder="Se calcula al autoliquidar" v={sub} ancho={2} />
+                </Seccion>
+
+                <fieldset className={css.seccion}>
+                  <legend>Autoliquidación</legend>
+                  <div className={css.tasas}>
+                    <Campo nombre="arancel" rotulo="Arancel %" v={sub} poner={ponerSub} malos={malos} />
+                    <Campo nombre="iva" rotulo="IVA %" v={sub} poner={ponerSub} malos={malos} />
+                    <button type="button" className={css.secundario} onClick={autoliquidar}>Autoliquidar</button>
+                  </div>
+                  <div className={css.scroll}>
+                    <table className={css.liq}>
+                      <thead><tr><th scope="col">Concepto</th><th scope="col">%</th><th scope="col">Base $</th><th scope="col">Subtotal $</th></tr></thead>
+                      <tbody>
+                        <tr><td>Arancel</td><td>{sub.arancel || '—'}</td><td>{liq ? pesos(r.baseArancel) : '—'}</td><td>{liq ? pesos(r.arancel) : '—'}</td></tr>
+                        <tr><td>IVA</td><td>{sub.iva || '—'}</td><td>{liq ? pesos(r.baseIVA) : '—'}</td><td>{liq ? pesos(r.iva) : '—'}</td></tr>
+                        {['Salvaguardia', 'Derechos compensatorios', 'Antidumping', 'Rescate', 'Sanción'].map((c) => <tr key={c} className={css.cero}><td>{c}</td><td>0</td><td>0</td><td>0</td></tr>)}
+                      </tbody>
+                      <tfoot><tr><td colSpan={3}>Total</td><td data-testid="sx-total">{liq ? pesos(r.total) : '—'}</td></tr></tfoot>
+                    </table>
+                  </div>
+                </fieldset>
+                <div className={css.acciones}><button type="button" className={css.primario} onClick={salvarSubpartida}>Guardar</button></div>
+              </div>
+            )}
+
+            {paso === 'fin' && (
+              <div className={css.tarjeta}>
+                <div className={css.exito} role="status"><span aria-hidden="true">✓</span> Declaración guardada</div>
+                <p className={css.suave}>Número de radicación de práctica: 48-{HOY.getFullYear()}-000457 (ficticio)</p>
+                <div className={css.cifras}>
+                  <div><span>Valor en aduana</span><strong>USD {r.aduanaUSD?.toLocaleString('es-CO')}</strong></div>
+                  <div><span>Arancel</span><strong>${pesos(r.arancel)}</strong></div>
+                  <div><span>IVA</span><strong>${pesos(r.iva)}</strong></div>
+                  <div className={css.destacada}><span>Total a pagar</span><strong>${pesos(r.total)}</strong></div>
+                </div>
+                <p>Resumen: {sub.cantidad} unidades de la subpartida {sub.subpartida}, modalidad {String(sub.modalidad).toUpperCase()}; total a pagar ${pesos(r.total)}.</p>
+                <p className={css.suave} aria-live="polite" data-testid="sx-registro">
+                  {!tokenApi && 'Entraste como invitado: esta práctica no queda registrada. Con una cuenta, tu profesor puede ver que la terminaste.'}
+                  {tokenApi && registro === 'guardando' && 'Registrando tu práctica…'}
+                  {tokenApi && registro === 'ok' && `Tu práctica quedó registrada${conSolucion ? ' (usaste la solución en alguna pantalla)' : ''}: el sistema te devolvió ${errores} ${errores === 1 ? 'pantalla' : 'pantallas'} con errores. Tu profesor puede verla en el panel de su grupo.`}
+                  {tokenApi && registro === 'fallo' && 'No se pudo registrar la práctica en el servidor. Revisa la conexión y vuelve a hacerla.'}
+                </p>
+                <p className={css.suave}>En el sistema real, después de guardar se registran los documentos soporte, la DIAN acepta la declaración, se paga en el banco y se obtiene el levante. Esos pasos todavía no hacen parte de esta práctica.</p>
+                <div className={css.acciones}>
+                  <button type="button" className={css.primario} onClick={reiniciar}>Hacer la práctica otra vez</button>
+                  <Link className={css.secundario} to="/formularios/500">Ver esta declaración en el formulario 500</Link>
+                </div>
+              </div>
+            )}
           </div>
-        </div>
+        </section>
 
         <aside className={css.guia} aria-label="Guía de la práctica">
           <h3>Guía de la práctica</h3>
-          <ol className={css.pasos}>
-            {PASOS.map(([id, texto], i) => <li key={id} className={i === indice ? css.actual : i < indice ? css.hecho : undefined}>{i + 1}. {texto}</li>)}
-          </ol>
           <p className={css.ayuda}>
             {paso === 'login' && <>Tu usuario de práctica es <strong>{miUsuario}</strong> y la contraseña es <strong>{CREDENCIALES.clave}</strong>. {tokenApi ? 'Es solo tuyo: al terminar, la práctica queda registrada a tu nombre. ' : 'Como invitado usas el usuario de ejemplo y la práctica no queda registrada. '}</>}
             {AYUDA[paso]}
           </p>
           {(paso === 'encabezado' || paso === 'subpartida') && (
-            <div className={css.acciones} style={{ marginBottom: 10 }}>
-              <button type="button" className="btn-card" onClick={() => {
-                if (paso === 'encabezado') setEnc({ ...CASO.encabezado }); else { setSub({ ...CASO.subpartida }); setLiq(null); }
-                setConSolucion(true);
-                setMalos(new Set()); setMensaje({ texto: 'Se llenó la pantalla con los datos del caso. Revísalos contra los documentos y continúa.' });
-              }}>Ver la solución de esta pantalla</button>
-            </div>
+            <button type="button" className="btn-card" style={{ marginBottom: 12 }} onClick={verSolucion}>Ver la solución de esta pantalla</button>
           )}
           <h3>Documentos del caso</h3>
           <p className={css.ayuda}>HidroColombia importa 500 bombas de engranajes de Shanghái a Cartagena (caso del módulo 1 de la Ruta).</p>
@@ -370,92 +410,79 @@ export default function SigloXXII() {
   );
 }
 
-function Calendario() {
-  const anio = HOY.getFullYear();
-  const mes = HOY.getMonth();
-  const primero = new Date(anio, mes, 1).getDay();
-  const dias = new Date(anio, mes + 1, 0).getDate();
-  const celdas = [...Array(primero).fill(null), ...Array.from({ length: dias }, (_, i) => i + 1)];
-  while (celdas.length % 7) celdas.push(null);
-  const semanas = Array.from({ length: celdas.length / 7 }, (_, i) => celdas.slice(i * 7, i * 7 + 7));
+// Consulta de inventario por documento de transporte: con qué peso y bultos cuenta la carga en el depósito
+function Inventario() {
+  const i = CASO.inventario;
   return (
-    <div>
-      <table className={css.calendario}>
-        <caption>{HOY.toLocaleString('es-CO', { month: 'long' }).replace(/^./, (c) => c.toUpperCase())} {anio}</caption>
-        <thead><tr>{['D', 'L', 'M', 'M', 'J', 'V', 'S'].map((d, i) => <th key={i} scope="col">{d}</th>)}</tr></thead>
-        <tbody>{semanas.map((s, i) => <tr key={i}>{s.map((d, j) => <td key={j} className={d === HOY.getDate() ? css.hoy : undefined}>{d ?? ''}</td>)}</tr>)}</tbody>
-      </table>
-      <small>Tasa para la semana <strong>${TASA_SEMANA.toLocaleString('es-CO')}</strong></small>
-    </div>
+    <details className={css.inventario} open>
+      <summary>Consulta de inventario del documento de transporte {i.documento}</summary>
+      <dl className={css.datosInv}>
+        <div><dt>Manifiesto</dt><dd>{i.manifiesto}</dd></div>
+        <div><dt>Transportador</dt><dd>{i.transportador}</dd></div>
+        <div><dt>Depósito</dt><dd>{i.deposito}</dd></div>
+        <div><dt>Consignatario</dt><dd>{i.consignatario}</dd></div>
+        <div><dt>Fecha del manifiesto</dt><dd>{i.fechaManifiesto}</dd></div>
+        <div><dt>Vencen los términos</dt><dd>{i.vencimiento} · Prórroga: {i.prorroga}</dd></div>
+        <div><dt>Ubicación</dt><dd>{i.ubicacion}</dd></div>
+        <div><dt>Peso disponible</dt><dd>{i.peso.toLocaleString('es-CO')} kg</dd></div>
+        <div><dt>Cantidad disponible</dt><dd>{i.cantidad} bulto{i.cantidad === 1 ? '' : 's'}</dd></div>
+      </dl>
+      <p className={css.suave}>La declaración no puede amparar más peso ni más bultos de los que tiene disponibles el documento de transporte.</p>
+    </details>
   );
 }
 
 function Encabezado({ v, poner, malos, onSalvar }) {
   const c = (nombre, rotulo, extra = {}) => <Campo nombre={nombre} rotulo={rotulo} v={v} poner={poner} malos={malos} {...extra} />;
   return (
-    <div className={css.scroll}>
-      <table className={css.tabla}>
-        <tbody>
-          <tr><td className={css.titulo} colSpan={4}>Declaración de Importación<br /><small>Tipo de declaración: Inicial</small></td></tr>
-          <tr><td className={css.seccion} colSpan={4}>Administración y lugar de ingreso</td></tr>
-          <tr>
-            <td colSpan={2}>{c('administracion', 'Administración (cód.)')}</td>
-            <td>{c('lugar_ingreso', 'Lugar de ingreso de las mercancías (cód.)')}</td>
-            <td>{c('deposito', 'Depósito')}</td>
-          </tr>
-          <tr><td className={css.seccion} colSpan={4}>Manifiesto de carga y documento de transporte</td></tr>
-          <tr>
-            <td>{c('manifiesto', 'Manifiesto de carga: número')}</td>
-            <td>{c('manifiesto_fecha', 'Año-mes-día', { placeholder: 'AAAA-MM-DD' })}</td>
-            <td>{c('doc_transporte', 'Documento de transporte: número')}</td>
-            <td>{c('doc_transporte_fecha', 'Año-mes-día', { placeholder: 'AAAA-MM-DD' })}</td>
-          </tr>
-          <tr><td className={css.seccion} colSpan={4}>Declarante</td></tr>
-          <tr>
-            <td colSpan={2}><Campo nombre="declarante" rotulo="Nombre del declarante autorizado" soloLectura valor="HIDROCOLOMBIA S.A.S. (actúa directamente)" v={v} /></td>
-            <td>{c('signatario_doc', 'No. documento de identificación signatario')}</td>
-            <td>{c('signatario_nombre', 'Apellidos y nombres signatario')}</td>
-          </tr>
-          <tr><td className={css.seccion} colSpan={4}>Importador</td></tr>
-          <tr>
-            <td>{c('imp_nit', 'NIT importador')}</td>
-            <td><Campo nombre="imp_dv" rotulo="DV" soloLectura valor={dvImportador(v.imp_nit)} v={v} /></td>
-            <td colSpan={2}>{c('imp_nombre', 'Nombre')}</td>
-          </tr>
-          <tr>
-            <td colSpan={3}>{c('imp_direccion', 'Dirección importador')}</td>
-            <td>{c('imp_telefono', 'Teléfono')}</td>
-          </tr>
-          <tr>
-            <td>{c('imp_ciudad', 'Ciudad (cód.)')}</td>
-            <td colSpan={2}>{c('imp_departamento', 'Departamento', { opciones: DEPARTAMENTOS.map(([cod, n]) => [cod, `${n}. Cód: ${cod}`]) })}</td>
-            <td>{c('imp_codigo', 'Código', { opciones: CODIGOS_EMPRESA.map((t) => [t, t]) })}</td>
-          </tr>
-          <tr><td className={css.seccion} colSpan={4}>Exportador o proveedor en el exterior</td></tr>
-          <tr>
-            <td colSpan={2}>{c('exp_nombre', 'Exportador o proveedor en el exterior')}</td>
-            <td>{c('exp_ciudad', 'Ciudad')}</td>
-            <td>{c('exp_pais', 'País exportador (cód.)')}</td>
-          </tr>
-          <tr>
-            <td colSpan={2}>{c('exp_direccion', 'Dirección exportador o proveedor')}</td>
-            <td>{c('factura', 'No. de factura')}</td>
-            <td>{c('factura_fecha', 'Año-mes-día', { placeholder: 'AAAA-MM-DD' })}</td>
-          </tr>
-          <tr><td className={css.seccion} colSpan={4}>Transporte</td></tr>
-          <tr>
-            <td>{c('pais_procedencia', 'País procedencia (cód.)')}</td>
-            <td>{c('modo_transporte', 'Modo transporte (cód.)')}</td>
-            <td>{c('bandera', 'Bandera (cód.)')}</td>
-            <td>{c('depto_destino', 'Depto. destino (cód.)')}</td>
-          </tr>
-          <tr>
-            <td colSpan={2}>{c('transportadora', 'Empresa transportadora (código)')}</td>
-            <td colSpan={2}><Campo nombre="tasa" rotulo="Tasa de cambio" soloLectura valor={TASA_SEMANA.toLocaleString('es-CO')} v={v} /></td>
-          </tr>
-          <tr><td colSpan={4} className={css.pie}><button type="button" className={css.boton} onClick={onSalvar}>SALVAR</button></td></tr>
-        </tbody>
-      </table>
+    <div className={css.tarjeta}>
+      <div className={css.cabecera}>
+        <h2>Encabezado de la declaración</h2>
+        <span className={css.chip}>Tipo de declaración: Inicial</span>
+      </div>
+      <Seccion titulo="Administración y lugar de ingreso">
+        {c('administracion', 'Administración (cód.)')}
+        {c('lugar_ingreso', 'Lugar de ingreso (cód.)')}
+        {c('deposito', 'Depósito', { ancho: 2 })}
+      </Seccion>
+      <Seccion titulo="Manifiesto de carga y documento de transporte">
+        {c('manifiesto', 'Manifiesto: número')}
+        {c('manifiesto_fecha', 'Manifiesto: fecha', { placeholder: 'AAAA-MM-DD' })}
+        {c('doc_transporte', 'Documento de transporte: número')}
+        {c('doc_transporte_fecha', 'Documento de transporte: fecha', { placeholder: 'AAAA-MM-DD' })}
+      </Seccion>
+      <Seccion titulo="Declarante">
+        <Campo nombre="declarante" rotulo="Declarante autorizado" soloLectura valor="HidroColombia S.A.S. (actúa directamente)" v={v} ancho={2} />
+        {c('signatario_doc', 'Documento del signatario')}
+        {c('signatario_nombre', 'Apellidos y nombres del signatario')}
+      </Seccion>
+      <Seccion titulo="Importador">
+        {c('imp_nit', 'NIT importador')}
+        <Campo nombre="imp_dv" rotulo="DV" soloLectura valor={dvImportador(v.imp_nit)} v={v} />
+        {c('imp_nombre', 'Nombre', { ancho: 2 })}
+        {c('imp_direccion', 'Dirección', { ancho: 3 })}
+        {c('imp_telefono', 'Teléfono')}
+        {c('imp_ciudad', 'Ciudad (cód.)')}
+        {c('imp_departamento', 'Departamento', { opciones: DEPARTAMENTOS.map(([cod, n]) => [cod, `${n} · Cód. ${cod}`]), ancho: 2 })}
+        {c('imp_codigo', 'Código', { opciones: CODIGOS_EMPRESA.map((t) => [t, t]) })}
+      </Seccion>
+      <Seccion titulo="Exportador o proveedor en el exterior">
+        {c('exp_nombre', 'Exportador o proveedor', { ancho: 2 })}
+        {c('exp_ciudad', 'Ciudad')}
+        {c('exp_pais', 'País exportador (cód.)')}
+        {c('exp_direccion', 'Dirección', { ancho: 2 })}
+        {c('factura', 'No. de factura')}
+        {c('factura_fecha', 'Fecha de factura', { placeholder: 'AAAA-MM-DD' })}
+      </Seccion>
+      <Seccion titulo="Transporte">
+        {c('pais_procedencia', 'País procedencia (cód.)')}
+        {c('modo_transporte', 'Modo de transporte (cód.)')}
+        {c('bandera', 'Bandera (cód.)')}
+        {c('depto_destino', 'Depto. destino (cód.)')}
+        {c('transportadora', 'Empresa transportadora (cód.)', { ancho: 2 })}
+        <Campo nombre="tasa" rotulo="Tasa de cambio" soloLectura valor={TASA_SEMANA.toLocaleString('es-CO')} v={v} ancho={2} />
+      </Seccion>
+      <div className={css.acciones}><button type="button" className={css.primario} onClick={onSalvar}>Guardar</button></div>
     </div>
   );
 }

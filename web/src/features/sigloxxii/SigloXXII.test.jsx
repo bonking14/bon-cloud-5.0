@@ -41,24 +41,24 @@ describe('SIGLO XXII', () => {
     entrar();
     RUTA_MENU.forEach((o) => fireEvent.click(screen.getByRole('menuitem', { name: o })));
     // parámetros previos
-    fireEvent.click(screen.getByText('SIGUIENTE'));
-    fireEvent.click(screen.getByText('INGRESAR'));
+    fireEvent.click(screen.getByRole('button', { name: 'Siguiente' }));
+    fireEvent.click(screen.getByRole('button', { name: 'Continuar' }));
     expect(screen.getByRole('alert').textContent).toMatch(/BOLIVAR/);
     fireEvent.change(screen.getByLabelText('Departamento importador'), { target: { value: '13' } });
-    fireEvent.click(screen.getByText('INGRESAR'));
+    fireEvent.click(screen.getByRole('button', { name: 'Continuar' }));
     // encabezado: vacío no guarda y dice qué falta
-    fireEvent.click(screen.getByText('SALVAR'));
+    fireEvent.click(screen.getByRole('button', { name: 'Guardar' }));
     expect(screen.getByRole('alert').textContent).toMatch(/NIT del importador: falta/);
     fireEvent.click(screen.getByText('Ver la solución de esta pantalla'));
     expect(screen.getByLabelText('DV').value).toBe('8');
-    fireEvent.click(screen.getByText('SALVAR'));
+    fireEvent.click(screen.getByRole('button', { name: 'Guardar' }));
     // subpartida: sin autoliquidar no guarda
     fireEvent.click(screen.getByText('Ver la solución de esta pantalla'));
-    fireEvent.click(screen.getByText('SALVAR'));
+    fireEvent.click(screen.getByRole('button', { name: 'Guardar' }));
     expect(screen.getByRole('alert').textContent).toMatch(/Falta la autoliquidación/);
-    fireEvent.click(screen.getByText('AUTOLIQUIDACIÓN'));
+    fireEvent.click(screen.getByRole('button', { name: 'Autoliquidar' }));
     expect(screen.getByTestId('sx-total').textContent).toBe('65.264.000');
-    fireEvent.click(screen.getByText('SALVAR'));
+    fireEvent.click(screen.getByRole('button', { name: 'Guardar' }));
     expect(screen.getByRole('status').textContent).toMatch(/Declaración guardada/);
     expect(screen.getByText(/total a pagar \$65.264.000/)).toBeTruthy();
   });
@@ -67,14 +67,14 @@ describe('SIGLO XXII', () => {
     abrir();
     entrar();
     RUTA_MENU.forEach((o) => fireEvent.click(screen.getByRole('menuitem', { name: o })));
-    fireEvent.click(screen.getByText('SIGUIENTE'));
+    fireEvent.click(screen.getByRole('button', { name: 'Siguiente' }));
     fireEvent.change(screen.getByLabelText('Departamento importador'), { target: { value: '13' } });
-    fireEvent.click(screen.getByText('INGRESAR'));
+    fireEvent.click(screen.getByRole('button', { name: 'Continuar' }));
     fireEvent.click(screen.getByText('Ver la solución de esta pantalla'));
-    fireEvent.click(screen.getByText('SALVAR'));
+    fireEvent.click(screen.getByRole('button', { name: 'Guardar' }));
     fireEvent.click(screen.getByText('Ver la solución de esta pantalla'));
-    fireEvent.click(screen.getByText('AUTOLIQUIDACIÓN'));
-    fireEvent.click(screen.getByText('SALVAR'));
+    fireEvent.click(screen.getByRole('button', { name: 'Autoliquidar' }));
+    fireEvent.click(screen.getByRole('button', { name: 'Guardar' }));
     expect(screen.getByTestId('sx-registro').textContent).toMatch(/invitado/);
     expect(pedir).not.toHaveBeenCalled();
   });
@@ -87,15 +87,15 @@ describe('SIGLO XXII', () => {
     expect(screen.getByRole('alert').textContent).toMatch(/A000042/);
     entrar('a000042');
     RUTA_MENU.forEach((o) => fireEvent.click(screen.getByRole('menuitem', { name: o })));
-    fireEvent.click(screen.getByText('SIGUIENTE'));
+    fireEvent.click(screen.getByRole('button', { name: 'Siguiente' }));
     fireEvent.change(screen.getByLabelText('Departamento importador'), { target: { value: '13' } });
-    fireEvent.click(screen.getByText('INGRESAR'));
-    fireEvent.click(screen.getByText('SALVAR')); // encabezado vacío: segundo error
+    fireEvent.click(screen.getByRole('button', { name: 'Continuar' }));
+    fireEvent.click(screen.getByRole('button', { name: 'Guardar' })); // encabezado vacío: segundo error
     fireEvent.click(screen.getByText('Ver la solución de esta pantalla'));
-    fireEvent.click(screen.getByText('SALVAR'));
+    fireEvent.click(screen.getByRole('button', { name: 'Guardar' }));
     fireEvent.click(screen.getByText('Ver la solución de esta pantalla'));
-    fireEvent.click(screen.getByText('AUTOLIQUIDACIÓN'));
-    fireEvent.click(screen.getByText('SALVAR'));
+    fireEvent.click(screen.getByRole('button', { name: 'Autoliquidar' }));
+    fireEvent.click(screen.getByRole('button', { name: 'Guardar' }));
     expect(pedir).toHaveBeenCalledTimes(1);
     expect(pedir).toHaveBeenCalledWith('/practicas', { metodo: 'POST', token: 'jwt', cuerpo: { practica: 'sigloxxii-importacion', errores: 2, conSolucion: true } });
     expect((await screen.findByText(/quedó registrada/)).textContent).toMatch(/2 pantallas con errores/);

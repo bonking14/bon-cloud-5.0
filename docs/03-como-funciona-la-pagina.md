@@ -82,7 +82,9 @@ nota y la fecha, sin necesidad de cuenta.
 - **Simulador logístico:** estima costos, tiempos y riesgos de una importación y genera un
   informe.
 - **SIGLO XXII:** práctica paso a paso de cómo se ingresa una declaración de importación en
-  el sistema informático aduanero: ingreso con un usuario de práctica, menú en cascada,
+  el sistema informático aduanero, con el mismo recorrido y los mismos campos del sistema real
+  pero con una apariencia moderna. Incluye la consulta de inventario del documento de
+  transporte: ingreso con un usuario de práctica, menú en cascada,
   parámetros previos, encabezado, subpartida y autoliquidación. El sistema valida cada pantalla
   contra los documentos del caso y dice qué falta o qué no coincide. Es un simulador: no se
   conecta con la DIAN. Aún no incluye documentos soporte, aceptación, pago ni levante. Cada

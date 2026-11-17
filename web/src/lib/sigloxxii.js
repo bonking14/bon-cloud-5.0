@@ -49,6 +49,12 @@ export const CASO = {
     { titulo: 'Manifiesto de carga y depósito', datos: [['Manifiesto', '116575000000457'], ['Fecha', '2026-03-10'], ['Depósito', 'DEP048 (depósito público ficticio)']] },
     { titulo: 'Otros datos', datos: [['Póliza de seguro', 'USD 300'], ['Subpartida', '8413.60.90.00'], ['Modalidad', 'C100 (importación ordinaria)'], ['Arancel', '5% (de práctica)'], ['IVA', '19%'], ['Firma', 'Ana María Pérez Gómez, C.C. 1000000001']] },
   ],
+  // Consulta de inventario por documento de transporte: lo que el sistema muestra antes de declarar
+  inventario: {
+    manifiesto: '116575000000457', documento: 'SHACTG-2026-0457', transportador: 'Naviera del Pacífico (ficticia)',
+    deposito: 'DEP048 (depósito público ficticio)', consignatario: 'HidroColombia S.A.S. (ficticia)',
+    fechaManifiesto: '2026-03-10 08:30', vencimiento: '2026-04-09', prorroga: 'NO', ubicacion: 'Depósito', peso: 2600, cantidad: 1,
+  },
   encabezado: {
     administracion: '48', lugar_ingreso: 'CTG', deposito: 'DEP048',
     manifiesto: '116575000000457', manifiesto_fecha: '2026-03-10', doc_transporte: 'SHACTG-2026-0457', doc_transporte_fecha: '2026-02-12',
