@@ -20,9 +20,17 @@ describe('arancel de aduanas completo', () => {
     expect(new Set(filas.map((f) => f.codigo)).size).toBe(filas.length);
   });
 
-  it('las subpartidas de las fichas existen en el arancel y tienen el mismo gravamen', () => {
+  it('las fichas usan el gravamen del arancel, o su nota explica qué otro decreto lo cambia', () => {
+    // El arancel trae el gravamen general; hay diferimientos (Decreto 272 de 2018, 1183 de 2025)
+    // y aumentos (confecciones, vehículos) fijados por otros decretos
     const porCodigo = new Map(filas.map((f) => [f.codigo, f]));
-    subpartidas.forEach((sp) => expect([sp.codigo, porCodigo.get(sp.codigo)?.grv]).toEqual([sp.codigo, sp.arancel]));
+    subpartidas.forEach((sp) => {
+      const fila = porCodigo.get(sp.codigo);
+      expect([sp.codigo, Boolean(fila)]).toEqual([sp.codigo, true]);
+      if (fila.grv === sp.arancel) return;
+      const otros = (sp.notas.match(/Decreto \d+ de \d{4}/g) || []).filter((d) => d !== 'Decreto 1881 de 2021');
+      expect([sp.codigo, otros.length > 0]).toEqual([sp.codigo, true]);
+    });
   });
 
   it('busca por código y por palabras, con la ruta de la subpartida', () => {

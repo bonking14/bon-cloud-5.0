@@ -28,7 +28,8 @@ export default function ArancelCompleto({ fichas, onVerFicha }) {
       <p className="buscador-hint">
         {filas.length.toLocaleString('es-CO')} subpartidas de 10 dígitos del <strong>Arancel de Aduanas</strong> (Decreto 1881 de 2021,
         con sus modificaciones, según la compilación jurídica de la DIAN consultada en noviembre de 2026). La columna Grv. es el gravamen
-        arancelario. El IVA no hace parte del arancel. Antes de una operación real, confírmalo en la norma vigente.
+        arancelario general; algunos productos tienen una tarifa diferida por otro decreto (por ejemplo, el 0% del Decreto 272 de 2018
+        para ciertos bienes de capital), que se indica en las fichas de práctica. El IVA no hace parte del arancel. Antes de una operación real, confírmalo en la norma vigente.
       </p>
       <div className="buscador-section">
         <Buscador valor={busqueda} onChange={setBusqueda} placeholder="Busca en todo el arancel por código o palabras… Ej: 0901, café tostado, bombas" />

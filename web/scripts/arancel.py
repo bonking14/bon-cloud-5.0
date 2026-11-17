@@ -23,14 +23,17 @@ def texto(ruta):
     return [re.sub(r'\s+', ' ', l).strip() for l in s.split('\n')]
 
 PARTIDA = re.compile(r'^(\d{2}\.\d{2})\s+(.+)$')
-CODIGO = re.compile(r'^(\d{4}\.\d{2}(?:\.\d{2}\.\d{2}|\.\d{2})?)\s+((?:-\s*)*)(.+?)(?:\s+(\d{1,3}(?:[.,]\d+)?))?$')
+CODIGO = re.compile(r'^(\d{4}\.\d{2}(?:\.\d{2}\.\d{2}|\.\d{2})?)\s+((?:-\s*)*)(.+?)(?:\s+(\d{1,3}(?:[.,]\d+)?)\s*%?)?$')
 TITULO = re.compile(r'^((?:-\s*)+)(.+:)$')
 
 def convertir(lineas):
     secciones, cap, sec = [], None, None
     esperando = None
+    pendiente = None  # subpartida de 10 dígitos cuya tarifa quedó en un renglón aparte (tras una nota)
     for l in lineas:
         if not l: continue
+        if pendiente is not None and re.match(r'^\d{1,3}(?:[.,]\d+)?\s*%?$', l):
+            pendiente[3] = float(l.rstrip('% ').replace(',', '.')); pendiente = None; continue
         m = re.match(r'^SECCI[ÓO]N\s+([IVX]+)\.?$', l)
         if m and m.group(1) in ROMANOS:
             sec = {'n': m.group(1), 't': '', 'capitulos': []}; secciones.append(sec); esperando = sec; cap = None; continue
@@ -49,6 +52,7 @@ def convertir(lineas):
             nivel = guiones.count('-')
             completo = len(codigo) == 13
             cap['items'].append([codigo, nivel, desc.strip(), float(grv.replace(',', '.')) if (grv and completo) else None])
+            pendiente = cap['items'][-1] if (completo and not grv) else None
             continue
         m = TITULO.match(l)
         if m and cap['items']:
