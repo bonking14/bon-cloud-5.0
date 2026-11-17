@@ -37,7 +37,7 @@
 .lista small { color: var(--text-muted); }
 .enLinea { display: flex; flex-wrap: wrap; gap: 8px; align-items: center; }
 .enLinea input { flex: 1; min-width: 180px; max-width: 320px; padding: 8px 10px; border-radius: 8px; border: 1px solid var(--border); background: var(--bg-input, var(--bg-panel)); color: var(--text-primary); font: inherit; }
-.codigo { font-family: ui-monospace, Consolas, monospace; font-size: 1rem; font-weight: 700; letter-spacing: 2px; padding: 2px 8px; border-radius: 6px; background: var(--bg-active); color: var(--text-accent); }
+.codigo { font-family: var(--font-codigo); font-size: 1rem; font-weight: 700; letter-spacing: 2px; padding: 2px 8px; border-radius: 6px; background: var(--bg-active); color: var(--text-accent); }
 .tarjetas { display: grid; grid-template-columns: repeat(auto-fill, minmax(260px, 1fr)); gap: 12px; }
 .tarjetaGrupo { display: flex; flex-direction: column; gap: 6px; padding: 16px; border-radius: 12px; border: 1px solid var(--border); background: var(--bg-panel); color: var(--text-primary); text-decoration: none; }
 .tarjetaGrupo:hover { border-color: var(--text-accent); }

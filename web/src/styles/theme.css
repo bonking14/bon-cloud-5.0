@@ -4,6 +4,9 @@
 
 /* ── MODO OSCURO (default) ─────────────────────────────────── */
 :root {
+  /* Letras: Ubuntu para todo el texto y Ubuntu Mono para códigos y cifras */
+  --font-texto:  'Ubuntu', 'Segoe UI', Roboto, Arial, sans-serif;
+  --font-codigo: 'Ubuntu Mono', ui-monospace, Consolas, monospace;
   --bg-base:       #0d0d13;
   --bg-panel:      #0f1117;
   --bg-hover:      #1a1f2e;

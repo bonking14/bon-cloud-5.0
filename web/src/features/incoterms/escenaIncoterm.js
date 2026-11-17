@@ -160,7 +160,7 @@ function drawFabrica(ctx,x,groundY,H,color,label,isLight){
     ctx.fill();
   }
   // Label
-  ctx.fillStyle = isLight ? '#2563EB' : '#4a7fd4'; ctx.font='bold 9px Segoe UI';
+  ctx.fillStyle = isLight ? '#2563EB' : '#4a7fd4'; ctx.font='bold 9px Ubuntu, Segoe UI, sans-serif';
   ctx.textAlign='center'; ctx.fillText(label,x,groundY+12);
 }
 
@@ -176,7 +176,7 @@ function drawAlmacen(ctx,x,groundY,H,color,label,isLight){
     ctx.fillStyle = isLight ? 'rgba(239,68,68,0.3)' : 'rgba(122,79,79,0.3)';
     roundRect(ctx,x-20+c*28,groundY-h+10,12,10,2); ctx.fill();
   }
-  ctx.fillStyle = isLight ? '#DC2626' : '#7a4f4f'; ctx.font='bold 9px Segoe UI';
+  ctx.fillStyle = isLight ? '#DC2626' : '#7a4f4f'; ctx.font='bold 9px Ubuntu, Segoe UI, sans-serif';
   ctx.textAlign='center'; ctx.fillText(label,x,groundY+12);
 }
 
@@ -192,7 +192,7 @@ function drawPuerto(ctx,x,groundY,H,color,label,isLight){
   // Base
   ctx.fillStyle=color; roundRect(ctx,x-6,groundY-10,12,10,2); ctx.fill();
   // Label
-  ctx.fillStyle = isLight ? '#4B5563' : '#6b7280'; ctx.font='9px Segoe UI'; ctx.textAlign='center';
+  ctx.fillStyle = isLight ? '#4B5563' : '#6b7280'; ctx.font='9px Ubuntu, Segoe UI, sans-serif'; ctx.textAlign='center';
   label.split('\n').forEach((l,i)=>ctx.fillText(l,x,groundY+12+i*11));
 }
 
@@ -263,7 +263,7 @@ function drawFlag(ctx,x,y,esVendedor,t,isLight){
   ctx.fillStyle = esVendedor ? (isLight ? '#2563EB' : '#4a7fd4') : (isLight ? '#DC2626' : '#7a4f4f');
   ctx.fill();
   // Texto en bandera
-  ctx.fillStyle='#fff'; ctx.font='bold 6px Segoe UI'; ctx.textAlign='center';
+  ctx.fillStyle='#fff'; ctx.font='bold 6px Ubuntu, Segoe UI, sans-serif'; ctx.textAlign='center';
   ctx.fillText(esVendedor?'V':'C', x+8+wave/2, y-21);
 }
 
@@ -302,7 +302,7 @@ function drawRiskLine(ctx,x,y1,y2,passed,isLight){
   ctx.setLineDash([]);
   // Etiqueta
   ctx.fillStyle = passed ? (isLight ? 'rgba(220,38,38,0.8)' : 'rgba(122,79,79,0.8)') : (isLight ? 'rgba(234,88,12,0.9)' : 'rgba(255,200,50,0.9)');
-  ctx.font='bold 8px Segoe UI'; ctx.textAlign='center';
+  ctx.font='bold 8px Ubuntu, Segoe UI, sans-serif'; ctx.textAlign='center';
   ctx.fillText('⚡ RIESGO', x, y1-4);
   ctx.restore();
 }
@@ -328,7 +328,7 @@ function drawHUD(ctx,W,H,tc,inc,isLight){
   ctx.fillStyle = isLight ? '#EA580C' : '#fbbf24';
   roundRect(ctx,bx+bw*inc.riskPoint-1,by-2,2,10,1); ctx.fill();
   // Labels HUD
-  ctx.fillStyle = isLight ? '#2563EB' : '#4a7fd4'; ctx.font='bold 8px Segoe UI'; ctx.textAlign='left';
+  ctx.fillStyle = isLight ? '#2563EB' : '#4a7fd4'; ctx.font='bold 8px Ubuntu, Segoe UI, sans-serif'; ctx.textAlign='left';
   ctx.fillText('Vendedor',bx,by-8);
   ctx.fillStyle = isLight ? '#DC2626' : '#7a4f4f'; ctx.textAlign='right';
   ctx.fillText('Comprador',bx+bw,by-8);

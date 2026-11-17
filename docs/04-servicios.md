@@ -71,7 +71,7 @@ datos abiertos del Estado. La consulta la hace el navegador, no la API.
 
 ### Google Fonts
 
-Provee los tipos de letra Inter y Archivo Black.
+Provee los tipos de letra Ubuntu y Ubuntu Mono.
 
 - **Si falla:** la página se ve con los tipos de letra del sistema.
 

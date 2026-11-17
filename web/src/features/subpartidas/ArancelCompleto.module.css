@@ -13,7 +13,7 @@
 .tabla td { padding: 4px 8px; border-bottom: 1px solid var(--border); color: var(--text-primary); vertical-align: top; line-height: 1.45; }
 .tabla th:last-child, .tabla td:last-child { text-align: right; white-space: nowrap; }
 .partida td { font-weight: 700; padding-top: 10px; }
-.codigo { font-family: ui-monospace, Menlo, Consolas, monospace; white-space: nowrap; color: var(--text-accent); }
+.codigo { font-family: var(--font-codigo); white-space: nowrap; color: var(--text-accent); }
 .guiones { color: var(--text-hint); }
 .grv { font-weight: 600; }
 .ficha { margin-left: 6px; font: inherit; font-size: 11px; padding: 1px 8px; border-radius: 999px; border: 1px solid var(--border-accent); background: var(--bg-active); color: var(--text-accent); cursor: pointer; }

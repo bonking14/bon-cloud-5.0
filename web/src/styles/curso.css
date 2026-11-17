@@ -378,7 +378,8 @@
 .leccion-main-titulo {
   font-size: 1.6rem;
   color: var(--text-primary);
-  font-family: 'Archivo Black', sans-serif;
+  font-family: var(--font-texto);
+  font-weight: 700;
   line-height: 1.3;
 }
 

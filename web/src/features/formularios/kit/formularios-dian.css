@@ -15,7 +15,7 @@
   padding: 8mm;
   box-shadow: 0 0 10px rgba(0, 0, 0, 0.5);
   position: relative;
-  font-family: 'Inter', Arial, sans-serif;
+  font-family: var(--font-texto);
   color: #000;
   line-height: normal;
 }
@@ -123,7 +123,7 @@
   border-radius: 8px;
   background: #0f172a;
   color: #f8fafc;
-  font: 0.6875rem/1.4 'Inter', Arial, sans-serif;
+  font: 0.6875rem/1.4 var(--font-texto);
   box-shadow: 0 10px 25px rgba(0, 0, 0, 0.5);
   pointer-events: none;
 }

@@ -14,7 +14,7 @@
   border-radius: 7px;
   color: var(--text-muted);
   padding: 5px 0;
-  font: 600 0.75rem 'Inter', sans-serif;
+  font: 500 0.75rem var(--font-texto);
   cursor: pointer;
   transition: background 0.2s, color 0.2s, border-color 0.2s;
 }

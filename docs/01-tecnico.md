@@ -52,7 +52,7 @@ BonCloud son tres piezas que se hablan por internet:
 | API | node:test, supertest | Pruebas |
 | Datos | PostgreSQL 16 | Almacenamiento |
 
-No hay framework de CSS ni gestor de estado externo: estilos propios y contextos de React.
+No hay framework de CSS ni gestor de estado externo: estilos propios y contextos de React. Las letras son Ubuntu (texto y títulos) y Ubuntu Mono (códigos y cifras), definidas en `--font-texto` y `--font-codigo` en `styles/theme.css`; los formularios DIAN usan Arial, como el original.
 
 ## 3. Modelo de datos
 

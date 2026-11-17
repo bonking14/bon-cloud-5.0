@@ -450,7 +450,7 @@
 @keyframes simSpin { to { transform: rotate(360deg); } }
 .sim-cost-table { width: 100%; border-collapse: collapse; font-size: 0.75rem; }
 .sim-cost-table td { padding: 7px 4px; border-bottom: 1px solid var(--bg-table-row); color: var(--text-muted); }
-.sim-cost-table td:last-child { text-align: right; color: var(--text-secondary); font-weight: 500; font-family: monospace; }
+.sim-cost-table td:last-child { text-align: right; color: var(--text-secondary); font-weight: 500; font-family: var(--font-codigo); }
 .sim-cost-table tr:last-child td { border-bottom: none; font-weight: 700; color: var(--text-accent); font-size: 0.875rem; padding-top: 10px; border-top: 1px solid var(--border); }
 .sim-tl-dot { width: 10px; height: 10px; border-radius: 50%; background: var(--text-accent); margin: 10px auto 8px; position: relative; z-index: 1; }
 .sim-tl-name { font-size: 0.6875rem; color: var(--text-secondary); font-weight: 600; margin-bottom: 2px; }

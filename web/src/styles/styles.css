@@ -5,7 +5,7 @@
 }
 
 body {
-    font-family: 'Inter', sans-serif;
+    font-family: var(--font-texto);
     background: #0d0d13;
     color: #d1d5db;
     font-size: 0.8125rem;
@@ -18,11 +18,9 @@ body {
 }
 
 h1, h2 {
-    font-family: 'Archivo Black', sans-serif;
-    font-weight: 400;
-    /* Archivo Black solo existe en peso 400: sin esto el navegador fabrica una
-       negrita artificial y el punto de la "i" se funde con el trazo */
-    font-synthesis: none;
+    font-family: var(--font-texto);
+    font-weight: 700;
+    letter-spacing: -0.01em;
 }
 
 /* ========== SIDEBAR ========== */
@@ -85,7 +83,7 @@ nav {
     background: transparent;
     border: none;
     font-size: 0.8125rem;
-    font-family: 'Inter', sans-serif;
+    font-family: var(--font-texto);
 }
 
 .sidebar-footer .nav-item:hover {
@@ -99,7 +97,7 @@ nav {
     align-items: center;
     justify-content: center;
     gap: 8px;
-    font-family: 'Inter', sans-serif;
+    font-family: var(--font-texto);
     font-size: 0.8125rem;
     font-weight: 600;
     border-radius: 8px;
@@ -188,7 +186,7 @@ nav {
 
 .dashboard-header h1 {
     font-size: 1.375rem;
-    font-weight: 400;
+    font-weight: 700;
     color: #e2e8f0;
     margin-bottom: 4px;
 }
@@ -309,7 +307,7 @@ nav {
     margin-bottom: 16px;
     padding-bottom: 8px;
     border-bottom: 1px solid var(--border);
-    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+    font-family: var(--font-texto);
     font-weight: 600;
 }
 
@@ -563,7 +561,7 @@ nav {
     padding: 2px 6px;
     border-radius: 3px;
     font-size: 0.625rem;
-    font-family: monospace;
+    font-family: var(--font-codigo);
 }
 
 .vb-requisitos-title { font-size: 0.625rem; color: #374151; margin-bottom: 5px; text-transform: uppercase; letter-spacing: 0.05em; }
@@ -712,7 +710,7 @@ nav {
 .sp-card:hover { border-color: #2a4a7f; }
 
 .sp-card-code {
-    font-family: monospace;
+    font-family: var(--font-codigo);
     font-size: 0.6875rem;
     color: #4a7fd4;
     font-weight: 600;
@@ -783,7 +781,7 @@ nav {
 
 .sp-modal-close:hover { color: #9ca3af; }
 
-.modal-code { font-family: monospace; font-size: 0.75rem; color: #4a7fd4; margin-bottom: 4px; }
+.modal-code { font-family: var(--font-codigo); font-size: 0.75rem; color: #4a7fd4; margin-bottom: 4px; }
 .modal-title { font-size: 1rem; color: #c9d1dc; font-weight: 600; margin-bottom: 8px; }
 .modal-desc { font-size: 0.75rem; color: #6b7280; line-height: 1.5; margin-bottom: 16px; }
 
