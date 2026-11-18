@@ -42,3 +42,16 @@ describe('arancel de aduanas completo', () => {
     expect(buscarEnArancel(filas, '').total).toBe(0);
   });
 });
+
+describe('modificaciones posteriores al Decreto 1881', () => {
+  it('las confecciones de los capítulos 61 y 62 tienen el 40% del Decreto 2598 de 2022', () => {
+    const confecciones = filas.filter((f) => f.capitulo === 61 || f.capitulo === 62);
+    expect(confecciones.length).toBeGreaterThan(200);
+    confecciones.forEach((f) => {
+      expect([f.codigo, f.grv]).toEqual([f.codigo, 40]);
+      expect(f.nota).toMatch(/Decreto 2598 de 2022/);
+    });
+    // el capítulo vecino conserva su gravamen
+    expect(filas.filter((f) => f.capitulo === 63).some((f) => f.grv !== 40)).toBe(true);
+  });
+});

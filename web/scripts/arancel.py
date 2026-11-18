@@ -59,7 +59,24 @@ def convertir(lineas):
             cap['items'].append(['', m.group(1).count('-'), m.group(2).strip(), None])
     return secciones
 
+# Decretos posteriores que cambian el gravamen de capítulos completos y que la compilación del
+# Decreto 1881 no incorpora en su texto: capítulo → (gravamen, nota que se muestra en la página)
+MODIFICACIONES = {
+    61: (40.0, 'Arancel del 40% para todo el capítulo por el Decreto 2598 de 2022, vigente desde el 7 de enero de 2023 (el Decreto 1881 de 2021 fijaba el 15%).'),
+    62: (40.0, 'Arancel del 40% para todo el capítulo por el Decreto 2598 de 2022, vigente desde el 7 de enero de 2023 (el Decreto 1881 de 2021 fijaba el 15%).'),
+}
+
+def aplicar_modificaciones(secciones):
+    for sec in secciones:
+        for cap in sec['capitulos']:
+            if cap['n'] not in MODIFICACIONES: continue
+            gravamen, nota = MODIFICACIONES[cap['n']]
+            cap['nota'] = nota
+            for item in cap['items']:
+                if len(item[0]) == 13: item[3] = gravamen
+    return secciones
+
 if __name__ == '__main__':
-    secciones = convertir(texto(sys.argv[1]))
+    secciones = aplicar_modificaciones(convertir(texto(sys.argv[1])))
     json.dump({'fuente': 'Decreto 1881 de 2021, Arancel de Aduanas (compilación jurídica de la DIAN)', 'secciones': secciones},
               sys.stdout, ensure_ascii=False, separators=(',', ':'))

@@ -28,8 +28,9 @@ export default function ArancelCompleto({ fichas, onVerFicha }) {
       <p className="buscador-hint">
         {filas.length.toLocaleString('es-CO')} subpartidas de 10 dígitos del <strong>Arancel de Aduanas</strong> (Decreto 1881 de 2021,
         con sus modificaciones, según la compilación jurídica de la DIAN consultada en noviembre de 2026). La columna Grv. es el gravamen
-        arancelario general; algunos productos tienen una tarifa diferida por otro decreto (por ejemplo, el 0% del Decreto 272 de 2018
-        para ciertos bienes de capital), que se indica en las fichas de práctica. El IVA no hace parte del arancel. Antes de una operación real, confírmalo en la norma vigente.
+        arancelario. Las confecciones de los capítulos 61 y 62 ya tienen el 40% del Decreto 2598 de 2022. Algunos productos tienen
+        además una tarifa diferida por otro decreto (por ejemplo, el 0% del Decreto 272 de 2018 para ciertos bienes de capital), que se
+        indica en las fichas de práctica. El IVA no hace parte del arancel. Antes de una operación real, confírmalo en la norma vigente.
       </p>
       <div className="buscador-section">
         <Buscador valor={busqueda} onChange={setBusqueda} placeholder="Busca en todo el arancel por código o palabras… Ej: 0901, café tostado, bombas" />
@@ -44,6 +45,7 @@ export default function ArancelCompleto({ fichas, onVerFicha }) {
                 <span className={css.codigo}>{f.codigo}</span>
                 <span className={css.texto}>
                   <span className={css.ruta}>Sección {f.seccion} · Partida {f.partida?.codigo}: {f.partida?.desc}{f.ruta.length ? ` › ${f.ruta.join(' › ')}` : ''}</span>
+                  {f.nota && <span className={css.nota}>{f.nota}</span>}
                   <strong>{f.desc}</strong>
                   {fichas.has(f.codigo) && <button type="button" className={css.ficha} onClick={() => onVerFicha(f.codigo)}>Ver ficha con IVA y vistos buenos</button>}
                 </span>
@@ -75,6 +77,7 @@ function Capitulo({ cap, fichas, onVerFicha }) {
   return (
     <details className={css.capitulo} onToggle={(e) => setAbierto(e.currentTarget.open)}>
       <summary><span className={css.numCap}>Capítulo {cap.n}</span> {cap.t}</summary>
+      {abierto && cap.nota && <p className={css.nota}>{cap.nota}</p>}
       {abierto && (
         <div className={css.scroll}>
           <table className={css.tabla}>

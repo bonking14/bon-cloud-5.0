@@ -15,7 +15,7 @@ export function indexar(datos) {
       while (pila.length && pila[pila.length - 1].nivel >= nivel) pila.pop();
       if (codigo.length === 13) {
         const ruta = pila.map((p) => p.desc.replace(/:$/, ''));
-        filas.push({ codigo, desc, grv, nivel, ruta, partida, capitulo: cap.n, seccion: sec.n, buscar: normalizar(`${partida?.desc ?? ''} ${ruta.join(' ')} ${desc}`) });
+        filas.push({ codigo, desc, grv, nivel, ruta, partida, capitulo: cap.n, seccion: sec.n, nota: cap.nota, buscar: normalizar(`${partida?.desc ?? ''} ${ruta.join(' ')} ${desc}`) });
       } else {
         pila.push({ nivel, desc });
       }

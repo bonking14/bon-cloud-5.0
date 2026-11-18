@@ -25,3 +25,5 @@
   .resultado { grid-template-columns: 1fr auto; }
   .resultado .texto { grid-column: 1 / -1; grid-row: 2; }
 }
+/* Nota de un decreto que cambia el gravamen de un capítulo completo */
+.nota { display: block; margin: 4px 0 8px; padding: 6px 10px; border-left: 3px solid var(--text-accent); background: var(--bg-active); color: var(--text-secondary); font-size: 12px; line-height: 1.45; }
