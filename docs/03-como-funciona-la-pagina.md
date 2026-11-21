@@ -94,7 +94,8 @@ nota y la fecha, sin necesidad de cuenta.
   parámetros previos, encabezado, ítem con autoliquidación, descripción, totales, documentos
   soporte e informar. El sistema valida cada pantalla
   contra los documentos del caso y dice qué falta o qué no coincide. Es un simulador: no se
-  conecta con la DIAN. Aún no incluye el pago en el banco ni la solicitud de levante. Cada
+  conecta con la DIAN. Tiene dos prácticas, que se eligen arriba de los pasos: la declaración de
+  importación completa y el recibo oficial de pago. Cada
   cuenta tiene su propio usuario de práctica (por ejemplo `A000042`); al terminar, la práctica
   queda registrada a su nombre. El invitado usa un usuario de ejemplo y no se le registra.
   Los documentos del caso traen nombres (Cartagena, Panamá, marítimo) y no códigos: el
@@ -116,6 +117,17 @@ nota y la fecha, sin necesidad de cuenta.
     licencia) se marca «Sí presentado», «No presentado» o «No requerido», con número y fecha.
   - **Informar:** con todo guardado, el estudiante revisa la declaración, pulsa «Confirmar» y
     el sistema da el número de aceptación.
+  - **Pago:** en el banco se registra la aceptación, el banco, el valor (debe ser el total de la
+    casilla 73) y el cheque; el banco pone el autoadhesivo.
+  - **Levante:** con la aceptación y el autoadhesivo (números y fechas) se pide el levante, y el
+    sistema lo da en la casilla 81.
+
+  La **práctica 2, recibo oficial de pago**, se entra por el menú «Recibo Oficial Pago» →
+  «Ingresar». El caso es una declaración anterior en la que solo se pagó el arancel: el
+  estudiante paga el IVA pendiente con sus intereses de mora (sin volver a pagar el arancel),
+  guarda el recibo, recibe un número de radicación y lo preinforma para obtener el número de
+  aceptación del recibo. «Árbol de Documentos» y «ROP Declaración Especial» aparecen en el menú
+  pero todavía no tienen práctica.
 
   Al final, «Generar el formulario 500 (PDF)» abre el formulario 500 con la declaración (incluida
   la descripción que escribió el estudiante) para imprimirlo o guardarlo en PDF. Desde la guía
@@ -150,7 +162,7 @@ Además de todo lo anterior, tiene el menú **Grupos**.
 1. Crea un grupo y recibe un **código de seis caracteres**.
 2. Comparte el código. Cada estudiante lo escribe en «Mi perfil» → «Mis grupos».
 3. En el panel del grupo ve a cada estudiante con sus lecciones aprobadas, su promedio, sus
-   intentos, si terminó la práctica de SIGLO XXII y su última actividad. Al abrir un estudiante
+   intentos, si terminó cada práctica de SIGLO XXII y su última actividad. Al abrir un estudiante
    ve el detalle lección por lección y, de la práctica, cuántas pantallas le devolvió el
    sistema con errores y si usó el botón de la solución.
 4. Puede **descargar todo a Excel**, retirar a un estudiante, cerrar el grupo (el código

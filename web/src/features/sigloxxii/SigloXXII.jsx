@@ -7,10 +7,12 @@ import { pedir } from '../../auth/api.js';
 import { useAuth } from '../../auth/AuthContext.jsx';
 import {
   ADMINISTRACION, CASO, CODIGOS_EMPRESA, CREDENCIALES, DEPARTAMENTOS, FORMAS_PAGO, PRACTICA, RUTA_MENU, TASA_SEMANA, TIPOS_IMPORTACION,
-  NUMERO_ACEPTACION, aFormulario500, dvImportador, liquidar, opcionesMenu, solucionSoporte, solucionTotales, usuarioDePractica,
+  ACEPTACION, CASO_ROP, LEVANTE, PRACTICA_ROP, ROP, RUTA_ROP, aFormulario500, solucionLevante, solucionPago, totalPagado,
+  validarLevante, validarPago, validarRop, dvImportador, liquidar, opcionesMenu, solucionSoporte, solucionTotales, usuarioDePractica,
   validarDescripcion, validarEncabezado, validarSoporte, validarSubpartida, validarTotales,
 } from '../../lib/sigloxxii.js';
-import { Descripcion, Informar, Soporte, Totales } from './Partes.jsx';
+import { Descripcion, Informar, Levante, Pago, Soporte, Totales } from './Partes.jsx';
+import { RopIngresar, RopRecibos } from './Rop.jsx';
 import css from './SigloXXII.module.css';
 
 // SIGLO XXII: el estudiante hace, paso a paso, el trámite de una declaración de importación
@@ -28,13 +30,28 @@ const PASOS = [
   ['totales', 'Totales'],
   ['soporte', 'Doc. soporte'],
   ['informar', 'Informar'],
+  ['pago', 'Pago'],
+  ['levante', 'Levante'],
   ['fin', 'Terminada'],
 ];
+// Práctica 2: recibo oficial de pago de un saldo pendiente
+const PASOS_ROP = [
+  ['login', 'Ingreso'],
+  ['menu', 'Menú'],
+  ['rop', 'Recibo oficial'],
+  ['roplista', 'Preinformar'],
+  ['fin', 'Terminada'],
+];
+const PRACTICAS = {
+  importacion: { nombre: 'Declaración de importación', pasos: PASOS, ruta: RUTA_MENU, primera: 'previos', id: PRACTICA, documentos: CASO.documentos },
+  rop: { nombre: 'Recibo oficial de pago', pasos: PASOS_ROP, ruta: RUTA_ROP, primera: 'rop', id: PRACTICA_ROP, documentos: CASO_ROP.documentos },
+};
+// Pantallas donde se puede pedir la solución y donde salen las inconsistencias
+const CON_SOLUCION = ['encabezado', 'subpartida', 'descripcion', 'totales', 'soporte', 'pago', 'levante', 'rop'];
 // Número de radicación de práctica que el sistema asigna al guardar el encabezado
 const RADICACION = '48000457';
 const AYUDA = {
   login: 'En el sistema real, el usuario lo asigna la DIAN a cada agencia de aduanas o usuario aduanero.',
-  menu: `Para abrir una declaración nueva sigue esta ruta: ${RUTA_MENU.join(' → ')}.`,
   previos: 'Antes del encabezado el sistema pregunta el tipo de declaración (Inicial), el departamento del importador y el documento que respalda la importación (el documento de transporte).',
   encabezado: 'Revisa el inventario del documento de transporte y llena el encabezado con los documentos del caso. Los documentos traen nombres, no códigos: búscalos con «Buscar código» junto a cada campo o en las tablas de abajo. Al guardar, el sistema te dirá qué no coincide y dónde mirar.',
   subpartida: 'Llena los datos de la mercancía y los valores; los códigos se buscan en las tablas. Escribe los porcentajes de arancel e IVA y pulsa «Autoliquidar» para que el sistema calcule los tributos. Después, «Guardar».',
@@ -43,7 +60,11 @@ const AYUDA = {
   totales: 'El sistema trae los totales liquidados. Tú llenas lo que se paga con esta declaración, las sanciones si las hay y la forma de pago, según la instrucción de pago del importador. El código del banco se busca en la tabla de bancos.',
   soporte: 'Para cada documento de la lista elige si se presentó, no se presentó o no se requiere. Si se presentó, anota su número y su fecha. Revisa quién firma y la clasificación del caso antes de marcar «No requerido».',
   informar: 'Revisa la declaración completa. Al confirmar, el sistema da el número de aceptación y la declaración ya no se puede modificar.',
-  fin: 'Terminaste el recorrido. Genera el formulario 500 con tu declaración para imprimirlo o guardarlo en PDF. En el sistema real seguirían el pago en el banco y la solicitud de levante.',
+  pago: 'La declaración quedó aceptada. Ahora se paga en el banco: el banco recibe la declaración aceptada y el valor de la casilla 73 con la forma de pago de la instrucción del importador.',
+  levante: 'El banco puso el autoadhesivo y transmitió el pago a la DIAN. Pide el levante con los números y fechas de la aceptación y del autoadhesivo.',
+  rop: 'Un recibo oficial de pago sirve para pagar lo que quedó pendiente de una declaración ya aceptada. Mira el estado de cuenta: solo se paga el saldo, con sus intereses de mora.',
+  roplista: 'El recibo quedó radicado. Revísalo y, si está bien, preinfórmalo: la DIAN le da un número de aceptación y ya no se puede cambiar.',
+  fin: 'Terminaste el recorrido.',
 };
 const pesos = (n) => Math.round(n || 0).toLocaleString('es-CO');
 const HOY = new Date();
@@ -140,6 +161,11 @@ export default function SigloXXII() {
   const [sop, setSop] = useState({});
   // Partes guardadas de la declaración radicada
   const [hechas, setHechas] = useState({ descripcion: false, totales: false, soporte: false });
+  const [pago, setPago] = useState({});
+  const [lev, setLev] = useState({});
+  const [rop, setRop] = useState({ sanciones: '0', otros: '0' });
+  const [practica, setPractica] = useState('importacion');
+  const P = PRACTICAS[practica];
   const listaRef = useRef(null);
   const [malos, setMalos] = useState(new Map());
   const avisoRef = useRef(null);
@@ -156,6 +182,7 @@ export default function SigloXXII() {
   const reiniciar = () => {
     setErrores(0); setConSolucion(false); setRegistro(null); enviado.current = false;
     setRuta([]); setAcceso({ usuario: '', clave: '' }); setPrevios({ etapa: 1, tipo: 'Inicial', departamento: '', respaldo: 'DOCUMENTO DE TRANSPORTE' });
+    setPago({}); setLev({}); setRop({ sanciones: '0', otros: '0' });
     setItemGuardado(false); setDesc(''); setTot({}); setSop({}); setHechas({ descripcion: false, totales: false, soporte: false }); setEnc({}); setSub({ cuotas: '0', otros: '0', ajuste: '0' }); setLiq(null); ir('login');
   };
 
@@ -169,7 +196,7 @@ export default function SigloXXII() {
   };
 
   const elegir = (opcion) => {
-    const esperado = RUTA_MENU[ruta.length];
+    const esperado = P.ruta[ruta.length];
     if (opcion !== esperado) {
       fallo({ tipo: 'error', texto: `«${opcion}» no hace parte de esta práctica. Para ingresar una declaración sigue por «${esperado}».` });
       return;
@@ -177,7 +204,7 @@ export default function SigloXXII() {
     const nueva = [...ruta, opcion];
     setRuta(nueva);
     setMensaje(null);
-    if (nueva.length === RUTA_MENU.length) ir('previos');
+    if (nueva.length === P.ruta.length) ir(P.primera);
   };
 
   const marcar = (faltas) => setMalos(new Map(faltas.map((x) => [x.campo, sinRotulo(x.mensaje)])));
@@ -231,6 +258,9 @@ export default function SigloXXII() {
     else if (paso === 'descripcion') setDesc(CASO.descripcion);
     else if (paso === 'totales') setTot(solucionTotales(liq));
     else if (paso === 'soporte') setSop(solucionSoporte());
+    else if (paso === 'pago') setPago(solucionPago(totalPagado(tot)));
+    else if (paso === 'levante') setLev(solucionLevante());
+    else if (paso === 'rop') setRop({ ...CASO_ROP.solucion });
     setConSolucion(true);
     setMalos(new Map());
     setMensaje({ texto: 'Se llenó la pantalla con los datos del caso. Revísalos contra los documentos y continúa.' });
@@ -241,15 +271,25 @@ export default function SigloXXII() {
     if (paso !== 'fin' || !tokenApi || enviado.current) return;
     enviado.current = true;
     setRegistro('guardando');
-    pedir('/practicas', { metodo: 'POST', token: tokenApi, cuerpo: { practica: PRACTICA, errores, conSolucion } })
+    pedir('/practicas', { metodo: 'POST', token: tokenApi, cuerpo: { practica: P.id, errores, conSolucion } })
       .then(() => setRegistro('ok'))
       .catch(() => setRegistro('fallo'));
-  }, [paso, tokenApi, errores, conSolucion]);
+  }, [paso, tokenApi, errores, conSolucion, P.id]);
+
+  // Cambiar de práctica empieza de nuevo
+  const cambiarPractica = (id) => { if (id !== practica) { setPractica(id); reiniciar(); } };
+  // Pago, levante y recibo oficial: si hay inconsistencias se listan; si no, sigue a la pantalla indicada
+  const salvarYSeguir = (faltas, siguiente, texto) => {
+    marcar(faltas);
+    if (faltas.length) { fallo({ tipo: 'error', texto: `Tiene ${faltas.length} ${faltas.length === 1 ? 'inconsistencia' : 'inconsistencias'}: no se puede continuar todavía.`, errores: faltas.map((x) => x.mensaje) }); return; }
+    ir(siguiente);
+    if (texto) setMensaje({ texto });
+  };
 
   // La pantalla de la declaración radicada cae en la parte que sigue pendiente
   const pendiente = !itemGuardado ? 'subpartida' : ['descripcion', 'totales', 'soporte'].find((p) => !hechas[p]) || 'informar';
   const pasoVisible = paso === 'declaracion' ? pendiente : paso;
-  const indice = PASOS.findIndex(([id]) => id === pasoVisible);
+  const indice = P.pasos.findIndex(([id]) => id === pasoVisible);
   const r = liq || {};
   const gastos = (parseFloat(sub.fletes) || 0) + (parseFloat(sub.seguros) || 0) + (parseFloat(sub.otros) || 0);
   const conSesion = paso !== 'login';
@@ -266,8 +306,14 @@ export default function SigloXXII() {
         </div>
       </div>
 
+      <div className={css.practicas} role="group" aria-label="Práctica">
+        <span>Práctica:</span>
+        {Object.entries(PRACTICAS).map(([id, x], i) => (
+          <button key={id} type="button" aria-pressed={practica === id} onClick={() => cambiarPractica(id)}>{i + 1}. {x.nombre}</button>
+        ))}
+      </div>
       <ol className={css.pasos} aria-label="Pasos de la práctica">
-        {PASOS.map(([id, texto], i) => (
+        {P.pasos.map(([id, texto], i) => (
           <li key={id} className={paso === 'fin' ? css.hecho : i === indice ? css.actual : i < indice ? css.hecho : undefined} aria-current={i === indice ? 'step' : undefined}>
             <span className={css.numPaso}>{i < indice || paso === 'fin' ? '✓' : i + 1}</span>{texto}
           </li>
@@ -513,10 +559,23 @@ export default function SigloXXII() {
                 onSalvar={() => salvarParte('soporte', validarSoporte(sop), 'Los datos quedaron radicados.')} />
             )}
             {paso === 'informar' && (
-              <Informar enc={enc} sub={sub} liq={liq} t={tot} radicacion={RADICACION} onVolver={() => ir('declaracion')} onConfirmar={() => ir('fin')} />
+              <Informar enc={enc} sub={sub} liq={liq} t={tot} radicacion={RADICACION} onVolver={() => ir('declaracion')} onConfirmar={() => ir('pago')} />
             )}
+            {paso === 'pago' && (
+              <Pago v={pago} poner={(k, val) => setPago((x) => ({ ...x, [k]: val }))} malos={malos} onBuscar={buscar}
+                onSalvar={() => salvarYSeguir(validarPago(pago, totalPagado(tot)), 'levante', 'El banco recibió el pago, puso el autoadhesivo en la declaración y transmitió el pago a la DIAN.')} />
+            )}
+            {paso === 'levante' && (
+              <Levante v={lev} poner={(k, val) => setLev((x) => ({ ...x, [k]: val }))} malos={malos}
+                onSalvar={() => salvarYSeguir(validarLevante(lev), 'fin')} />
+            )}
+            {paso === 'rop' && (
+              <RopIngresar v={rop} poner={(k, val) => setRop((x) => ({ ...x, [k]: val }))} malos={malos}
+                onSalvar={() => salvarYSeguir(validarRop(rop), 'roplista', `Los datos de su documento han sido almacenados con éxito. Número de radicación del recibo oficial: ${ROP.radicacion}.`)} />
+            )}
+            {paso === 'roplista' && <RopRecibos v={rop} onModificar={() => ir('rop')} onPreinformar={() => ir('fin')} />}
 
-            {mensaje?.errores && ['encabezado', 'subpartida', 'descripcion', 'totales', 'soporte'].includes(paso) && (
+            {mensaje?.errores && CON_SOLUCION.includes(paso) && (
               <section ref={listaRef} className={css.inconsistencias} aria-label="Lista de inconsistencias a corregir">
                 <h3>Lista de inconsistencias a corregir</h3>
                 <table>
@@ -526,11 +585,32 @@ export default function SigloXXII() {
               </section>
             )}
 
-            {paso === 'fin' && (
+            {paso === 'fin' && practica === 'rop' && (
               <div className={css.tarjeta}>
-                <div className={css.exito} role="status"><span aria-hidden="true">✓</span> Declaración guardada e informada</div>
-                <p>Número de aceptación generado: <strong className={css.codigo} data-testid="sx-aceptacion">{NUMERO_ACEPTACION}</strong></p>
-                <p className={css.suave}>Radicación {RADICACION} y aceptación de práctica. En el borrador del formulario el número de formulario aparece «por generar»: en el sistema real lo asigna la DIAN.</p>
+                <div className={css.exito} role="status"><span aria-hidden="true">✓</span> Recibo oficial de pago preinformado</div>
+                <p>Número de aceptación del recibo: <strong className={css.codigo} data-testid="sx-aceptacion-rop">{ROP.aceptacion}</strong> · Radicación {ROP.radicacion}</p>
+                <div className={css.cifras}>
+                  <div><span>IVA pendiente</span><strong>${pesos(Number(String(rop.iva).replace(/\D/g, '')))}</strong></div>
+                  <div><span>Intereses de mora</span><strong>${pesos(Number(String(rop.mora).replace(/\D/g, '')))}</strong></div>
+                  <div className={css.destacada}><span>Total pagado</span><strong>${pesos(Number(String(rop.total).replace(/\D/g, '')))}</strong></div>
+                </div>
+                <p className={css.suave}>En el sistema real se imprime el recibo y se lleva al banco con el pago. Con eso queda saldada la declaración {rop.declaracion}.</p>
+                <Registro tokenApi={tokenApi} registro={registro} conSolucion={conSolucion} errores={errores} />
+                <div className={css.acciones}>
+                  <button type="button" className={css.primario} onClick={reiniciar}>Hacer la práctica otra vez</button>
+                  <button type="button" className={css.secundario} onClick={() => cambiarPractica('importacion')}>Ir a la práctica 1</button>
+                </div>
+              </div>
+            )}
+
+            {paso === 'fin' && practica === 'importacion' && (
+              <div className={css.tarjeta}>
+                <div className={css.exito} role="status"><span aria-hidden="true">✓</span> Declaración guardada, pagada y con levante</div>
+                <div className={css.cifras}>
+                  <div><span>80. Aceptación</span><strong data-testid="sx-aceptacion">{ACEPTACION.numero}</strong><small>{ACEPTACION.fecha}</small></div>
+                  <div className={css.destacada}><span>81. Levante</span><strong data-testid="sx-levante">{LEVANTE.numero}</strong><small>{LEVANTE.fecha}</small></div>
+                </div>
+                <p className={css.suave}>Radicación {RADICACION}, aceptación y levante de práctica. Con el levante, la mercancía se puede retirar del depósito. En el borrador del formulario el número de formulario aparece «por generar»: en el sistema real lo asigna la DIAN.</p>
                 <div className={css.cifras}>
                   <div><span>Valor en aduana</span><strong>USD {r.aduanaUSD?.toLocaleString('es-CO')}</strong></div>
                   <div><span>Arancel</span><strong>${pesos(r.arancel)}</strong></div>
@@ -538,16 +618,11 @@ export default function SigloXXII() {
                   <div className={css.destacada}><span>Total a pagar</span><strong>${pesos(r.total)}</strong></div>
                 </div>
                 <p>Resumen: {sub.cantidad} unidades de la subpartida {sub.subpartida}, modalidad {String(sub.modalidad).toUpperCase()}; total a pagar ${pesos(r.total)}.</p>
-                <p className={css.suave} aria-live="polite" data-testid="sx-registro">
-                  {!tokenApi && 'Entraste como invitado: esta práctica no queda registrada. Con una cuenta, tu profesor puede ver que la terminaste.'}
-                  {tokenApi && registro === 'guardando' && 'Registrando tu práctica…'}
-                  {tokenApi && registro === 'ok' && `Tu práctica quedó registrada${conSolucion ? ' (usaste la solución en alguna pantalla)' : ''}: el sistema te devolvió ${errores} ${errores === 1 ? 'pantalla' : 'pantallas'} con errores. Tu profesor puede verla en el panel de su grupo.`}
-                  {tokenApi && registro === 'fallo' && 'No se pudo registrar la práctica en el servidor. Revisa la conexión y vuelve a hacerla.'}
-                </p>
-                <p className={css.suave}>En el sistema real, con el número de aceptación se pagan los tributos en el banco y después se solicita el levante de la mercancía. Esos pasos todavía no hacen parte de esta práctica.</p>
+                <Registro tokenApi={tokenApi} registro={registro} conSolucion={conSolucion} errores={errores} />
                 <div className={css.acciones}>
                   <button type="button" className={css.primario} onClick={generarFormulario}>Generar el formulario 500 (PDF)</button>
                   <button type="button" className={css.secundario} onClick={reiniciar}>Hacer la práctica otra vez</button>
+                  <button type="button" className={css.secundario} onClick={() => cambiarPractica('rop')}>Ir a la práctica 2</button>
                 </div>
               </div>
             )}
@@ -558,9 +633,9 @@ export default function SigloXXII() {
           <h3>Guía de la práctica</h3>
           <p className={css.ayuda}>
             {paso === 'login' && <>Tu usuario de práctica es <strong>{miUsuario}</strong> y la contraseña es <strong>{CREDENCIALES.clave}</strong>. {tokenApi ? 'Es solo tuyo: al terminar, la práctica queda registrada a tu nombre. ' : 'Como invitado usas el usuario de ejemplo y la práctica no queda registrada. '}</>}
-            {AYUDA[paso]}
+            {paso === 'menu' ? `Para ${practica === 'rop' ? 'ingresar un recibo oficial de pago' : 'abrir una declaración nueva'} sigue esta ruta: ${P.ruta.join(' → ')}.` : AYUDA[paso]}
           </p>
-          {['encabezado', 'subpartida', 'descripcion', 'totales', 'soporte'].includes(paso) && (
+          {CON_SOLUCION.includes(paso) && (
             <>
               <button type="button" className="btn-card" onClick={verSolucion}>Ver la solución de esta pantalla</button>
               <p className={css.ayuda} style={{ marginTop: 6 }}>Úsala solo si te quedas sin salida: tu profesor verá que la usaste.</p>
@@ -576,8 +651,10 @@ export default function SigloXXII() {
           <p className={css.ayuda}>
             Como en la agencia, trabaja con los documentos abiertos al lado. <a href="#/formularios/001?caso=1" target="_blank" rel="noopener noreferrer">Abrir el RUT del importador (formulario 001)</a> en otra pestaña.
           </p>
-          <p className={css.ayuda}>HidroColombia importa 500 bombas de engranajes de Shanghái a Cartagena (caso del módulo 1 de la Ruta).</p>
-          {CASO.documentos.map((d) => (
+          <p className={css.ayuda}>{practica === 'rop'
+            ? 'HidroColombia presentó una declaración de sellos y empaques y solo pagó el arancel: ahora paga el IVA pendiente con sus intereses de mora.'
+            : 'HidroColombia importa 500 bombas de engranajes de Shanghái a Cartagena (caso del módulo 1 de la Ruta).'}</p>
+          {P.documentos.map((d) => (
             <details key={d.titulo} className={css.doc}>
               <summary>{d.titulo}</summary>
               <dl>{d.datos.map(([k, val]) => [<dt key={`${k}t`}>{k}</dt>, <dd key={`${k}d`}>{val}</dd>])}</dl>
@@ -587,6 +664,18 @@ export default function SigloXXII() {
       </div>
       <Consulta key={consulta ? `${consulta.tabla}-${consulta.campo || ''}` : 'cerrada'} consulta={consulta} onCerrar={() => setConsulta(null)} />
     </>
+  );
+}
+
+// Lo que se le dice al estudiante sobre el registro de su práctica
+function Registro({ tokenApi, registro, conSolucion, errores }) {
+  return (
+    <p className={css.suave} aria-live="polite" data-testid="sx-registro">
+      {!tokenApi && 'Entraste como invitado: esta práctica no queda registrada. Con una cuenta, tu profesor puede ver que la terminaste.'}
+      {tokenApi && registro === 'guardando' && 'Registrando tu práctica…'}
+      {tokenApi && registro === 'ok' && `Tu práctica quedó registrada${conSolucion ? ' (usaste la solución en alguna pantalla)' : ''}: el sistema te devolvió ${errores} ${errores === 1 ? 'pantalla' : 'pantallas'} con errores. Tu profesor puede verla en el panel de su grupo.`}
+      {tokenApi && registro === 'fallo' && 'No se pudo registrar la práctica en el servidor. Revisa la conexión y vuelve a hacerla.'}
+    </p>
   );
 }
 

@@ -26,7 +26,13 @@ const completarPartes = () => {
   fireEvent.click(screen.getByRole('button', { name: 'Radicar' })); solucion(); guardar();
   fireEvent.click(screen.getByRole('button', { name: 'Informar' }));
   fireEvent.click(screen.getByRole('button', { name: 'Confirmar' }));
+  pagarYPedirLevante();
 };
+// Banco y levante con la solución
+function pagarYPedirLevante() {
+  solucion(); fireEvent.click(screen.getByRole('button', { name: 'Pagar' }));
+  solucion(); fireEvent.click(screen.getByRole('button', { name: 'Solicitar levante' }));
+}
 
 describe('SIGLO XXII', () => {
   it('no deja entrar con una contraseña equivocada', () => {
@@ -203,6 +209,56 @@ describe('SIGLO XXII', () => {
     fireEvent.click(screen.getByRole('button', { name: 'Informar' }));
     expect(screen.getByText(/Cheque No. 004571/)).toBeTruthy();
     fireEvent.click(screen.getByRole('button', { name: 'Confirmar' }));
+
+    // banco: el valor debe ser el total pagado; luego el levante con el autoadhesivo
+    expect(screen.getByText(/Número de aceptación generado/).textContent).toMatch(/482026000004571/);
+    fireEvent.change(screen.getByLabelText('Número de aceptación de la declaración'), { target: { value: '482026000004571' } });
+    fireEvent.change(screen.getByLabelText('Banco (cód.)'), { target: { value: '1' } });
+    fireEvent.change(screen.getByLabelText('Valor pagado $'), { target: { value: '60.000.000' } });
+    fireEvent.change(screen.getByLabelText('Número del cheque'), { target: { value: '004571' } });
+    fireEvent.click(screen.getByRole('button', { name: 'Pagar' }));
+    expect(lista()).toMatch(/Valor pagado: no coincide/);
+    fireEvent.change(screen.getByLabelText('Valor pagado $'), { target: { value: '65.264.000' } });
+    fireEvent.click(screen.getByRole('button', { name: 'Pagar' }));
+    expect(screen.getByLabelText('Comprobante del banco').textContent).toMatch(/90010004571236/);
+    fireEvent.change(screen.getByLabelText('Número de aceptación'), { target: { value: '482026000004571' } });
+    fireEvent.change(screen.getByLabelText('Fecha de aceptación'), { target: { value: '12/03/2026' } });
+    fireEvent.change(screen.getByLabelText('Número de autoadhesivo'), { target: { value: '90010004571236' } });
+    fireEvent.click(screen.getByRole('button', { name: 'Solicitar levante' }));
+    expect(lista()).toMatch(/Fecha del autoadhesivo: falta/);
+    fireEvent.change(screen.getByLabelText('Fecha del autoadhesivo'), { target: { value: '2026-03-12' } });
+    fireEvent.click(screen.getByRole('button', { name: 'Solicitar levante' }));
     expect(screen.getByTestId('sx-aceptacion').textContent).toBe('482026000004571');
+    expect(screen.getByTestId('sx-levante').textContent).toBe('482026000009871');
+  });
+
+  it('práctica 2: recibo oficial de pago del saldo pendiente, radicado y preinformado', () => {
+    Object.assign(sesion, { usuario: { id: 42, nombre: 'Ana' }, tokenApi: 'jwt' });
+    abrir();
+    fireEvent.click(screen.getByRole('button', { name: '2. Recibo oficial de pago' }));
+    entrar('A000042');
+    // por «Declaraciones» no se llega al recibo
+    ['Importaciones', 'Declarante SIA ó ALTEX'].forEach((o) => fireEvent.click(screen.getByRole('menuitem', { name: o })));
+    fireEvent.click(screen.getByRole('menuitem', { name: 'Declaraciones' }));
+    expect(screen.getByRole('alert').textContent).toMatch(/sigue por «Recibo Oficial Pago»/);
+    ['Recibo Oficial Pago', 'Ingresar'].forEach((o) => fireEvent.click(screen.getByRole('menuitem', { name: o })));
+    const poner = (rotulo, valor) => fireEvent.change(screen.getByLabelText(rotulo), { target: { value: valor } });
+    poner('Aplicación', 'TA');
+    poner('No. de aceptación de la declaración', '482026000003310');
+    poner('Fecha de aceptación', '20/02/2026');
+    poner('Nombre de quien efectúa el pago', 'Ana María Pérez Gómez');
+    poner('Documento de quien paga', '1.000.000.001');
+    // error típico: volver a pagar el arancel que ya se pagó
+    poner('Arancel', '1.230.000'); poner('IVA', '4.902.000'); poner('Intereses de mora', '61.000'); poner('Total pagado', '6.193.000');
+    poner('Forma de pago', 'EF');
+    guardar();
+    const lista = screen.getByRole('region', { name: 'Lista de inconsistencias a corregir' }).textContent;
+    expect(lista).toMatch(/Arancel: no coincide/);
+    poner('Arancel', '0'); poner('Total pagado', '4.963.000');
+    guardar();
+    expect(screen.getByRole('status').textContent).toMatch(/48900123/);
+    fireEvent.click(screen.getByRole('button', { name: 'Preinformar' }));
+    expect(screen.getByTestId('sx-aceptacion-rop').textContent).toBe('489026000000731');
+    expect(pedir).toHaveBeenCalledWith('/practicas', { metodo: 'POST', token: 'jwt', cuerpo: { practica: 'sigloxxii-rop', errores: 2, conSolucion: false } });
   });
 });

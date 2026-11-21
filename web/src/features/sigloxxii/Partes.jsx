@@ -1,4 +1,4 @@
-import { DOCUMENTOS_SOPORTE, ESTADOS_SOPORTE, TASA_SEMANA, numero, totalPagado, totalesGenerales } from '../../lib/sigloxxii.js';
+import { ACEPTACION, AUTOADHESIVO, DOCUMENTOS_SOPORTE, ESTADOS_SOPORTE, TASA_SEMANA, numero, totalPagado, totalesGenerales } from '../../lib/sigloxxii.js';
 import css from './SigloXXII.module.css';
 
 // Pantallas de la declaración después del ítem, según el manual del declarante de SIGLO XXI:
@@ -179,3 +179,78 @@ export function Informar({ enc, sub, liq, t, onConfirmar, onVolver, radicacion }
   );
 }
 
+
+// Campo de texto con su rótulo, su error y, si tiene tabla, el botón para buscar el código
+export function CampoTexto({ campo, rotulo, v, poner, malos, ancho = 1, placeholder, tabla, onBuscar, opciones }) {
+  const id = `sx-${campo}`;
+  const error = malos?.get(campo);
+  return (
+    <div className={`${css.campo}${error ? ` ${css.mal}` : ''}`} style={{ gridColumn: `span ${ancho}` }}>
+      <span className={css.rotulo}>
+        <label htmlFor={id}>{rotulo}</label>
+        {tabla && <button type="button" className={css.buscar} onClick={() => onBuscar(tabla, campo, poner)} aria-label={`Buscar código: ${rotulo}`}>Buscar código</button>}
+      </span>
+      {opciones ? (
+        <select id={id} value={v[campo] ?? ''} aria-invalid={Boolean(error)} onChange={(e) => poner(campo, e.target.value)}>
+          <option value="">Selecciona…</option>
+          {opciones.map(([c, t]) => <option key={c} value={c}>{t}</option>)}
+        </select>
+      ) : (
+        <input id={id} type="text" autoComplete="off" placeholder={placeholder} aria-invalid={Boolean(error)} value={v[campo] ?? ''} onChange={(e) => poner(campo, e.target.value)} />
+      )}
+      {error && <small className={css.errorCampo}>{error}</small>}
+    </div>
+  );
+}
+
+// Pago en la entidad autorizada para recaudar: el banco recibe la declaración aceptada y el pago
+export function Pago({ v, poner, malos, onSalvar, onBuscar }) {
+  return (
+    <div className={css.tarjeta}>
+      <div className={css.radicada}>
+        <span className={css.exitoIcono} aria-hidden="true">✓</span>
+        <div>
+          <h2>Declaración aceptada</h2>
+          <p className={css.suave}>Número de aceptación generado <strong className={css.codigo}>{ACEPTACION.numero}</strong> · Fecha {ACEPTACION.fecha}. La declaración ya no se puede modificar y queda esperando el pago.</p>
+        </div>
+      </div>
+      <h3 className={css.subtitulo}>Pago en el banco (entidad autorizada para recaudar)</h3>
+      <p className={css.suave}>Lleva la declaración aceptada al banco y paga los tributos. Llena los datos con los que el banco recibe el pago.</p>
+      <div className={css.rejilla}>
+        <CampoTexto campo="aceptacion" rotulo="Número de aceptación de la declaración" v={v} poner={poner} malos={malos} ancho={2} />
+        <CampoTexto campo="banco" rotulo="Banco (cód.)" v={v} poner={poner} malos={malos} tabla="bancos" onBuscar={onBuscar} />
+        <CampoTexto campo="valor" rotulo="Valor pagado $" v={v} poner={poner} malos={malos} />
+        <CampoTexto campo="cheque" rotulo="Número del cheque" v={v} poner={poner} malos={malos} />
+      </div>
+      <div className={css.acciones}><button type="button" className={css.primario} onClick={onSalvar}>Pagar</button></div>
+    </div>
+  );
+}
+
+// Solicitud de levante: con el autoadhesivo del banco y la aceptación se pide la autorización de retiro
+export function Levante({ v, poner, malos, onSalvar }) {
+  return (
+    <div className={css.tarjeta}>
+      <div className={css.comprobante} aria-label="Comprobante del banco">
+        <strong>Autoadhesivo del banco</strong>
+        <span>No. <b className={css.codigo}>{AUTOADHESIVO.numero}</b> · Fecha {AUTOADHESIVO.fecha} · Pago recibido y transmitido a la DIAN</span>
+      </div>
+      <div className={css.cabecera}>
+        <h2>Solicitud de levante</h2>
+        <span className={css.chip}>Declaración de importación</span>
+      </div>
+      <p className={css.suave}>
+        Con el pago transmitido, pide el levante: la autorización para retirar la mercancía del depósito. Escribe los datos de la aceptación
+        y del autoadhesivo que el banco puso en la declaración.
+      </p>
+      <div className={css.rejilla}>
+        <CampoTexto campo="aceptacion" rotulo="Número de aceptación" v={v} poner={poner} malos={malos} ancho={2} />
+        <CampoTexto campo="aceptacion_fecha" rotulo="Fecha de aceptación" v={v} poner={poner} malos={malos} ancho={2} placeholder="AAAA-MM-DD" />
+        <CampoTexto campo="autoadhesivo" rotulo="Número de autoadhesivo" v={v} poner={poner} malos={malos} ancho={2} />
+        <CampoTexto campo="autoadhesivo_fecha" rotulo="Fecha del autoadhesivo" v={v} poner={poner} malos={malos} ancho={2} placeholder="AAAA-MM-DD" />
+      </div>
+      <p className={css.nota}>El sistema puede dar levante automático o seleccionar la declaración para inspección física o documental. En esta práctica da levante automático.</p>
+      <div className={css.acciones}><button type="button" className={css.primario} onClick={onSalvar}>Solicitar levante</button></div>
+    </div>
+  );
+}

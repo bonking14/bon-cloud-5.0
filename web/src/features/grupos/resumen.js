@@ -6,8 +6,11 @@ export const fechaCorta = fecha;
 // Nota de 0 a 100 del mejor intento de una lección, o null si no hay nota guardada
 export const nota = (l) => (l?.mejorTotal ? Math.round((l.mejorAciertos / l.mejorTotal) * 100) : null);
 
-// Prácticas en simuladores que se muestran en el panel: [identificador, nombre]
-export const PRACTICAS = [['sigloxxii-importacion', 'SIGLO XXII · Declaración de importación']];
+// Prácticas en simuladores que se muestran en el panel: [identificador, nombre, nombre corto]
+export const PRACTICAS = [
+  ['sigloxxii-importacion', 'SIGLO XXII · Declaración de importación', 'Declaración'],
+  ['sigloxxii-rop', 'SIGLO XXII · Recibo oficial de pago', 'Recibo de pago'],
+];
 
 // Texto corto de una práctica para la tabla: «Hecha (2 veces)» o «—»
 export function textoPractica(p) {

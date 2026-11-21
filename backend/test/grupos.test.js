@@ -61,6 +61,12 @@ describe('prácticas en simuladores', () => {
     assert.deepEqual(db.consultas[0].params.slice(0, 4), [7, 'sigloxxii-importacion', 3, true]);
   });
 
+  test('acepta también la práctica del recibo oficial de pago', async () => {
+    db.responder = async () => ({ rows: [{ id: 2 }] });
+    assert.equal((await pedir({ practica: 'sigloxxii-rop', errores: 0, conSolucion: false })).status, 201);
+    assert.equal(db.consultas[0].params[1], 'sigloxxii-rop');
+  });
+
   test('con el tope por hora alcanzado responde 429', async () => {
     assert.equal((await pedir({ practica: 'sigloxxii-importacion', errores: 0, conSolucion: false })).status, 429);
   });

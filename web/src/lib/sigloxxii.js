@@ -25,6 +25,7 @@ export const MENU = {
   Declaraciones: ['Declaración Importación', 'Solicitud Inspección', 'Documentos Soporte'],
   'Declaración Importación': ['Encabezado'],
   Encabezado: ['Ingresar', 'Consultar', 'Modificar', 'Borrar', 'Actualizar Anticipada'],
+  'Recibo Oficial Pago': ['Ingresar', 'Modificar', 'Preinformar', 'Imprimir', 'Borrar'],
 };
 export const RUTA_MENU = ['Importaciones', 'Declarante SIA ó ALTEX', 'Declaraciones', 'Declaración Importación', 'Encabezado', 'Ingresar'];
 export const opcionesMenu = (ruta) => MENU[ruta[ruta.length - 1] ?? ''] || [];
@@ -92,6 +93,8 @@ function fecha(t) {
 }
 // Cada campo se compara a su manera; por defecto, sin mayúsculas, tildes, puntos ni guiones
 const COMPARAR = {
+  // Montos en pesos: 4.902.000, 4902000 y $ 4.902.000 son lo mismo
+  monto: (a, b) => numero(a) === numero(b),
   fecha: (a, b) => fecha(a) === fecha(b),
   // El código de la ciudad se acepta completo (13001) o solo el del municipio (001)
   ciudad: (a, b) => limpiar(a) === limpiar(b) || limpiar(a).padStart(3, '0') === limpiar(b).slice(-3),
@@ -286,4 +289,87 @@ export function validarSoporte(s) {
     else if (!igual(x.fecha, d.fecha, 'fecha')) faltas.push(`la fecha no coincide. ${d.pista}`);
     return faltas.map((f) => ({ campo: d.id, mensaje: `${d.nombre}: ${f}` }));
   });
+}
+
+// ---------- Pago en el banco y solicitud de levante (práctica 1, después de informar) ----------
+// Al confirmar, la declaración queda aceptada y esperando el pago en una entidad autorizada para
+// recaudar; el banco le pone un autoadhesivo y transmite el pago a la DIAN. Con el autoadhesivo y la
+// aceptación se pide el levante, y el sistema lo da en la casilla 81 si no selecciona inspección.
+export const ACEPTACION = { numero: NUMERO_ACEPTACION, fecha: '2026-03-12' };
+export const AUTOADHESIVO = { numero: '90010004571236', fecha: '2026-03-12' };
+export const LEVANTE = { numero: '482026000009871', fecha: '2026-03-13' };
+
+export function validarPago(v, total) {
+  const faltas = [];
+  const pon = (campo, mensaje) => faltas.push({ campo, mensaje });
+  if (!String(v.aceptacion ?? '').trim()) pon('aceptacion', 'Número de aceptación: falta. Es el que dio el sistema al informar la declaración.');
+  else if (!igual(v.aceptacion, ACEPTACION.numero)) pon('aceptacion', 'Número de aceptación: no coincide con el que dio el sistema al informar.');
+  if (!String(v.banco ?? '').trim()) pon('banco', 'Banco: falta. Búscalo en la tabla de bancos.');
+  else if (!igual(String(v.banco).padStart(3, '0'), CASO.pago.banco)) pon('banco', 'Banco: no coincide. Mira la instrucción de pago y busca el código en la tabla de bancos.');
+  const valor = numero(v.valor);
+  if (Number.isNaN(valor)) pon('valor', 'Valor pagado: falta. Es el total pagado con esta declaración (casilla 73).');
+  else if (valor !== total) pon('valor', 'Valor pagado: no coincide con el total pagado con esta declaración (casilla 73). El banco no recibe un valor distinto.');
+  if (!String(v.cheque ?? '').trim()) pon('cheque', 'Número del cheque: falta. Está en la instrucción de pago.');
+  else if (!igual(v.cheque, CASO.pago.numero)) pon('cheque', 'Número del cheque: no coincide con la instrucción de pago.');
+  return faltas;
+}
+export const solucionPago = (total) => ({ aceptacion: ACEPTACION.numero, banco: CASO.pago.banco, valor: String(total), cheque: CASO.pago.numero });
+
+export function validarLevante(v) {
+  const reglas = [
+    ['aceptacion', 'Número de aceptación', ACEPTACION.numero, 'Es el número que dio el sistema al informar.'],
+    ['aceptacion_fecha', 'Fecha de aceptación', ACEPTACION.fecha, 'Es la fecha en que se informó la declaración.', 'fecha'],
+    ['autoadhesivo', 'Número de autoadhesivo', AUTOADHESIVO.numero, 'Es el número que el banco puso en la declaración al recibir el pago.'],
+    ['autoadhesivo_fecha', 'Fecha del autoadhesivo', AUTOADHESIVO.fecha, 'Es la fecha del pago en el banco.', 'fecha'],
+  ];
+  return reglas.flatMap(([campo, rotulo, esperado, pista, modo]) => {
+    const x = String(v[campo] ?? '').trim();
+    if (!x) return [{ campo, mensaje: `${rotulo}: falta. ${pista}` }];
+    return igual(x, esperado, modo) ? [] : [{ campo, mensaje: `${rotulo}: no coincide. ${pista}` }];
+  });
+}
+export const solucionLevante = () => ({ aceptacion: ACEPTACION.numero, aceptacion_fecha: ACEPTACION.fecha, autoadhesivo: AUTOADHESIVO.numero, autoadhesivo_fecha: AUTOADHESIVO.fecha });
+
+// ---------- Práctica 2: Recibo Oficial de Pago (ROP) ----------
+// Se usa para pagar saldos de declaraciones cuyos tributos o sanciones no se pagaron completos al
+// presentarlas, o para pagar con títulos valores. Se ingresa, se preinforma (la DIAN da el número de
+// aceptación del recibo) y se imprime para llevarlo al banco.
+export const PRACTICA_ROP = 'sigloxxii-rop';
+export const RUTA_ROP = ['Importaciones', 'Declarante SIA ó ALTEX', 'Recibo Oficial Pago', 'Ingresar'];
+export const APLICACIONES_ROP = [['TA', 'Tributos aduaneros'], ['SC', 'Sanciones cambiarias']];
+export const FORMAS_PAGO_ROP = [['EF', 'Efectivo'], ['CH', 'Cheque'], ['TV', 'Título valor']];
+export const TITULOS_VALOR = [['CDTUR', 'CDTUR'], ['CERT', 'CERT'], ['TIDI', 'TIDIS'], ['BFE', 'Bonos de financiamiento especial'], ['BFP', 'Bonos de financiamiento presupuestal']];
+export const ROP = { radicacion: '48900123', aceptacion: '489026000000731' };
+export const CASO_ROP = {
+  documentos: [
+    { titulo: 'Declaración anterior', datos: [['Importador', 'HidroColombia S.A.S. (ficticia) · NIT 900123456-8'], ['Mercancía', 'Sellos y empaques para bombas'], ['No. de aceptación', '482026000003310'], ['Fecha de aceptación', '20 de febrero de 2026']] },
+    { titulo: 'Estado de cuenta de la declaración', datos: [['Arancel liquidado', '$1.230.000'], ['Arancel pagado', '$1.230.000'], ['IVA liquidado', '$4.902.000'], ['IVA pagado', '$0 (quedó pendiente al presentarla)'], ['Sanciones', 'Ninguna'], ['Intereses de mora a la fecha de pago', '$61.000 (dato de práctica)']] },
+    { titulo: 'Quien paga', datos: [['Nombre', 'Ana María Pérez Gómez'], ['Cédula', '1.000.000.001'], ['Forma de pago', 'En efectivo en la ventanilla del banco']] },
+  ],
+  solucion: {
+    aplicacion: 'TA', declaracion: '482026000003310', declaracion_fecha: '2026-02-20', pagador: 'PEREZ GOMEZ ANA MARIA', pagador_doc: '1000000001',
+    arancel: '0', iva: '4902000', sanciones: '0', otros: '0', mora: '61000', total: '4963000', forma: 'EF', titulo: '',
+  },
+};
+const REGLAS_ROP = [
+  ['aplicacion', 'Aplicación', 'Lo que se paga son tributos de una declaración de importación.'],
+  ['declaracion', 'Número de aceptación de la declaración', 'Está en la declaración anterior.'],
+  ['declaracion_fecha', 'Fecha de aceptación de la declaración', 'Está en la declaración anterior.', 'fecha'],
+  ['pagador', 'Nombre de quien efectúa el pago', 'Mira quién paga.', 'libre'],
+  ['pagador_doc', 'Documento de quien paga', 'Mira quién paga.'],
+  ['arancel', 'Arancel', 'Solo se paga lo que quedó pendiente: mira el estado de cuenta.', 'monto'],
+  ['iva', 'IVA', 'Solo se paga lo que quedó pendiente: mira el estado de cuenta.', 'monto'],
+  ['sanciones', 'Sanciones', 'Mira el estado de cuenta.', 'monto'],
+  ['otros', 'Otros', 'Mira el estado de cuenta.', 'monto'],
+  ['mora', 'Intereses de mora', 'Están en el estado de cuenta.', 'monto'],
+  ['forma', 'Forma de pago', 'Mira quién paga y cómo.'],
+];
+export function validarRop(v) {
+  const faltas = validar(REGLAS_ROP, v, CASO_ROP.solucion);
+  const suma = ['arancel', 'iva', 'sanciones', 'otros', 'mora'].reduce((t, k) => t + (numero(v[k]) || 0), 0);
+  const total = numero(v.total);
+  if (Number.isNaN(total)) faltas.push({ campo: 'total', mensaje: 'Total pagado: falta. Es la suma de arancel, IVA, sanciones, otros e intereses de mora.' });
+  else if (total !== suma) faltas.push({ campo: 'total', mensaje: `Total pagado: no coincide con la suma de los conceptos (${suma.toLocaleString('es-CO')}).` });
+  if (v.forma === 'TV' && !v.titulo) faltas.push({ campo: 'titulo', mensaje: 'Código del título: falta. Si paga con título valor, elige cuál.' });
+  return faltas;
 }

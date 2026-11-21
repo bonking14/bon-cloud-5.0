@@ -83,7 +83,9 @@ export default function PanelGrupo() {
                       <td><span className={css.barra}><i style={{ width: `${(r.aprobadas / r.total) * 100}%` }} /></span>{r.aprobadas} de {r.total}</td>
                       <td>{r.promedio === null ? '—' : `${r.promedio}%`}</td>
                       <td>{r.intentos}</td>
-                      <td className={e.practicas?.[PRACTICAS[0][0]]?.veces ? css.si : undefined}>{textoPractica(e.practicas?.[PRACTICAS[0][0]])}</td>
+                      <td>{PRACTICAS.map(([id, , corto]) => (
+                        <div key={id} className={e.practicas?.[id]?.veces ? css.si : undefined}>{corto}: {textoPractica(e.practicas?.[id])}</div>
+                      ))}</td>
                       <td>{fechaCorta(r.ultimaActividad) || '—'}</td>
                       <td><button type="button" className="btn-card" onClick={(ev) => { ev.stopPropagation(); retirar(e); }}>Retirar</button></td>
                     </tr>
@@ -128,7 +130,7 @@ export default function PanelGrupo() {
               })}
             </tbody>
           </table>
-          <p className={css.pista} style={{ marginTop: 10 }}>El promedio usa la mejor nota de cada lección con quiz registrado. Las lecciones aprobadas antes de que existiera el registro de notas aparecen como aprobadas, sin nota. La columna SIGLO XXII indica si el estudiante terminó la práctica del simulador; en el detalle se ve cuántas pantallas le devolvió el sistema con errores en su mejor intento y si usó el botón de la solución.</p>
+          <p className={css.pista} style={{ marginTop: 10 }}>El promedio usa la mejor nota de cada lección con quiz registrado. Las lecciones aprobadas antes de que existiera el registro de notas aparecen como aprobadas, sin nota. La columna SIGLO XXII indica si el estudiante terminó cada práctica del simulador (la declaración de importación y el recibo oficial de pago); en el detalle se ve cuántas pantallas le devolvió el sistema con errores en su mejor intento y si usó el botón de la solución.</p>
         </div>
       )}
     </div>

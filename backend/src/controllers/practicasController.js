@@ -1,7 +1,7 @@
 const pool = require('../config/db');
 
 // Prácticas que se pueden registrar. El identificador viaja desde la web.
-const PRACTICAS = ['sigloxxii-importacion'];
+const PRACTICAS = ['sigloxxii-importacion', 'sigloxxii-rop'];
 const MAX_POR_HORA = 30;
 
 // Guarda una práctica terminada en un simulador. La web avisa que el estudiante llegó al

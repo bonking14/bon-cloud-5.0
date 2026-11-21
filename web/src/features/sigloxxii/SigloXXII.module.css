@@ -169,3 +169,7 @@
 .totales td:nth-child(2), .totales td:nth-child(3) { text-align: right; }
 .soporte td small, .totales td small { display: block; margin-top: 4px; text-align: left; }
 .totales input { text-align: right; }
+.comprobante { display: flex; flex-direction: column; gap: 4px; border: 2px dashed var(--border-accent); border-radius: 10px; padding: 10px 14px; margin-bottom: 14px; font-size: 13px; }
+.practicas { display: flex; flex-wrap: wrap; gap: 6px; align-items: center; margin: 0 0 12px; font-size: 13px; }
+.practicas button { font: inherit; font-size: 13px; padding: 6px 12px; border-radius: 8px; border: 1px solid var(--border); background: var(--bg-panel); color: var(--text-muted); cursor: pointer; }
+.practicas button[aria-pressed='true'] { border-color: var(--text-accent); color: var(--text-primary); font-weight: 600; background: rgba(74, 127, 212, 0.12); }
