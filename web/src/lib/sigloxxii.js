@@ -45,11 +45,14 @@ export const CASO = {
   documentos: [
     // Los documentos traen nombres, no códigos: el código se busca en las tablas, como en el trabajo
     { titulo: 'RUT del importador', datos: [['Razón social', 'HidroColombia S.A.S. (empresa ficticia)'], ['NIT', '900123456-8'], ['Dirección', 'Zona Industrial de Mamonal'], ['Ciudad', 'Cartagena'], ['Departamento', 'Bolívar'], ['Teléfono', '6050000000'], ['Tipo de empresa', 'Sociedad privada']] },
-    { titulo: 'Factura comercial', datos: [['Número', 'ZH-2026-118'], ['Fecha', '5 de febrero de 2026'], ['Vendedor', 'Zhejiang Hydraulic Co. (ficticio)'], ['Ciudad y país', 'Shanghái, China'], ['Dirección', '88 Industrial Road'], ['Mercancía', '500 unidades de bombas de engranajes externos para aceite hidráulico, sin motor'], ['Valor', 'USD 60.000 FOB Shanghái'], ['Pago', 'Transferencia bancaria al proveedor (giro directo)']] },
+    { titulo: 'Factura comercial', datos: [['Número', 'ZH-2026-118'], ['Fecha', '5 de febrero de 2026'], ['Vendedor', 'Zhejiang Hydraulic Co. (ficticio)'], ['Ciudad y país', 'Shanghái, China'], ['Dirección', '88 Industrial Road'], ['Mercancía', '500 unidades de bombas de engranajes externos para aceite hidráulico, sin motor'], ['Marca', 'HYDROZ (ficticia)'], ['Referencia', 'GP-25'], ['Seriales', 'ZH25-0001 a ZH25-0500'], ['Valor', 'USD 60.000 FOB Shanghái'], ['Pago', 'Transferencia bancaria al proveedor (giro directo)']] },
     { titulo: 'Documento de transporte (B/L)', datos: [['Número', 'SHACTG-2026-0457'], ['Fecha', '12 de febrero de 2026'], ['Puerto de embarque', 'Shanghái, China'], ['Puerto de llegada', 'Cartagena, Colombia'], ['Medio', 'Buque portacontenedores'], ['Bandera del buque', 'Panamá'], ['Naviera', 'Naviera del Pacífico (ficticia)'], ['Bultos', '1 bulto (paquete), en contenedor'], ['Peso bruto', '2.600 kg'], ['Peso neto', '2.400 kg'], ['Flete', 'USD 3.500']] },
     { titulo: 'Manifiesto de carga', datos: [['Número', '116575000000457'], ['Fecha', '10 de marzo de 2026'], ['Depósito de llegada', 'Depósito público del terminal marítimo de Cartagena (ficticio)']] },
+    { titulo: 'Lista de empaque', datos: [['Número', 'PL-2026-118'], ['Fecha', '5 de febrero de 2026'], ['Contenido', '1 estiba (paquete) con 500 bombas en cajas individuales']] },
     { titulo: 'Póliza de seguro', datos: [['Aseguradora', 'Seguros del Litoral (ficticia)'], ['Prima', 'USD 300']] },
-    { titulo: 'Clasificación y tributos', datos: [['Subpartida', '8413.60.90.00 (ficha técnica y lección 3)'], ['Tipo de importación', 'Para quedarse en el país, pagada al proveedor'], ['Arancel', '5% (de práctica)'], ['IVA', 'Tarifa general']] },
+    { titulo: 'Clasificación y tributos', datos: [['Subpartida', '8413.60.90.00 (ficha técnica y lección 3)'], ['Tipo de importación', 'Para quedarse en el país, pagada al proveedor'], ['Arancel', '5% (de práctica)'], ['IVA', 'Tarifa general'], ['Acuerdo comercial', 'China no tiene acuerdo comercial vigente con Colombia: no se pide preferencia'], ['Requisitos', 'La subpartida no exige registro ni licencia previa de importación']] },
+    { titulo: 'Declaración andina del valor', datos: [['Formulario', '560, radicada en el sistema antes de la declaración'], ['No. de radicado', '48000456'], ['Fecha', '11 de marzo de 2026']] },
+    { titulo: 'Instrucción de pago', datos: [['Forma de pago de los tributos', 'Un solo cheque de gerencia por el total'], ['No. del cheque', '004571'], ['Banco', 'Banco de Bogotá']] },
     { titulo: 'Quien firma', datos: [['Nombre', 'Ana María Pérez Gómez'], ['Cédula', '1.000.000.001'], ['Cargo', 'Representante legal de HidroColombia']] },
   ],
   // Consulta de inventario por documento de transporte: lo que el sistema muestra antes de declarar
@@ -73,6 +76,8 @@ export const CASO = {
     peso_bruto: '2600', peso_neto: '2400', embalaje: 'PK', bultos: '1', subpartidas: '1', unidad_comercial: 'U', cantidad: '500',
     fob: '60000', fletes: '3500', seguros: '300', otros: '0', ajuste: '0', arancel: '5', iva: '19',
   },
+  descripcion: 'BOMBAS DE ENGRANAJES EXTERNOS PARA ACEITE HIDRAULICO, SIN MOTOR. MARCA HYDROZ, REFERENCIA GP-25, SERIALES ZH25-0001 A ZH25-0500. CANTIDAD: 500 UNIDADES. USO: SISTEMAS HIDRAULICOS INDUSTRIALES.',
+  pago: { numero: '004571', banco: '001' },
 };
 
 const limpiar = (t) => normalizar(String(t ?? '').trim()).replace(/[.\s\-/]/g, '');
@@ -158,7 +163,7 @@ export const validarSubpartida = (v) => validar(REGLAS_SUBPARTIDA, v, CASO.subpa
 export const dvImportador = (nit) => digitoVerificacion(nit);
 
 // La declaración del alumno pasada a las casillas del formulario 500, para verla e imprimirla
-export function aFormulario500(enc, sub) {
+export function aFormulario500(enc, sub, descripcion) {
   const subpartida = String(sub.subpartida ?? '').replace(/\D/g, '');
   return {
     anio: String(new Date().getFullYear()), tipo_declaracion: '1',
@@ -176,7 +181,7 @@ export function aFormulario500(enc, sub) {
     embalaje: sub.embalaje, bultos: sub.bultos, num_subpartidas: sub.subpartidas, unidad_fisica: sub.unidad_comercial, cantidad: sub.cantidad,
     v_fob: sub.fob, v_fletes: sub.fletes, v_seguros: sub.seguros, v_otros: sub.otros, v_ajuste: sub.ajuste,
     tasa_arancel: sub.arancel, tasa_iva: sub.iva,
-    descripcion: 'Bombas de engranajes externos para aceite hidráulico, sin motor. 500 unidades.',
+    descripcion: descripcion || 'Bombas de engranajes externos para aceite hidráulico, sin motor. 500 unidades.', pagos_anteriores: '0', total_sancion: '0',
   };
 }
 
@@ -184,4 +189,101 @@ export function aFormulario500(enc, sub) {
 export function liquidar(v, tasa = TASA_SEMANA) {
   const r = calcular500({ v_fob: v.fob, v_fletes: v.fletes, v_seguros: v.seguros, v_otros: v.otros, v_ajuste: v.ajuste, tasa_cambio: tasa, tasa_arancel: v.arancel, tasa_iva: v.iva, modalidad: v.modalidad });
   return { gastos: r.gastos, aduanaUSD: r.aduanaUSD, baseArancel: r.aduanaCOP, arancel: r.arancel, baseIVA: r.baseIVA, iva: r.iva, total: r.arancel + r.iva };
+}
+
+// ---------- Partes de la declaración después del ítem (manual del declarante de SIGLO XXI) ----------
+
+// Número de aceptación de práctica que el sistema da al confirmar en «Informar»
+export const NUMERO_ACEPTACION = '482026000004571';
+
+// Descripción de la mercancía (casilla 43): debe identificarla e individualizarla. Cada regla es
+// [qué debe aparecer, cómo se reconoce, dónde mirar]
+const DESCRIPCION_MINIMA = [
+  ['el nombre de la mercancía', /bomba/, 'Di qué es, como en la factura.'],
+  ['el tipo', /engranaje/, 'La factura dice de qué tipo son las bombas.'],
+  ['para qué sirve', /hidraulic|aceite/, 'La factura dice con qué líquido trabajan.'],
+  ['si trae motor', /sin motor/, 'Es lo que separa esta subpartida de las bombas con motor.'],
+  ['la marca', /hydroz/, 'Está en la factura.'],
+  ['la referencia o modelo', /gp\W?25/, 'Está en la factura.'],
+  ['los seriales', /zh25\W?0001/, 'Están en la factura: anota el rango completo.'],
+  ['la cantidad', /\b500\b/, 'Cuántas unidades ampara la declaración.'],
+];
+const normaTexto = (t) => normalizar(String(t ?? '')).toLowerCase();
+export function validarDescripcion(texto) {
+  const t = normaTexto(texto);
+  if (t.trim().length < 20) return [{ campo: 'descripcion', mensaje: 'Descripción de la mercancía: falta. Describe la mercancía de forma que se pueda identificar sin ver otros documentos.' }];
+  return DESCRIPCION_MINIMA.filter(([, re]) => !re.test(t))
+    .map(([que, , pista]) => ({ campo: 'descripcion', mensaje: `Descripción de la mercancía: falta ${que}. ${pista}` }));
+}
+
+// Totales (casillas 67 a 76). La columna «Total general» la trae el sistema; el declarante
+// llena «Total pagado con esta declaración», las sanciones y la forma de pago.
+export const numero = (t) => {
+  const s = String(t ?? '').replace(/[\s$]/g, '').replace(/\./g, '').replace(',', '.');
+  return s === '' ? NaN : Number(s);
+};
+export const totalesGenerales = (liq) => ({ arancel: liq.arancel, iva: liq.iva, sanciones: 0, otros: 0 });
+export function solucionTotales(liq) {
+  const g = totalesGenerales(liq);
+  return { pagado_arancel: String(g.arancel), pagado_iva: String(g.iva), sanciones: '0', pagado_otros: '0',
+    efectivo: '0', cheque_valor: String(g.arancel + g.iva), cheque_numero: CASO.pago.numero, cheque_banco: CASO.pago.banco };
+}
+export function totalPagado(t) {
+  return ['pagado_arancel', 'pagado_iva', 'sanciones', 'pagado_otros'].reduce((s, k) => s + (numero(t[k]) || 0), 0);
+}
+export function validarTotales(t, liq) {
+  const g = totalesGenerales(liq);
+  const faltas = [];
+  const pon = (campo, mensaje) => faltas.push({ campo, mensaje });
+  [['pagado_arancel', '69. Arancel pagado', g.arancel], ['pagado_iva', '70. IVA pagado', g.iva], ['pagado_otros', '72. Otros pagado', g.otros]].forEach(([campo, rotulo, general]) => {
+    const n = numero(t[campo]);
+    if (Number.isNaN(n)) pon(campo, `${rotulo}: falta. Escribe lo que se paga con esta declaración.`);
+    else if (n > general) pon(campo, `${rotulo}: no puede ser mayor que el total general.`);
+    else if (n !== general) pon(campo, `${rotulo}: no coincide. Es una declaración inicial sin pagos anteriores: se paga todo lo liquidado.`);
+  });
+  const sanc = numero(t.sanciones);
+  if (Number.isNaN(sanc)) pon('sanciones', '71. Sanciones: falta. Si no hay sanción, escribe 0.');
+  else if (sanc !== 0) pon('sanciones', '71. Sanciones: no coincide. Esta declaración se presenta a tiempo y por primera vez: no lleva sanción.');
+  const efectivo = numero(t.efectivo) || 0;
+  const cheque = numero(t.cheque_valor) || 0;
+  if (efectivo + cheque !== totalPagado(t)) pon('cheque_valor', `74 y 75. Forma de pago: el efectivo más el cheque deben sumar el total pagado (${totalPagado(t).toLocaleString('es-CO')}).`);
+  else if (efectivo) pon('efectivo', '74. Efectivo: no coincide. Mira la instrucción de pago del importador.');
+  if (cheque) {
+    if (!String(t.cheque_numero ?? '').trim()) pon('cheque_numero', '75. Número del cheque: falta. Está en la instrucción de pago.');
+    else if (!igual(t.cheque_numero, CASO.pago.numero)) pon('cheque_numero', '75. Número del cheque: no coincide con la instrucción de pago.');
+    if (!String(t.cheque_banco ?? '').trim()) pon('cheque_banco', '75. Código del banco: falta. Búscalo en la tabla de bancos.');
+    else if (!igual(String(t.cheque_banco).padStart(3, '0'), CASO.pago.banco)) pon('cheque_banco', '75. Código del banco: no coincide. Mira el banco en la instrucción de pago y búscalo en la tabla de bancos.');
+  }
+  return faltas;
+}
+
+// Documentos soporte: «posibles documentos o requisitos a que puede estar sometida esta importación».
+// Para cada uno se elige si se presentó, no se presentó o no se requiere, con número y fecha.
+export const ESTADOS_SOPORTE = [['SI', 'Sí presentado'], ['NO', 'No presentado'], ['NR', 'No requerido']];
+export const DOCUMENTOS_SOPORTE = [
+  { id: 'factura', nombre: 'Factura comercial', estado: 'SI', numero: 'ZH-2026-118', fecha: '2026-02-05', pista: 'Mira la factura comercial.' },
+  { id: 'transporte', nombre: 'Documento de transporte', estado: 'SI', numero: 'SHACTG-2026-0457', fecha: '2026-02-12', pista: 'Mira el B/L.' },
+  { id: 'empaque', nombre: 'Lista de empaque', estado: 'SI', numero: 'PL-2026-118', fecha: '2026-02-05', pista: 'Mira la lista de empaque.' },
+  { id: 'valor', nombre: 'Declaración andina del valor', estado: 'SI', numero: '48000456', fecha: '2026-03-11', pista: 'Se exige porque el valor FOB pasa de USD 5.000. Como se radicó en el sistema, el número es el de radicado.' },
+  { id: 'mandato', nombre: 'Mandato aduanero', estado: 'NR', pista: 'Solo se exige cuando una agencia de aduanas declara por el importador. Mira quién firma.' },
+  { id: 'origen', nombre: 'Certificado de origen', estado: 'NR', pista: 'Solo se presenta para pedir una preferencia de un acuerdo comercial. Mira la clasificación del caso.' },
+  { id: 'registro', nombre: 'Registro o licencia de importación', estado: 'NR', pista: 'Mira en la clasificación del caso si la subpartida exige requisitos previos.' },
+];
+export function solucionSoporte() {
+  return Object.fromEntries(DOCUMENTOS_SOPORTE.map((d) => [d.id, d.estado === 'SI' ? { estado: 'SI', numero: d.numero, fecha: d.fecha } : { estado: d.estado }]));
+}
+export function validarSoporte(s) {
+  return DOCUMENTOS_SOPORTE.flatMap((d) => {
+    const x = s[d.id] || {};
+    if (!x.estado) return [{ campo: d.id, mensaje: `${d.nombre}: falta elegir si se presentó. ${d.pista}` }];
+    if (x.estado === 'NO') return [{ campo: d.id, mensaje: `${d.nombre}: si un documento se exige y no se tiene, la declaración no se puede presentar. ${d.pista}` }];
+    if (x.estado !== d.estado) return [{ campo: d.id, mensaje: `${d.nombre}: no coincide. ${d.pista}` }];
+    if (d.estado !== 'SI') return [];
+    const faltas = [];
+    if (!String(x.numero ?? '').trim()) faltas.push(`falta el número. ${d.pista}`);
+    else if (!igual(x.numero, d.numero)) faltas.push(`el número no coincide. ${d.pista}`);
+    if (!String(x.fecha ?? '').trim()) faltas.push('falta la fecha de expedición.');
+    else if (!igual(x.fecha, d.fecha, 'fecha')) faltas.push(`la fecha no coincide. ${d.pista}`);
+    return faltas.map((f) => ({ campo: d.id, mensaje: `${d.nombre}: ${f}` }));
+  });
 }

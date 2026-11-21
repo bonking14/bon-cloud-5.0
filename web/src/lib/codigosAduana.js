@@ -113,6 +113,14 @@ export const TABLAS = {
       ['C660', 'Reimportación en el mismo estado'],
     ],
   },
+  bancos: {
+    titulo: 'Bancos',
+    nota: 'Entidades financieras donde se pagan los tributos, con su código de referencia. Verifica el código vigente con la entidad.',
+    filas: [
+      ['001', 'Banco de Bogotá'], ['002', 'Banco Popular'], ['007', 'Bancolombia'], ['013', 'BBVA Colombia'], ['023', 'Banco de Occidente'],
+      ['032', 'Banco Caja Social'], ['040', 'Banco Agrario de Colombia'], ['051', 'Banco Davivienda'], ['052', 'Banco AV Villas'],
+    ],
+  },
 };
 
 // Busca en una tabla por código o por nombre, sin tildes ni mayúsculas

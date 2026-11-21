@@ -91,22 +91,36 @@ nota y la fecha, sin necesidad de cuenta.
   el sistema informático aduanero, con el mismo recorrido y los mismos campos del sistema real
   pero con una apariencia moderna. Incluye la consulta de inventario del documento de
   transporte: ingreso con un usuario de práctica, menú en cascada,
-  parámetros previos, encabezado, subpartida y autoliquidación. El sistema valida cada pantalla
+  parámetros previos, encabezado, ítem con autoliquidación, descripción, totales, documentos
+  soporte e informar. El sistema valida cada pantalla
   contra los documentos del caso y dice qué falta o qué no coincide. Es un simulador: no se
-  conecta con la DIAN. Aún no incluye documentos soporte, aceptación, pago ni levante. Cada
+  conecta con la DIAN. Aún no incluye el pago en el banco ni la solicitud de levante. Cada
   cuenta tiene su propio usuario de práctica (por ejemplo `A000042`); al terminar, la práctica
   queda registrada a su nombre. El invitado usa un usuario de ejemplo y no se le registra.
   Los documentos del caso traen nombres (Cartagena, Panamá, marítimo) y no códigos: el
   estudiante busca cada código con «Buscar código» junto al campo o en las tablas de códigos
   (administraciones, lugares de ingreso, depósitos, países, departamentos, ciudades, modos de
-  transporte, transportadores, agencias de aduanas, embalajes, unidades y modalidades). Los
+  transporte, transportadores, agencias de aduanas, embalajes, unidades, modalidades y bancos). Los
   errores salen como en el sistema, en una «Lista de inconsistencias a corregir» numerada, y
   dicen dónde buscar sin dar la respuesta. Al guardar el encabezado, el sistema asigna un número
-  de radicación y muestra las partes de la declaración: Encabezado, Ítem, Descripción, Totales,
-  Doc. soporte e Informar (Descripción, Totales y Doc. soporte están en preparación). Con el
-  ítem guardado se puede «Informar», y «Generar el formulario 500 (PDF)» abre el formulario 500
-  con la declaración para imprimirlo o guardarlo en PDF. Desde la guía se abre el RUT del
-  importador (formulario 001) en otra pestaña, para trabajar con los documentos al lado.
+  de radicación y muestra las partes de la declaración, que se completan en orden, como indica el
+  manual del declarante de SIGLO XXI de la DIAN:
+  - **Ítem:** subpartida, valores y autoliquidación.
+  - **Descripción** (casilla 43): el sistema exige la descripción mínima: qué es, tipo, uso, si
+    trae motor, marca, referencia, seriales y cantidad.
+  - **Totales** (casillas 67 a 76): el sistema trae lo liquidado y el estudiante llena lo que se
+    paga con la declaración, las sanciones y la forma de pago (efectivo o cheque, con el código
+    del banco de la tabla de bancos), según la instrucción de pago del caso.
+  - **Doc. soporte / Radicar:** para cada posible documento (factura, documento de transporte,
+    lista de empaque, declaración andina del valor, mandato, certificado de origen, registro o
+    licencia) se marca «Sí presentado», «No presentado» o «No requerido», con número y fecha.
+  - **Informar:** con todo guardado, el estudiante revisa la declaración, pulsa «Confirmar» y
+    el sistema da el número de aceptación.
+
+  Al final, «Generar el formulario 500 (PDF)» abre el formulario 500 con la declaración (incluida
+  la descripción que escribió el estudiante) para imprimirlo o guardarlo en PDF. Desde la guía
+  se abre el RUT del importador (formulario 001) en otra pestaña, para trabajar con los
+  documentos al lado.
 
 ### Material de consulta
 

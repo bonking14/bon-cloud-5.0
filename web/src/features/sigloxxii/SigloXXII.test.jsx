@@ -2,7 +2,7 @@ import { describe, it, expect, afterEach, vi } from 'vitest';
 import { render, screen, fireEvent, cleanup } from '@testing-library/react';
 import { MemoryRouter } from 'react-router-dom';
 import SigloXXII from './SigloXXII.jsx';
-import { RUTA_MENU } from '../../lib/sigloxxii.js';
+import { CASO, RUTA_MENU, liquidar } from '../../lib/sigloxxii.js';
 import { pedir } from '../../auth/api.js';
 
 // Sesión simulada: por defecto, invitado
@@ -16,6 +16,16 @@ const entrar = (nombre = 'alumno01') => {
   fireEvent.change(screen.getByLabelText('Nombre'), { target: { value: nombre } });
   fireEvent.change(screen.getByLabelText('Contraseña'), { target: { value: 'practica' } });
   fireEvent.click(screen.getByText('Entrar'));
+};
+const solucion = () => fireEvent.click(screen.getByText('Ver la solución de esta pantalla'));
+const guardar = () => fireEvent.click(screen.getByRole('button', { name: 'Guardar' }));
+// Después del ítem: descripción, totales y documentos soporte con la solución, y luego informar
+const completarPartes = () => {
+  fireEvent.click(screen.getByRole('button', { name: 'Ingresar descripción' })); solucion(); guardar();
+  fireEvent.click(screen.getByRole('button', { name: 'Ingresar totales' })); solucion(); guardar();
+  fireEvent.click(screen.getByRole('button', { name: 'Radicar' })); solucion(); guardar();
+  fireEvent.click(screen.getByRole('button', { name: 'Informar' }));
+  fireEvent.click(screen.getByRole('button', { name: 'Confirmar' }));
 };
 
 describe('SIGLO XXII', () => {
@@ -64,7 +74,7 @@ describe('SIGLO XXII', () => {
     fireEvent.click(screen.getByRole('button', { name: 'Autoliquidar' }));
     expect(screen.getByTestId('sx-total').textContent).toBe('65.264.000');
     fireEvent.click(screen.getByRole('button', { name: 'Guardar' }));
-    fireEvent.click(screen.getByRole('button', { name: 'Informar' }));
+    completarPartes();
     expect(screen.getByRole('status').textContent).toMatch(/Declaración guardada/);
     expect(screen.getByText(/total a pagar \$65.264.000/)).toBeTruthy();
   });
@@ -82,7 +92,7 @@ describe('SIGLO XXII', () => {
     fireEvent.click(screen.getByText('Ver la solución de esta pantalla'));
     fireEvent.click(screen.getByRole('button', { name: 'Autoliquidar' }));
     fireEvent.click(screen.getByRole('button', { name: 'Guardar' }));
-    fireEvent.click(screen.getByRole('button', { name: 'Informar' }));
+    completarPartes();
     expect(screen.getByTestId('sx-registro').textContent).toMatch(/invitado/);
     expect(pedir).not.toHaveBeenCalled();
   });
@@ -105,7 +115,7 @@ describe('SIGLO XXII', () => {
     fireEvent.click(screen.getByText('Ver la solución de esta pantalla'));
     fireEvent.click(screen.getByRole('button', { name: 'Autoliquidar' }));
     fireEvent.click(screen.getByRole('button', { name: 'Guardar' }));
-    fireEvent.click(screen.getByRole('button', { name: 'Informar' }));
+    completarPartes();
     expect(pedir).toHaveBeenCalledTimes(1);
     expect(pedir).toHaveBeenCalledWith('/practicas', { metodo: 'POST', token: 'jwt', cuerpo: { practica: 'sigloxxii-importacion', errores: 2, conSolucion: true } });
     expect((await screen.findByText(/quedó registrada/)).textContent).toMatch(/2 pantallas con errores/);
@@ -129,10 +139,70 @@ describe('SIGLO XXII', () => {
     fireEvent.click(screen.getByText('Ver la solución de esta pantalla'));
     fireEvent.click(screen.getByRole('button', { name: 'Autoliquidar' }));
     fireEvent.click(screen.getByRole('button', { name: 'Guardar' }));
-    fireEvent.click(screen.getByRole('button', { name: 'Informar' }));
+    completarPartes();
     fireEvent.click(screen.getByRole('button', { name: 'Generar el formulario 500 (PDF)' }));
     const precarga = JSON.parse(sessionStorage.getItem('boncloud-precarga-500'));
     expect(precarga.valores.subpartida).toBe('8413.60.90.00');
     expect(precarga.valores.v_fob).toBe('60000');
+  });
+  it('descripción, totales y documentos soporte se validan contra el caso antes de informar', () => {
+    abrir();
+    entrar();
+    RUTA_MENU.forEach((o) => fireEvent.click(screen.getByRole('menuitem', { name: o })));
+    fireEvent.click(screen.getByRole('button', { name: 'Siguiente' }));
+    fireEvent.change(screen.getByLabelText('Departamento importador'), { target: { value: '13' } });
+    fireEvent.click(screen.getByRole('button', { name: 'Continuar' }));
+    solucion(); guardar();
+    // sin ítem no se puede describir la mercancía
+    expect(screen.getByRole('button', { name: 'Ingresar descripción' }).disabled).toBe(true);
+    fireEvent.click(screen.getByRole('button', { name: 'Ingresar ítem' }));
+    solucion(); fireEvent.click(screen.getByRole('button', { name: 'Autoliquidar' })); guardar();
+    expect(screen.getByRole('button', { name: 'Informar' }).disabled).toBe(true);
+
+    // descripción incompleta: dice qué falta
+    fireEvent.click(screen.getByRole('button', { name: 'Ingresar descripción' }));
+    fireEvent.change(screen.getByLabelText('Descripción de la mercancía'), { target: { value: 'Bombas de engranajes para aceite hidráulico, sin motor. 500 unidades.' } });
+    guardar();
+    const lista = () => screen.getByRole('region', { name: 'Lista de inconsistencias a corregir' }).textContent;
+    expect(lista()).toMatch(/falta la marca/);
+    expect(lista()).toMatch(/falta los seriales/);
+    fireEvent.change(screen.getByLabelText('Descripción de la mercancía'), { target: { value: 'Bombas de engranajes para aceite hidráulico, sin motor, marca Hydroz, referencia GP-25, seriales ZH25-0001 a ZH25-0500. 500 unidades.' } });
+    guardar();
+    expect(screen.getByRole('status').textContent).toMatch(/almacenados con éxito/);
+
+    // totales: el pago debe cuadrar con la instrucción de pago
+    fireEvent.click(screen.getByRole('button', { name: 'Ingresar totales' }));
+    const { arancel, iva } = liquidar(CASO.subpartida);
+    fireEvent.change(screen.getByLabelText('69. Total arancel pagado'), { target: { value: arancel.toLocaleString('es-CO') } });
+    fireEvent.change(screen.getByLabelText('70. Total IVA pagado'), { target: { value: String(iva) } });
+    fireEvent.change(screen.getByLabelText('71. Sanciones'), { target: { value: '0' } });
+    fireEvent.change(screen.getByLabelText('72. Total otros pagado'), { target: { value: '0' } });
+    expect(screen.getByTestId('sx-total-pagado').textContent).toBe('65.264.000');
+    fireEvent.change(screen.getByLabelText('75. Cheque: valor'), { target: { value: '65.264.000' } });
+    fireEvent.change(screen.getByLabelText('75. Número del cheque'), { target: { value: '004571' } });
+    fireEvent.change(screen.getByLabelText('75. Código del banco'), { target: { value: '007' } });
+    guardar();
+    expect(lista()).toMatch(/Código del banco: no coincide/);
+    fireEvent.click(screen.getByRole('button', { name: 'Buscar código: 75. Código del banco' }));
+    fireEvent.change(screen.getByLabelText('Buscar en la tabla'), { target: { value: 'bogot' } });
+    fireEvent.click(screen.getByRole('button', { name: 'Usar' }));
+    guardar();
+    expect(screen.getByRole('status').textContent).toMatch(/almacenados con éxito/);
+
+    // documentos soporte: no presentado no deja seguir; el mandato no se requiere
+    fireEvent.click(screen.getByRole('button', { name: 'Radicar' }));
+    solucion();
+    fireEvent.change(screen.getByLabelText('Estado: Mandato aduanero'), { target: { value: 'NO' } });
+    fireEvent.change(screen.getByLabelText('Fecha: Factura comercial'), { target: { value: '05/02/2026' } });
+    guardar();
+    expect(lista()).toMatch(/Mandato aduanero: si un documento se exige y no se tiene/);
+    expect(lista()).not.toMatch(/Factura comercial/);
+    fireEvent.change(screen.getByLabelText('Estado: Mandato aduanero'), { target: { value: 'NR' } });
+    guardar();
+
+    fireEvent.click(screen.getByRole('button', { name: 'Informar' }));
+    expect(screen.getByText(/Cheque No. 004571/)).toBeTruthy();
+    fireEvent.click(screen.getByRole('button', { name: 'Confirmar' }));
+    expect(screen.getByTestId('sx-aceptacion').textContent).toBe('482026000004571');
   });
 });

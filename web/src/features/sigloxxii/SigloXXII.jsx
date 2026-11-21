@@ -7,8 +7,10 @@ import { pedir } from '../../auth/api.js';
 import { useAuth } from '../../auth/AuthContext.jsx';
 import {
   ADMINISTRACION, CASO, CODIGOS_EMPRESA, CREDENCIALES, DEPARTAMENTOS, FORMAS_PAGO, PRACTICA, RUTA_MENU, TASA_SEMANA, TIPOS_IMPORTACION,
-  aFormulario500, dvImportador, liquidar, opcionesMenu, usuarioDePractica, validarEncabezado, validarSubpartida,
+  NUMERO_ACEPTACION, aFormulario500, dvImportador, liquidar, opcionesMenu, solucionSoporte, solucionTotales, usuarioDePractica,
+  validarDescripcion, validarEncabezado, validarSoporte, validarSubpartida, validarTotales,
 } from '../../lib/sigloxxii.js';
+import { Descripcion, Informar, Soporte, Totales } from './Partes.jsx';
 import css from './SigloXXII.module.css';
 
 // SIGLO XXII: el estudiante hace, paso a paso, el trámite de una declaración de importación
@@ -22,6 +24,9 @@ const PASOS = [
   ['previos', 'Parámetros previos'],
   ['encabezado', 'Encabezado'],
   ['subpartida', 'Ítem'],
+  ['descripcion', 'Descripción'],
+  ['totales', 'Totales'],
+  ['soporte', 'Doc. soporte'],
   ['informar', 'Informar'],
   ['fin', 'Terminada'],
 ];
@@ -33,8 +38,12 @@ const AYUDA = {
   previos: 'Antes del encabezado el sistema pregunta el tipo de declaración (Inicial), el departamento del importador y el documento que respalda la importación (el documento de transporte).',
   encabezado: 'Revisa el inventario del documento de transporte y llena el encabezado con los documentos del caso. Los documentos traen nombres, no códigos: búscalos con «Buscar código» junto a cada campo o en las tablas de abajo. Al guardar, el sistema te dirá qué no coincide y dónde mirar.',
   subpartida: 'Llena los datos de la mercancía y los valores; los códigos se buscan en las tablas. Escribe los porcentajes de arancel e IVA y pulsa «Autoliquidar» para que el sistema calcule los tributos. Después, «Guardar».',
-  declaracion: 'El encabezado quedó guardado y el sistema le asignó un número de radicación. Desde aquí se completa la declaración por partes: ingresa el ítem (la subpartida) y, cuando esté guardado, pulsa «Informar».',
-  fin: 'Terminaste el recorrido. Genera el formulario 500 con tu declaración para imprimirlo o guardarlo en PDF. En el sistema real seguirían los documentos soporte, la aceptación, el pago y el levante.',
+  declaracion: 'El encabezado quedó guardado y el sistema le asignó un número de radicación. Desde aquí se completa la declaración por partes, en orden: ítem, descripción, totales y documentos soporte. Con todo guardado se puede «Informar».',
+  descripcion: 'Describe la mercancía de modo que cualquiera la identifique sin ver otros documentos: qué es, tipo, uso, marca, referencia, seriales y cantidad. Los datos están en la factura.',
+  totales: 'El sistema trae los totales liquidados. Tú llenas lo que se paga con esta declaración, las sanciones si las hay y la forma de pago, según la instrucción de pago del importador. El código del banco se busca en la tabla de bancos.',
+  soporte: 'Para cada documento de la lista elige si se presentó, no se presentó o no se requiere. Si se presentó, anota su número y su fecha. Revisa quién firma y la clasificación del caso antes de marcar «No requerido».',
+  informar: 'Revisa la declaración completa. Al confirmar, el sistema da el número de aceptación y la declaración ya no se puede modificar.',
+  fin: 'Terminaste el recorrido. Genera el formulario 500 con tu declaración para imprimirlo o guardarlo en PDF. En el sistema real seguirían el pago en el banco y la solicitud de levante.',
 };
 const pesos = (n) => Math.round(n || 0).toLocaleString('es-CO');
 const HOY = new Date();
@@ -126,6 +135,11 @@ export default function SigloXXII() {
   const [sub, setSub] = useState({ cuotas: '0', otros: '0', ajuste: '0' });
   const [liq, setLiq] = useState(null);
   const [itemGuardado, setItemGuardado] = useState(false);
+  const [desc, setDesc] = useState('');
+  const [tot, setTot] = useState({});
+  const [sop, setSop] = useState({});
+  // Partes guardadas de la declaración radicada
+  const [hechas, setHechas] = useState({ descripcion: false, totales: false, soporte: false });
   const listaRef = useRef(null);
   const [malos, setMalos] = useState(new Map());
   const avisoRef = useRef(null);
@@ -142,7 +156,7 @@ export default function SigloXXII() {
   const reiniciar = () => {
     setErrores(0); setConSolucion(false); setRegistro(null); enviado.current = false;
     setRuta([]); setAcceso({ usuario: '', clave: '' }); setPrevios({ etapa: 1, tipo: 'Inicial', departamento: '', respaldo: 'DOCUMENTO DE TRANSPORTE' });
-    setItemGuardado(false); setEnc({}); setSub({ cuotas: '0', otros: '0', ajuste: '0' }); setLiq(null); ir('login');
+    setItemGuardado(false); setDesc(''); setTot({}); setSop({}); setHechas({ descripcion: false, totales: false, soporte: false }); setEnc({}); setSub({ cuotas: '0', otros: '0', ajuste: '0' }); setLiq(null); ir('login');
   };
 
   const entrar = (e) => {
@@ -181,15 +195,30 @@ export default function SigloXXII() {
     if (faltas.length) { fallo({ tipo: 'error', texto: `Tiene ${faltas.length} ${faltas.length === 1 ? 'inconsistencia' : 'inconsistencias'}: la subpartida no se puede guardar todavía.`, errores: faltas.map((x) => x.mensaje) }); return; }
     if (!liq) { fallo({ tipo: 'error', texto: 'Falta la autoliquidación: pulsa «Autoliquidar» para calcular los tributos antes de guardar.' }); return; }
     setItemGuardado(true);
+    // Si el ítem cambia, los totales que ya se habían guardado hay que revisarlos otra vez
+    const habiaTotales = hechas.totales;
+    setHechas((h) => ({ ...h, totales: false }));
     ir('declaracion');
-    setMensaje({ texto: 'El ítem quedó guardado. Ya puedes informar la declaración.' });
+    setMensaje({ texto: habiaTotales ? 'El ítem quedó guardado. Cambió la liquidación: vuelve a guardar los totales.' : 'El ítem quedó guardado. Sigue con la descripción de la mercancía.' });
   };
+
+  // Descripción, totales y documentos soporte se guardan igual: si hay inconsistencias, se listan
+  const salvarParte = (parte, faltas, siguiente) => {
+    marcar(faltas);
+    if (faltas.length) { fallo({ tipo: 'error', texto: `Tiene ${faltas.length} ${faltas.length === 1 ? 'inconsistencia' : 'inconsistencias'}: no se puede guardar todavía.`, errores: faltas.map((x) => x.mensaje) }); return; }
+    setHechas((h) => ({ ...h, [parte]: true }));
+    ir('declaracion');
+    setMensaje({ texto: `Los datos de su documento han sido almacenados con éxito. ${siguiente}` });
+  };
+  const ponerTot = (k, val) => setTot((x) => ({ ...x, [k]: val }));
+  const ponerSop = (k, val) => setSop((x) => ({ ...x, [k]: val }));
+  const todoListo = itemGuardado && hechas.descripcion && hechas.totales && hechas.soporte;
 
   // Lleva la declaración al formulario 500, desde donde se imprime o se guarda en PDF
   const generarFormulario = () => {
     try {
       sessionStorage.setItem(clavePrecarga('500'), JSON.stringify({
-        valores: aFormulario500(enc, sub),
+        valores: aFormulario500(enc, sub, desc),
         mensaje: 'Esta es la declaración que hiciste en SIGLO XXII. Revísala y pulsa «Imprimir o guardar PDF»; en la ventana de impresión elige «Guardar como PDF».',
       }));
     } catch { /* sin almacenamiento: se abre el formulario vacío */ }
@@ -197,7 +226,11 @@ export default function SigloXXII() {
   };
 
   const verSolucion = () => {
-    if (paso === 'encabezado') setEnc({ ...CASO.encabezado }); else { setSub({ ...CASO.subpartida }); setLiq(null); }
+    if (paso === 'encabezado') setEnc({ ...CASO.encabezado });
+    else if (paso === 'subpartida') { setSub({ ...CASO.subpartida }); setLiq(null); }
+    else if (paso === 'descripcion') setDesc(CASO.descripcion);
+    else if (paso === 'totales') setTot(solucionTotales(liq));
+    else if (paso === 'soporte') setSop(solucionSoporte());
     setConSolucion(true);
     setMalos(new Map());
     setMensaje({ texto: 'Se llenó la pantalla con los datos del caso. Revísalos contra los documentos y continúa.' });
@@ -213,8 +246,9 @@ export default function SigloXXII() {
       .catch(() => setRegistro('fallo'));
   }, [paso, tokenApi, errores, conSolucion]);
 
-  // La pantalla de la declaración radicada cae en el paso que sigue: el ítem o informar
-  const pasoVisible = paso === 'declaracion' ? (itemGuardado ? 'informar' : 'subpartida') : paso;
+  // La pantalla de la declaración radicada cae en la parte que sigue pendiente
+  const pendiente = !itemGuardado ? 'subpartida' : ['descripcion', 'totales', 'soporte'].find((p) => !hechas[p]) || 'informar';
+  const pasoVisible = paso === 'declaracion' ? pendiente : paso;
   const indice = PASOS.findIndex(([id]) => id === pasoVisible);
   const r = liq || {};
   const gastos = (parseFloat(sub.fletes) || 0) + (parseFloat(sub.seguros) || 0) + (parseFloat(sub.otros) || 0);
@@ -386,17 +420,21 @@ export default function SigloXXII() {
                         <td><span className={`${css.estadoSec} ${itemGuardado ? css.listo : css.pendiente}`}>{itemGuardado ? 'Guardado' : 'Pendiente'}</span></td>
                         <td><button type="button" className={itemGuardado ? css.secundario : css.primario} onClick={() => ir('subpartida')}>{itemGuardado ? 'Modificar ítem' : 'Ingresar ítem'}</button></td>
                       </tr>
-                      {[['Descripción', 'Descripción detallada de la mercancía'], ['Totales', 'Totales de la declaración'], ['Doc. soporte', 'Radicación de los documentos soporte']].map(([nombre, detalle]) => (
-                        <tr key={nombre} className={css.atenuada}>
+                      {[
+                        ['descripcion', 'Descripción', 'Casilla 43: marcas, seriales y demás datos de la mercancía', itemGuardado, 'Primero el ítem', 'Ingresar descripción', 'Modificar descripción'],
+                        ['totales', 'Totales', 'Casillas 67 a 76: lo que se paga y la forma de pago', itemGuardado, 'Primero el ítem', 'Ingresar totales', 'Modificar totales'],
+                        ['soporte', 'Doc. soporte', 'Radicar los documentos que respaldan la importación', true, '', 'Radicar', 'Modificar documentos'],
+                      ].map(([id, nombre, detalle, abierta, bloqueo, ingresar, modificar]) => (
+                        <tr key={id} className={abierta ? undefined : css.atenuada}>
                           <td><b>{nombre}</b><small>{detalle}</small></td>
-                          <td><span className={css.estadoSec}>En preparación</span></td>
-                          <td><small>Falta esta pantalla en el simulador</small></td>
+                          <td><span className={`${css.estadoSec} ${hechas[id] ? css.listo : abierta ? css.pendiente : ''}`}>{hechas[id] ? 'Guardado' : abierta ? 'Pendiente' : bloqueo}</span></td>
+                          <td><button type="button" className={hechas[id] || pendiente !== id ? css.secundario : css.primario} disabled={!abierta} onClick={() => ir(id)}>{hechas[id] ? modificar : ingresar}</button></td>
                         </tr>
                       ))}
                       <tr>
-                        <td><b>Informar</b><small>Cierra la declaración y genera el formulario 500</small></td>
-                        <td><span className={`${css.estadoSec} ${itemGuardado ? css.pendiente : ''}`}>{itemGuardado ? 'Listo para informar' : 'Primero el ítem'}</span></td>
-                        <td><button type="button" className={css.primario} disabled={!itemGuardado} onClick={() => ir('fin')}>Informar</button></td>
+                        <td><b>Informar</b><small>Presenta la declaración a la DIAN y da el número de aceptación</small></td>
+                        <td><span className={`${css.estadoSec} ${todoListo ? css.pendiente : ''}`}>{todoListo ? 'Listo para informar' : 'Faltan partes'}</span></td>
+                        <td><button type="button" className={css.primario} disabled={!todoListo} onClick={() => ir('informar')}>Informar</button></td>
                       </tr>
                     </tbody>
                   </table>
@@ -462,7 +500,23 @@ export default function SigloXXII() {
               </div>
             )}
 
-            {mensaje?.errores && (paso === 'encabezado' || paso === 'subpartida') && (
+            {paso === 'descripcion' && (
+              <Descripcion texto={desc} poner={(t) => { setDesc(t); setMalos(new Map()); }} malos={malos} subpartida={sub.subpartida} radicacion={RADICACION}
+                onSalvar={() => salvarParte('descripcion', validarDescripcion(desc), 'Sigue con los totales.')} />
+            )}
+            {paso === 'totales' && liq && (
+              <Totales t={tot} poner={ponerTot} malos={malos} liq={liq} onBuscar={buscar} radicacion={RADICACION}
+                onSalvar={() => salvarParte('totales', validarTotales(tot, liq), 'Sigue con los documentos soporte.')} />
+            )}
+            {paso === 'soporte' && (
+              <Soporte s={sop} poner={ponerSop} malos={malos} radicacion={RADICACION}
+                onSalvar={() => salvarParte('soporte', validarSoporte(sop), 'Los datos quedaron radicados.')} />
+            )}
+            {paso === 'informar' && (
+              <Informar enc={enc} sub={sub} liq={liq} t={tot} radicacion={RADICACION} onVolver={() => ir('declaracion')} onConfirmar={() => ir('fin')} />
+            )}
+
+            {mensaje?.errores && ['encabezado', 'subpartida', 'descripcion', 'totales', 'soporte'].includes(paso) && (
               <section ref={listaRef} className={css.inconsistencias} aria-label="Lista de inconsistencias a corregir">
                 <h3>Lista de inconsistencias a corregir</h3>
                 <table>
@@ -475,7 +529,8 @@ export default function SigloXXII() {
             {paso === 'fin' && (
               <div className={css.tarjeta}>
                 <div className={css.exito} role="status"><span aria-hidden="true">✓</span> Declaración guardada e informada</div>
-                <p className={css.suave}>Número de radicación {RADICACION} (de práctica). En el borrador del formulario el número de formulario aparece «por generar»: lo asigna la DIAN al aceptar la declaración.</p>
+                <p>Número de aceptación generado: <strong className={css.codigo} data-testid="sx-aceptacion">{NUMERO_ACEPTACION}</strong></p>
+                <p className={css.suave}>Radicación {RADICACION} y aceptación de práctica. En el borrador del formulario el número de formulario aparece «por generar»: en el sistema real lo asigna la DIAN.</p>
                 <div className={css.cifras}>
                   <div><span>Valor en aduana</span><strong>USD {r.aduanaUSD?.toLocaleString('es-CO')}</strong></div>
                   <div><span>Arancel</span><strong>${pesos(r.arancel)}</strong></div>
@@ -489,7 +544,7 @@ export default function SigloXXII() {
                   {tokenApi && registro === 'ok' && `Tu práctica quedó registrada${conSolucion ? ' (usaste la solución en alguna pantalla)' : ''}: el sistema te devolvió ${errores} ${errores === 1 ? 'pantalla' : 'pantallas'} con errores. Tu profesor puede verla en el panel de su grupo.`}
                   {tokenApi && registro === 'fallo' && 'No se pudo registrar la práctica en el servidor. Revisa la conexión y vuelve a hacerla.'}
                 </p>
-                <p className={css.suave}>En el sistema real, después de guardar se registran los documentos soporte, la DIAN acepta la declaración, se paga en el banco y se obtiene el levante. Esos pasos todavía no hacen parte de esta práctica.</p>
+                <p className={css.suave}>En el sistema real, con el número de aceptación se pagan los tributos en el banco y después se solicita el levante de la mercancía. Esos pasos todavía no hacen parte de esta práctica.</p>
                 <div className={css.acciones}>
                   <button type="button" className={css.primario} onClick={generarFormulario}>Generar el formulario 500 (PDF)</button>
                   <button type="button" className={css.secundario} onClick={reiniciar}>Hacer la práctica otra vez</button>
@@ -505,7 +560,7 @@ export default function SigloXXII() {
             {paso === 'login' && <>Tu usuario de práctica es <strong>{miUsuario}</strong> y la contraseña es <strong>{CREDENCIALES.clave}</strong>. {tokenApi ? 'Es solo tuyo: al terminar, la práctica queda registrada a tu nombre. ' : 'Como invitado usas el usuario de ejemplo y la práctica no queda registrada. '}</>}
             {AYUDA[paso]}
           </p>
-          {(paso === 'encabezado' || paso === 'subpartida') && (
+          {['encabezado', 'subpartida', 'descripcion', 'totales', 'soporte'].includes(paso) && (
             <>
               <button type="button" className="btn-card" onClick={verSolucion}>Ver la solución de esta pantalla</button>
               <p className={css.ayuda} style={{ marginTop: 6 }}>Úsala solo si te quedas sin salida: tu profesor verá que la usaste.</p>
