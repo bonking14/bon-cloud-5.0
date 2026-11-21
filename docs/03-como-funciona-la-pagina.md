@@ -186,7 +186,11 @@ Además de todo lo anterior, tiene el menú **Grupos**.
 3. En el panel del grupo ve a cada estudiante con sus lecciones aprobadas, su promedio, sus
    intentos, si terminó cada práctica de SIGLO XXII y su última actividad. Al abrir un estudiante
    ve el detalle lección por lección y, de la práctica, cuántas pantallas le devolvió el
-   sistema con errores y si usó el botón de la solución.
+   sistema con errores.
+
+   En SIGLO XXII, el profesor y el administrador tienen en cada pantalla el botón «Ver la
+   solución de esta pantalla», que llena la pantalla con los datos correctos del caso, para
+   revisar o explicar. Los estudiantes y los invitados no tienen ese botón.
 4. Puede **descargar todo a Excel**, retirar a un estudiante, cerrar el grupo (el código
    deja de servir) o eliminarlo.
 

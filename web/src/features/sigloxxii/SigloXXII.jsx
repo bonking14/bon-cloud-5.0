@@ -158,7 +158,9 @@ function Seccion({ titulo, children }) {
 }
 
 export default function SigloXXII() {
-  const { usuario, tokenApi } = useAuth();
+  const { usuario, tokenApi, rol } = useAuth();
+  // La solución de cada pantalla solo la ven profesores y administradores, para revisar los casos
+  const puedeVerSolucion = rol === 'profesor' || rol === 'administrador';
   // Cada cuenta tiene su propio usuario del simulador; el invitado usa el de ejemplo
   const miUsuario = usuarioDePractica(usuario);
   // Lo que se le reporta al profesor: pantallas devueltas con errores y si usó la solución
@@ -734,10 +736,10 @@ export default function SigloXXII() {
             {paso === 'login' && <>Tu usuario de práctica es <strong>{miUsuario}</strong> y la contraseña es <strong>{CREDENCIALES.clave}</strong>. {tokenApi ? 'Es solo tuyo: al terminar, la práctica queda registrada a tu nombre. ' : 'Como invitado usas el usuario de ejemplo y la práctica no queda registrada. '}</>}
             {paso === 'menu' ? `Para ${practica === 'rop' ? 'ingresar un recibo oficial de pago' : 'abrir una declaración'} sigue esta ruta: ${P.ruta.join(' → ')}.` : AYUDA[`${paso}_${practica}`] ?? AYUDA[paso]}
           </p>
-          {CON_SOLUCION.includes(paso) && (
+          {CON_SOLUCION.includes(paso) && puedeVerSolucion && (
             <>
               <button type="button" className="btn-card" onClick={verSolucion}>Ver la solución de esta pantalla</button>
-              <p className={css.ayuda} style={{ marginTop: 6 }}>Úsala solo si te quedas sin salida: tu profesor verá que la usaste.</p>
+              <p className={css.ayuda} style={{ marginTop: 6 }}>Solo la ven profesores y administradores, para revisar el caso. Los estudiantes no tienen este botón.</p>
             </>
           )}
           <h3>Tablas de códigos</h3>

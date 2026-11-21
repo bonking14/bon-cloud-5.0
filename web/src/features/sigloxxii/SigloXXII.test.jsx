@@ -6,11 +6,12 @@ import { CASO, RUTA_MENU, datosCorreccion, generarCaso, liquidar } from '../../l
 import { pedir } from '../../auth/api.js';
 
 // Sesión simulada: por defecto, invitado
-const sesion = { usuario: { invitado: true }, tokenApi: null };
+// En las pruebas del recorrido entra un profesor, que puede ver la solución de cada pantalla
+const sesion = { usuario: { invitado: true }, tokenApi: null, rol: 'profesor' };
 vi.mock('../../auth/AuthContext.jsx', () => ({ useAuth: () => sesion }));
 vi.mock('../../auth/api.js', () => ({ pedir: vi.fn(() => Promise.resolve({ ok: true })) }));
 
-afterEach(() => { cleanup(); Object.assign(sesion, { usuario: { invitado: true }, tokenApi: null }); pedir.mockClear(); });
+afterEach(() => { cleanup(); Object.assign(sesion, { usuario: { invitado: true }, tokenApi: null, rol: 'profesor' }); pedir.mockClear(); });
 const abrir = () => render(<MemoryRouter><SigloXXII /></MemoryRouter>);
 const entrar = (nombre = 'alumno01') => {
   fireEvent.change(screen.getByLabelText('Nombre'), { target: { value: nombre } });
@@ -355,5 +356,19 @@ describe('SIGLO XXII', () => {
     fireEvent.click(screen.getByRole('button', { name: 'Confirmar' }));
     expect(screen.getByTestId('sx-aceptacion-correccion').textContent).toBe('482026000005102');
     expect(pedir).toHaveBeenCalledWith('/practicas', { metodo: 'POST', token: 'jwt', cuerpo: { practica: 'sigloxxii-correccion', errores: 3, conSolucion: true } });
+  });
+  it('el estudiante y el invitado no ven el botón de la solución', () => {
+    for (const quien of [{ usuario: { id: 5, nombre: 'Leo' }, tokenApi: 'jwt', rol: 'estudiante' }, { usuario: { invitado: true }, tokenApi: null, rol: null }]) {
+      Object.assign(sesion, quien);
+      abrir();
+      entrar(quien.rol ? 'A000005' : 'ALUMNO01');
+      RUTA_MENU.forEach((o) => fireEvent.click(screen.getByRole('menuitem', { name: o })));
+      fireEvent.click(screen.getByRole('button', { name: 'Siguiente' }));
+      fireEvent.change(screen.getByLabelText('Departamento importador'), { target: { value: generarCaso(quien.rol ? 5 : 0).importador.departamento } });
+      fireEvent.click(screen.getByRole('button', { name: 'Continuar' }));
+      expect(screen.getByRole('heading', { name: /Encabezado/ })).toBeTruthy();
+      expect(screen.queryByText('Ver la solución de esta pantalla')).toBeNull();
+      cleanup();
+    }
   });
 });
