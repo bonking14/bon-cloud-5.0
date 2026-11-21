@@ -100,4 +100,27 @@ describe('SIGLO XXII', () => {
     expect(pedir).toHaveBeenCalledWith('/practicas', { metodo: 'POST', token: 'jwt', cuerpo: { practica: 'sigloxxii-importacion', errores: 2, conSolucion: true } });
     expect((await screen.findByText(/quedó registrada/)).textContent).toMatch(/2 pantallas con errores/);
   });
+
+  it('la consulta de códigos llena el campo, y al final la declaración pasa al formulario 500', () => {
+    abrir();
+    entrar();
+    RUTA_MENU.forEach((o) => fireEvent.click(screen.getByRole('menuitem', { name: o })));
+    fireEvent.click(screen.getByRole('button', { name: 'Siguiente' }));
+    fireEvent.change(screen.getByLabelText('Departamento importador'), { target: { value: '13' } });
+    fireEvent.click(screen.getByRole('button', { name: 'Continuar' }));
+    // el alumno busca el código de Panamá para la bandera
+    fireEvent.click(screen.getByRole('button', { name: 'Buscar código: Bandera (cód.)' }));
+    fireEvent.change(screen.getByLabelText('Buscar en la tabla'), { target: { value: 'panam' } });
+    fireEvent.click(screen.getByRole('button', { name: 'Usar' }));
+    expect(screen.getByLabelText('Bandera (cód.)').value).toBe('PA');
+    fireEvent.click(screen.getByText('Ver la solución de esta pantalla'));
+    fireEvent.click(screen.getByRole('button', { name: 'Guardar' }));
+    fireEvent.click(screen.getByText('Ver la solución de esta pantalla'));
+    fireEvent.click(screen.getByRole('button', { name: 'Autoliquidar' }));
+    fireEvent.click(screen.getByRole('button', { name: 'Guardar' }));
+    fireEvent.click(screen.getByRole('button', { name: 'Generar el formulario 500 (PDF)' }));
+    const precarga = JSON.parse(sessionStorage.getItem('boncloud-precarga-500'));
+    expect(precarga.valores.subpartida).toBe('8413.60.90.00');
+    expect(precarga.valores.v_fob).toBe('60000');
+  });
 });

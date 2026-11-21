@@ -96,6 +96,12 @@ nota y la fecha, sin necesidad de cuenta.
   conecta con la DIAN. Aún no incluye documentos soporte, aceptación, pago ni levante. Cada
   cuenta tiene su propio usuario de práctica (por ejemplo `A000042`); al terminar, la práctica
   queda registrada a su nombre. El invitado usa un usuario de ejemplo y no se le registra.
+  Los documentos del caso traen nombres (Cartagena, Panamá, marítimo) y no códigos: el
+  estudiante busca cada código con «Buscar código» junto al campo o en las tablas de códigos
+  (administraciones, lugares de ingreso, depósitos, países, departamentos, ciudades, modos de
+  transporte, transportadores, agencias de aduanas, embalajes, unidades y modalidades). Los
+  errores dicen dónde buscar, sin dar la respuesta. Al terminar, «Generar el formulario 500
+  (PDF)» abre el formulario 500 con su declaración para imprimirlo o guardarlo en PDF.
 
 ### Material de consulta
 

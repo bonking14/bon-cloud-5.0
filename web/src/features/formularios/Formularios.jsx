@@ -30,7 +30,7 @@ export default function Formularios() {
       <div className="dashboard-header no-imprimir">
         <h1>Formularios DIAN</h1>
         <p>Practica el diligenciamiento de los formularios aduaneros: se calculan solos y puedes imprimirlos o guardarlos en PDF.</p>
-        <p className="buscador-hint" style={{ marginTop: 4 }}>Son simuladores educativos: no tienen validez ante la DIAN. Los formularios 500, 560, 600 y 650 reproducen la distribución y la numeración de los formularios oficiales. Las declaraciones reales se presentan con firma digital en los servicios informáticos de la DIAN.</p>
+        <p className="buscador-hint" style={{ marginTop: 4 }}>Son simuladores educativos: no tienen validez ante la DIAN. Los formularios 500, 560, 600 y 650 reproducen la distribución y la numeración de los oficiales; el RUT (001), la SAE (602) y el DUTA (651) siguen las casillas oficiales con una distribución aproximada. Las declaraciones reales se presentan con firma digital en los servicios informáticos de la DIAN.</p>
       </div>
 
       {form ? (

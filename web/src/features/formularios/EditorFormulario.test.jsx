@@ -46,6 +46,14 @@ describe('formularios DIAN en React', () => {
     expect(screen.getByText(/Importación temporal de largo plazo: los tributos se liquidan en dólares/)).toBeTruthy();
   });
 
+  it('500: abre con la declaración que deja SIGLO XXII y avisa cómo guardarla en PDF', async () => {
+    sessionStorage.setItem('boncloud-precarga-500', JSON.stringify({ valores: { imp_nit: '900123456', v_fob: '60000', subpartida: '8413.60.90.00' }, mensaje: 'Esta es la declaración que hiciste en SIGLO XXII.' }));
+    abrir('500');
+    expect(await screen.findByText(/declaración que hiciste en SIGLO XXII/, {}, ESPERA)).toBeTruthy();
+    expect(screen.getByLabelText('NIT del importador').value).toBe('900123456');
+    expect(sessionStorage.getItem('boncloud-precarga-500')).toBeNull();
+  });
+
   it('500: una subpartida del catálogo propone arancel e IVA y avisa los vistos buenos', async () => {
     abrir('500');
     const sp = await screen.findByLabelText('Subpartida arancelaria', {}, ESPERA);

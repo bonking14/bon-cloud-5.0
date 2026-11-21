@@ -1,10 +1,13 @@
 import { useEffect, useRef, useState } from 'react';
-import { Link } from 'react-router-dom';
+import { useNavigate } from 'react-router-dom';
+import Modal from '../../components/Modal.jsx';
+import { TABLAS, buscarCodigo } from '../../lib/codigosAduana.js';
+import { clavePrecarga } from '../formularios/EditorFormulario.jsx';
 import { pedir } from '../../auth/api.js';
 import { useAuth } from '../../auth/AuthContext.jsx';
 import {
   ADMINISTRACION, CASO, CODIGOS_EMPRESA, CREDENCIALES, DEPARTAMENTOS, FORMAS_PAGO, PRACTICA, RUTA_MENU, TASA_SEMANA, TIPOS_IMPORTACION,
-  dvImportador, liquidar, opcionesMenu, usuarioDePractica, validarEncabezado, validarSubpartida,
+  aFormulario500, dvImportador, liquidar, opcionesMenu, usuarioDePractica, validarEncabezado, validarSubpartida,
 } from '../../lib/sigloxxii.js';
 import css from './SigloXXII.module.css';
 
@@ -25,21 +28,26 @@ const AYUDA = {
   login: 'En el sistema real, el usuario lo asigna la DIAN a cada agencia de aduanas o usuario aduanero.',
   menu: `Para abrir una declaración nueva sigue esta ruta: ${RUTA_MENU.join(' → ')}.`,
   previos: 'Antes del encabezado el sistema pregunta el tipo de declaración (Inicial), el departamento del importador y el documento que respalda la importación (el documento de transporte).',
-  encabezado: 'Revisa el inventario del documento de transporte y llena el encabezado con los documentos del caso. Los códigos van como aparecen en los documentos. Al guardar, el sistema te dirá qué falta o qué no coincide.',
-  subpartida: 'Llena los datos de la mercancía y los valores. Escribe los porcentajes de arancel e IVA y pulsa «Autoliquidar» para que el sistema calcule los tributos. Después, «Guardar».',
-  fin: 'Terminaste el recorrido. En el sistema real seguirían los documentos soporte, la aceptación, el pago y el levante.',
+  encabezado: 'Revisa el inventario del documento de transporte y llena el encabezado con los documentos del caso. Los documentos traen nombres, no códigos: búscalos con «Buscar código» junto a cada campo o en las tablas de abajo. Al guardar, el sistema te dirá qué no coincide y dónde mirar.',
+  subpartida: 'Llena los datos de la mercancía y los valores; los códigos se buscan en las tablas. Escribe los porcentajes de arancel e IVA y pulsa «Autoliquidar» para que el sistema calcule los tributos. Después, «Guardar».',
+  fin: 'Terminaste el recorrido. Genera el formulario 500 con tu declaración para imprimirlo o guardarlo en PDF. En el sistema real seguirían los documentos soporte, la aceptación, el pago y el levante.',
 };
 const pesos = (n) => Math.round(n || 0).toLocaleString('es-CO');
 const HOY = new Date();
 // Del mensaje de validación («Rótulo: falta. Pista») queda lo que va debajo del campo
 const sinRotulo = (m) => m.replace(/^[^:]+:\s*/, '').replace(/^./, (c) => c.toUpperCase());
 
-function Campo({ nombre, rotulo, v, poner, malos, ancho = 1, soloLectura, valor, opciones, placeholder }) {
+function Campo({ nombre, rotulo, v, poner, malos, ancho = 1, soloLectura, valor, opciones, placeholder, tabla, onBuscar }) {
   const id = `sx-${nombre}`;
   const error = malos?.get(nombre);
   return (
     <div className={`${css.campo}${error ? ` ${css.mal}` : ''}`} style={{ gridColumn: `span ${ancho}` }}>
-      <label htmlFor={id}>{rotulo}</label>
+      <span className={css.rotulo}>
+        <label htmlFor={id}>{rotulo}</label>
+        {tabla && onBuscar && (
+          <button type="button" className={css.buscar} onClick={() => onBuscar(tabla, nombre, poner)} aria-label={`Buscar código: ${rotulo}`}>Buscar código</button>
+        )}
+      </span>
       {opciones ? (
         <select id={id} value={v[nombre] ?? ''} aria-invalid={Boolean(error)} onChange={(e) => poner(nombre, e.target.value)}>
           <option value="">Selecciona…</option>
@@ -51,6 +59,39 @@ function Campo({ nombre, rotulo, v, poner, malos, ancho = 1, soloLectura, valor,
       )}
       {error && <small className={css.errorCampo}>{error}</small>}
     </div>
+  );
+}
+
+// Consulta de códigos: busca en una tabla y, si se abrió desde un campo, lo llena con el código elegido
+function Consulta({ consulta, onCerrar }) {
+  const [q, setQ] = useState('');
+  const tabla = consulta && TABLAS[consulta.tabla];
+  const filas = consulta ? buscarCodigo(consulta.tabla, q) : [];
+  return (
+    <Modal abierto={Boolean(consulta)} onCerrar={onCerrar} claseCaja={`sp-modal ${css.cajaConsulta}`} etiqueta={tabla ? `Consulta de códigos: ${tabla.titulo}` : 'Consulta de códigos'}>
+      {tabla && (
+        <div className={css.consulta}>
+          <h2>{tabla.titulo}</h2>
+          <p className={css.suave}>{tabla.nota}{tabla.ficticia ? ' Son datos de práctica.' : ''}</p>
+          <input type="search" className={css.filtro} placeholder="Busca por código o nombre…" value={q} onChange={(e) => setQ(e.target.value)} aria-label="Buscar en la tabla" autoFocus />
+          <div className={css.scroll}>
+            <table className={css.liq}>
+              <thead><tr><th scope="col">Código</th><th scope="col">Nombre</th>{consulta.campo && <th scope="col"><span className={css.oculto}>Usar</span></th>}</tr></thead>
+              <tbody>
+                {filas.map(([codigo, nombre]) => (
+                  <tr key={codigo}>
+                    <td className={css.codigo}>{codigo}</td>
+                    <td>{nombre}</td>
+                    {consulta.campo && <td><button type="button" className={css.secundario} onClick={() => { consulta.poner(consulta.campo, codigo); onCerrar(); }}>Usar</button></td>}
+                  </tr>
+                ))}
+                {!filas.length && <tr><td colSpan={3}>No hay códigos que coincidan.</td></tr>}
+              </tbody>
+            </table>
+          </div>
+        </div>
+      )}
+    </Modal>
   );
 }
 
@@ -77,11 +118,14 @@ export default function SigloXXII() {
   const [mensaje, setMensaje] = useState(null); // { texto, errores?, tipo }
   const [acceso, setAcceso] = useState({ usuario: '', clave: '' });
   const [previos, setPrevios] = useState({ etapa: 1, tipo: 'Inicial', departamento: '', respaldo: 'DOCUMENTO DE TRANSPORTE' });
-  const [enc, setEnc] = useState({ administracion: ADMINISTRACION.codigo });
+  const [enc, setEnc] = useState({});
   const [sub, setSub] = useState({ cuotas: '0', otros: '0', ajuste: '0' });
   const [liq, setLiq] = useState(null);
   const [malos, setMalos] = useState(new Map());
   const avisoRef = useRef(null);
+  const navigate = useNavigate();
+  const [consulta, setConsulta] = useState(null); // { tabla, campo?, poner? }
+  const buscar = (tabla, campo, poner) => setConsulta({ tabla, campo, poner });
   // Un error lleva la vista al aviso, que puede quedar arriba del formulario largo
   useEffect(() => { if (mensaje?.tipo === 'error') avisoRef.current?.scrollIntoView?.({ behavior: 'smooth', block: 'center' }); }, [mensaje]);
 
@@ -92,7 +136,7 @@ export default function SigloXXII() {
   const reiniciar = () => {
     setErrores(0); setConSolucion(false); setRegistro(null); enviado.current = false;
     setRuta([]); setAcceso({ usuario: '', clave: '' }); setPrevios({ etapa: 1, tipo: 'Inicial', departamento: '', respaldo: 'DOCUMENTO DE TRANSPORTE' });
-    setEnc({ administracion: ADMINISTRACION.codigo }); setSub({ cuotas: '0', otros: '0', ajuste: '0' }); setLiq(null); ir('login');
+    setEnc({}); setSub({ cuotas: '0', otros: '0', ajuste: '0' }); setLiq(null); ir('login');
   };
 
   const entrar = (e) => {
@@ -132,6 +176,17 @@ export default function SigloXXII() {
     if (faltas.length) { fallo({ tipo: 'error', texto: `Tiene ${faltas.length} ${faltas.length === 1 ? 'inconsistencia' : 'inconsistencias'}: la subpartida no se puede guardar todavía.`, errores: faltas.map((x) => x.mensaje) }); return; }
     if (!liq) { fallo({ tipo: 'error', texto: 'Falta la autoliquidación: pulsa «Autoliquidar» para calcular los tributos antes de guardar.' }); return; }
     ir('fin');
+  };
+
+  // Lleva la declaración al formulario 500, desde donde se imprime o se guarda en PDF
+  const generarFormulario = () => {
+    try {
+      sessionStorage.setItem(clavePrecarga('500'), JSON.stringify({
+        valores: aFormulario500(enc, sub),
+        mensaje: 'Esta es la declaración que hiciste en SIGLO XXII. Revísala y pulsa «Imprimir o guardar PDF»; en la ventana de impresión elige «Guardar como PDF».',
+      }));
+    } catch { /* sin almacenamiento: se abre el formulario vacío */ }
+    navigate('/formularios/500');
   };
 
   const verSolucion = () => {
@@ -298,7 +353,7 @@ export default function SigloXXII() {
             {paso === 'encabezado' && (
               <>
                 <Inventario />
-                <Encabezado v={enc} poner={ponerEnc} malos={malos} onSalvar={salvarEncabezado} />
+                <Encabezado v={enc} poner={ponerEnc} malos={malos} onSalvar={salvarEncabezado} onBuscar={buscar} />
               </>
             )}
 
@@ -309,20 +364,20 @@ export default function SigloXXII() {
                   <span className={css.chip}>Inicial · TRM {TASA_SEMANA.toLocaleString('es-CO')}</span>
                 </div>
                 <Seccion titulo="Mercancía">
-                  <Campo nombre="modalidad" rotulo="Modalidad" v={sub} poner={ponerSub} malos={malos} />
+                  <Campo nombre="modalidad" rotulo="Modalidad" v={sub} poner={ponerSub} malos={malos} tabla="modalidades" onBuscar={buscar} />
                   <Campo nombre="cuotas" rotulo="No. cuotas o meses" v={sub} poner={ponerSub} malos={malos} />
                   <Campo nombre="subpartida" rotulo="Subpartida arancelaria" v={sub} poner={ponerSub} malos={malos} ancho={2} />
-                  <Campo nombre="pais_origen" rotulo="País origen" v={sub} poner={ponerSub} malos={malos} />
+                  <Campo nombre="pais_origen" rotulo="País origen" v={sub} poner={ponerSub} malos={malos} tabla="paises" onBuscar={buscar} />
                   <Campo nombre="acuerdo" rotulo="Acuerdo" soloLectura valor="No aplica" v={sub} />
-                  <Campo nombre="pais_compra" rotulo="País de compra" v={sub} poner={ponerSub} malos={malos} />
-                  <Campo nombre="unidad_comercial" rotulo="Unidad comercial" v={sub} poner={ponerSub} malos={malos} />
+                  <Campo nombre="pais_compra" rotulo="País de compra" v={sub} poner={ponerSub} malos={malos} tabla="paises" onBuscar={buscar} />
+                  <Campo nombre="unidad_comercial" rotulo="Unidad comercial" v={sub} poner={ponerSub} malos={malos} tabla="unidades" onBuscar={buscar} />
                   <Campo nombre="forma_pago" rotulo="Forma de pago importación" v={sub} poner={ponerSub} malos={malos} ancho={2} opciones={FORMAS_PAGO.map(([c, t]) => [c, `${c} · ${t}`])} />
                   <Campo nombre="tipo_importacion" rotulo="Tipo de importación" v={sub} poner={ponerSub} malos={malos} ancho={2} opciones={TIPOS_IMPORTACION.map(([c, t]) => [c, `${c} · ${t}`])} />
                 </Seccion>
                 <Seccion titulo="Bultos y pesos">
                   <Campo nombre="peso_bruto" rotulo="Peso bruto kg" v={sub} poner={ponerSub} malos={malos} />
                   <Campo nombre="peso_neto" rotulo="Peso neto kg" v={sub} poner={ponerSub} malos={malos} />
-                  <Campo nombre="embalaje" rotulo="Embalaje" v={sub} poner={ponerSub} malos={malos} />
+                  <Campo nombre="embalaje" rotulo="Embalaje" v={sub} poner={ponerSub} malos={malos} tabla="embalajes" onBuscar={buscar} />
                   <Campo nombre="bultos" rotulo="Bultos" v={sub} poner={ponerSub} malos={malos} />
                   <Campo nombre="subpartidas" rotulo="Subpartidas" v={sub} poner={ponerSub} malos={malos} />
                   <Campo nombre="cantidad" rotulo="Cantidad" v={sub} poner={ponerSub} malos={malos} />
@@ -379,8 +434,8 @@ export default function SigloXXII() {
                 </p>
                 <p className={css.suave}>En el sistema real, después de guardar se registran los documentos soporte, la DIAN acepta la declaración, se paga en el banco y se obtiene el levante. Esos pasos todavía no hacen parte de esta práctica.</p>
                 <div className={css.acciones}>
-                  <button type="button" className={css.primario} onClick={reiniciar}>Hacer la práctica otra vez</button>
-                  <Link className={css.secundario} to="/formularios/500">Ver esta declaración en el formulario 500</Link>
+                  <button type="button" className={css.primario} onClick={generarFormulario}>Generar el formulario 500 (PDF)</button>
+                  <button type="button" className={css.secundario} onClick={reiniciar}>Hacer la práctica otra vez</button>
                 </div>
               </div>
             )}
@@ -394,8 +449,17 @@ export default function SigloXXII() {
             {AYUDA[paso]}
           </p>
           {(paso === 'encabezado' || paso === 'subpartida') && (
-            <button type="button" className="btn-card" style={{ marginBottom: 12 }} onClick={verSolucion}>Ver la solución de esta pantalla</button>
+            <>
+              <button type="button" className="btn-card" onClick={verSolucion}>Ver la solución de esta pantalla</button>
+              <p className={css.ayuda} style={{ marginTop: 6 }}>Úsala solo si te quedas sin salida: tu profesor verá que la usaste.</p>
+            </>
           )}
+          <h3>Tablas de códigos</h3>
+          <div className={css.tablas}>
+            {Object.entries(TABLAS).map(([id, t]) => (
+              <button key={id} type="button" className={css.tablaBoton} onClick={() => buscar(id)}>{t.titulo}</button>
+            ))}
+          </div>
           <h3>Documentos del caso</h3>
           <p className={css.ayuda}>HidroColombia importa 500 bombas de engranajes de Shanghái a Cartagena (caso del módulo 1 de la Ruta).</p>
           {CASO.documentos.map((d) => (
@@ -406,6 +470,7 @@ export default function SigloXXII() {
           ))}
         </aside>
       </div>
+      <Consulta key={consulta ? `${consulta.tabla}-${consulta.campo || ''}` : 'cerrada'} consulta={consulta} onCerrar={() => setConsulta(null)} />
     </>
   );
 }
@@ -432,8 +497,14 @@ function Inventario() {
   );
 }
 
-function Encabezado({ v, poner, malos, onSalvar }) {
-  const c = (nombre, rotulo, extra = {}) => <Campo nombre={nombre} rotulo={rotulo} v={v} poner={poner} malos={malos} {...extra} />;
+// Campos del encabezado cuyo código se busca en una tabla
+const TABLA_DE = {
+  administracion: 'administraciones', lugar_ingreso: 'lugares', deposito: 'depositos', imp_ciudad: 'ciudades', exp_pais: 'paises',
+  pais_procedencia: 'paises', modo_transporte: 'modos', bandera: 'paises', depto_destino: 'departamentos', transportadora: 'transportadores',
+};
+
+function Encabezado({ v, poner, malos, onSalvar, onBuscar }) {
+  const c = (nombre, rotulo, extra = {}) => <Campo nombre={nombre} rotulo={rotulo} v={v} poner={poner} malos={malos} tabla={TABLA_DE[nombre]} onBuscar={onBuscar} {...extra} />;
   return (
     <div className={css.tarjeta}>
       <div className={css.cabecera}>

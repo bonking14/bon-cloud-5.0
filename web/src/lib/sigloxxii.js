@@ -43,11 +43,14 @@ export const CODIGOS_EMPRESA = ['Empresa Privada', 'Empresa Mixta', 'Empresa Pú
 // Caso del módulo 1 de la Ruta: 500 bombas de engranajes, de Shanghái a Cartagena
 export const CASO = {
   documentos: [
-    { titulo: 'RUT del importador', datos: [['Razón social', 'HidroColombia S.A.S. (empresa ficticia)'], ['NIT', '900123456'], ['Dirección', 'Zona Industrial de Mamonal'], ['Ciudad', 'Cartagena (13001)'], ['Departamento', 'Bolívar (13)'], ['Teléfono', '6050000000'], ['Tipo de empresa', 'Empresa Privada']] },
-    { titulo: 'Factura comercial', datos: [['Número', 'ZH-2026-118'], ['Fecha', '2026-02-05'], ['Proveedor', 'Zhejiang Hydraulic Co. (ficticio)'], ['Ciudad y país', 'Shanghái, China (CN)'], ['Dirección', '88 Industrial Road'], ['Mercancía', '500 bombas de engranajes externos para aceite hidráulico, sin motor'], ['Valor FOB', 'USD 60.000'], ['Forma de pago', 'Giro directo']] },
-    { titulo: 'Documento de transporte (B/L)', datos: [['Número', 'SHACTG-2026-0457'], ['Fecha', '2026-02-12'], ['Puerto de embarque', 'Shanghái (CN)'], ['Puerto de llegada', 'Cartagena (CTG)'], ['Modo', 'Marítimo (1)'], ['Bandera del buque', 'Panamá (PA)'], ['Naviera', 'Naviera del Pacífico, código 0457 (ficticio)'], ['Bultos', '1 contenedor, embalaje PK'], ['Peso bruto', '2.600 kg'], ['Peso neto', '2.400 kg'], ['Flete', 'USD 3.500']] },
-    { titulo: 'Manifiesto de carga y depósito', datos: [['Manifiesto', '116575000000457'], ['Fecha', '2026-03-10'], ['Depósito', 'DEP048 (depósito público ficticio)']] },
-    { titulo: 'Otros datos', datos: [['Póliza de seguro', 'USD 300'], ['Subpartida', '8413.60.90.00'], ['Modalidad', 'C100 (importación ordinaria)'], ['Arancel', '5% (de práctica)'], ['IVA', '19%'], ['Firma', 'Ana María Pérez Gómez, C.C. 1000000001']] },
+    // Los documentos traen nombres, no códigos: el código se busca en las tablas, como en el trabajo
+    { titulo: 'RUT del importador', datos: [['Razón social', 'HidroColombia S.A.S. (empresa ficticia)'], ['NIT', '900123456-8'], ['Dirección', 'Zona Industrial de Mamonal'], ['Ciudad', 'Cartagena'], ['Departamento', 'Bolívar'], ['Teléfono', '6050000000'], ['Tipo de empresa', 'Sociedad privada']] },
+    { titulo: 'Factura comercial', datos: [['Número', 'ZH-2026-118'], ['Fecha', '5 de febrero de 2026'], ['Vendedor', 'Zhejiang Hydraulic Co. (ficticio)'], ['Ciudad y país', 'Shanghái, China'], ['Dirección', '88 Industrial Road'], ['Mercancía', '500 unidades de bombas de engranajes externos para aceite hidráulico, sin motor'], ['Valor', 'USD 60.000 FOB Shanghái'], ['Pago', 'Transferencia bancaria al proveedor (giro directo)']] },
+    { titulo: 'Documento de transporte (B/L)', datos: [['Número', 'SHACTG-2026-0457'], ['Fecha', '12 de febrero de 2026'], ['Puerto de embarque', 'Shanghái, China'], ['Puerto de llegada', 'Cartagena, Colombia'], ['Medio', 'Buque portacontenedores'], ['Bandera del buque', 'Panamá'], ['Naviera', 'Naviera del Pacífico (ficticia)'], ['Bultos', '1 bulto (paquete), en contenedor'], ['Peso bruto', '2.600 kg'], ['Peso neto', '2.400 kg'], ['Flete', 'USD 3.500']] },
+    { titulo: 'Manifiesto de carga', datos: [['Número', '116575000000457'], ['Fecha', '10 de marzo de 2026'], ['Depósito de llegada', 'Depósito público del terminal marítimo de Cartagena (ficticio)']] },
+    { titulo: 'Póliza de seguro', datos: [['Aseguradora', 'Seguros del Litoral (ficticia)'], ['Prima', 'USD 300']] },
+    { titulo: 'Clasificación y tributos', datos: [['Subpartida', '8413.60.90.00 (ficha técnica y lección 3)'], ['Tipo de importación', 'Para quedarse en el país, pagada al proveedor'], ['Arancel', '5% (de práctica)'], ['IVA', 'Tarifa general']] },
+    { titulo: 'Quien firma', datos: [['Nombre', 'Ana María Pérez Gómez'], ['Cédula', '1.000.000.001'], ['Cargo', 'Representante legal de HidroColombia']] },
   ],
   // Consulta de inventario por documento de transporte: lo que el sistema muestra antes de declarar
   inventario: {
@@ -72,64 +75,80 @@ export const CASO = {
   },
 };
 
-const igual = (a, b) => normalizar(String(a ?? '').trim()).replace(/[.\s-]/g, '') === normalizar(String(b)).replace(/[.\s-]/g, '');
+const limpiar = (t) => normalizar(String(t ?? '').trim()).replace(/[.\s\-/]/g, '');
+// Fechas: acepta AAAA-MM-DD, AAAA/MM/DD, DD/MM/AAAA y DD-MM-AAAA
+function fecha(t) {
+  const s = String(t ?? '').trim();
+  let m = /^(\d{4})[-/. ](\d{1,2})[-/. ](\d{1,2})$/.exec(s);
+  if (m) return `${m[1]}${m[2].padStart(2, '0')}${m[3].padStart(2, '0')}`;
+  m = /^(\d{1,2})[-/. ](\d{1,2})[-/. ](\d{4})$/.exec(s);
+  if (m) return `${m[3]}${m[2].padStart(2, '0')}${m[1].padStart(2, '0')}`;
+  return limpiar(s);
+}
+// Cada campo se compara a su manera; por defecto, sin mayúsculas, tildes, puntos ni guiones
+const COMPARAR = {
+  fecha: (a, b) => fecha(a) === fecha(b),
+  // El código de la ciudad se acepta completo (13001) o solo el del municipio (001)
+  ciudad: (a, b) => limpiar(a) === limpiar(b) || limpiar(a).padStart(3, '0') === limpiar(b).slice(-3),
+};
+const igual = (a, b, modo) => (COMPARAR[modo] || ((x, y) => limpiar(x) === limpiar(y)))(a, b);
 
 // Qué se exige en cada campo: [campo, rótulo, pista]. `libre` solo exige que no esté vacío.
 const REGLAS_ENCABEZADO = [
-  ['administracion', 'Administración', 'La mercancía llegó a Cartagena: administración 48.'],
-  ['lugar_ingreso', 'Lugar de ingreso de las mercancías', 'El puerto de llegada del B/L: CTG.'],
-  ['deposito', 'Depósito', 'El código del depósito donde está la carga.'],
-  ['manifiesto', 'Número del manifiesto de carga', 'Está en el manifiesto que transmitió la naviera.'],
-  ['manifiesto_fecha', 'Fecha del manifiesto', 'Año, mes y día del manifiesto.'],
-  ['doc_transporte', 'Número del documento de transporte', 'El número del B/L.'],
-  ['doc_transporte_fecha', 'Fecha del documento de transporte', 'La fecha del B/L.'],
-  ['signatario_doc', 'Documento del signatario', 'La cédula de quien firma la declaración.'],
+  ['administracion', 'Administración', 'Búscala en la tabla de administraciones: es la seccional donde llegó la carga.'],
+  ['lugar_ingreso', 'Lugar de ingreso de las mercancías', 'Mira el puerto de llegada en el B/L y búscalo en la tabla de lugares de ingreso.'],
+  ['deposito', 'Depósito', 'Mira el depósito de llegada en el manifiesto y búscalo en la tabla de depósitos.'],
+  ['manifiesto', 'Número del manifiesto de carga', 'Está en el manifiesto de carga.'],
+  ['manifiesto_fecha', 'Fecha del manifiesto', 'Está en el manifiesto de carga.', 'fecha'],
+  ['doc_transporte', 'Número del documento de transporte', 'Está en el B/L.'],
+  ['doc_transporte_fecha', 'Fecha del documento de transporte', 'Está en el B/L.', 'fecha'],
+  ['signatario_doc', 'Documento del signatario', 'Es la cédula de quien firma, sin puntos.'],
   ['signatario_nombre', 'Apellidos y nombres del signatario', 'Primero los apellidos.', 'libre'],
-  ['imp_nit', 'NIT del importador', 'Sin dígito de verificación, puntos ni guiones.'],
+  ['imp_nit', 'NIT del importador', 'Está en el RUT. Va sin el dígito de verificación.'],
   ['imp_nombre', 'Nombre del importador', 'Como figura en el RUT.', 'libre'],
   ['imp_direccion', 'Dirección del importador', 'La del RUT.', 'libre'],
   ['imp_telefono', 'Teléfono', 'El del RUT.', 'libre'],
-  ['imp_ciudad', 'Ciudad', 'Código DANE de Cartagena: 13001.'],
-  ['imp_departamento', 'Departamento', 'Bolívar es 13.'],
-  ['imp_codigo', 'Código (tipo de empresa)', 'HidroColombia es una empresa privada.'],
+  ['imp_ciudad', 'Ciudad', 'Mira la ciudad en el RUT y búscala en la tabla de ciudades.', 'ciudad'],
+  ['imp_departamento', 'Departamento', 'Mira el departamento en el RUT.'],
+  ['imp_codigo', 'Código (tipo de empresa)', 'Mira el tipo de empresa en el RUT.'],
   ['exp_nombre', 'Exportador o proveedor en el exterior', 'El vendedor de la factura.', 'libre'],
   ['exp_ciudad', 'Ciudad del exportador', 'La de la factura.', 'libre'],
-  ['exp_pais', 'País exportador', 'Código de China: CN.'],
+  ['exp_pais', 'País exportador', 'Mira el país del vendedor en la factura y búscalo en la tabla de países.'],
   ['exp_direccion', 'Dirección del exportador', 'La de la factura.', 'libre'],
-  ['factura', 'Número de factura', 'El de la factura comercial.'],
-  ['factura_fecha', 'Fecha de la factura', 'La de la factura comercial.'],
-  ['pais_procedencia', 'País de procedencia', 'De donde viene la carga: CN.'],
-  ['modo_transporte', 'Modo de transporte', 'Marítimo es 1.'],
-  ['bandera', 'Bandera', 'La del buque en el B/L: PA.'],
-  ['depto_destino', 'Departamento de destino', 'Bolívar es 13.'],
-  ['transportadora', 'Empresa transportadora', 'El código de la naviera.'],
+  ['factura', 'Número de factura', 'Está en la factura comercial.'],
+  ['factura_fecha', 'Fecha de la factura', 'Está en la factura comercial.', 'fecha'],
+  ['pais_procedencia', 'País de procedencia', 'Es el país desde donde se embarcó la carga, según el B/L. Búscalo en la tabla de países.'],
+  ['modo_transporte', 'Modo de transporte', 'Mira en el B/L cómo llegó la carga y búscalo en la tabla de modos de transporte.'],
+  ['bandera', 'Bandera', 'Mira la bandera del buque en el B/L y búscala en la tabla de países.'],
+  ['depto_destino', 'Departamento de destino', 'Es el departamento donde queda la mercancía: búscalo en la tabla de departamentos.'],
+  ['transportadora', 'Empresa transportadora', 'Mira la naviera en el B/L y búscala en la tabla de transportadores.'],
 ];
 const REGLAS_SUBPARTIDA = [
-  ['modalidad', 'Modalidad', 'Importación ordinaria: C100.'],
-  ['subpartida', 'Subpartida arancelaria', 'Diez dígitos, sin puntos: 8413609000.'],
-  ['pais_origen', 'País de origen', 'Donde se fabricaron las bombas: CN.'],
-  ['forma_pago', 'Forma de pago de la importación', 'La factura se paga por giro directo.'],
-  ['tipo_importacion', 'Tipo de importación', 'Se paga al proveedor: reembolsable.'],
-  ['pais_compra', 'País de compra', 'CN.'],
-  ['peso_bruto', 'Peso bruto', 'El del B/L, en kilogramos.'],
-  ['peso_neto', 'Peso neto', 'El del B/L, en kilogramos.'],
-  ['embalaje', 'Embalaje', 'El código del B/L: PK.'],
-  ['bultos', 'Bultos', 'El número de bultos del B/L.'],
-  ['subpartidas', 'Subpartidas', 'La declaración tiene una sola subpartida.'],
-  ['unidad_comercial', 'Unidad comercial', 'Unidades o artículos: U.'],
-  ['cantidad', 'Cantidad', 'Las unidades de la factura.'],
-  ['fob', 'Valor FOB USD', 'El de la factura.'],
-  ['fletes', 'Valor fletes USD', 'El flete del B/L.'],
-  ['seguros', 'Valor seguros USD', 'El de la póliza.'],
-  ['arancel', 'Porcentaje de arancel', 'El arancel del caso.'],
-  ['iva', 'Porcentaje de IVA', 'La tarifa general.'],
+  ['modalidad', 'Modalidad', 'Es una importación ordinaria: busca su código en la tabla de modalidades.'],
+  ['subpartida', 'Subpartida arancelaria', 'Diez dígitos, según la clasificación del caso.'],
+  ['pais_origen', 'País de origen', 'Es el país donde se fabricaron las bombas, según la factura.'],
+  ['forma_pago', 'Forma de pago de la importación', 'Mira en la factura cómo se le paga al proveedor.'],
+  ['tipo_importacion', 'Tipo de importación', 'Mira en los documentos si la mercancía se le paga al proveedor.'],
+  ['pais_compra', 'País de compra', 'Es el país del vendedor, según la factura.'],
+  ['peso_bruto', 'Peso bruto', 'Está en el B/L, en kilogramos.'],
+  ['peso_neto', 'Peso neto', 'Está en el B/L, en kilogramos.'],
+  ['embalaje', 'Embalaje', 'Mira en el B/L cómo viene empacada la carga y búscalo en la tabla de embalajes.'],
+  ['bultos', 'Bultos', 'Está en el B/L.'],
+  ['subpartidas', 'Subpartidas', 'Cuenta cuántas subpartidas distintas trae la declaración.'],
+  ['unidad_comercial', 'Unidad comercial', 'Mira en la factura en qué unidad se vendió y búscala en la tabla de unidades.'],
+  ['cantidad', 'Cantidad', 'Está en la factura.'],
+  ['fob', 'Valor FOB USD', 'Está en la factura.'],
+  ['fletes', 'Valor fletes USD', 'Está en el B/L.'],
+  ['seguros', 'Valor seguros USD', 'Está en la póliza de seguro.'],
+  ['arancel', 'Porcentaje de arancel', 'Está en la clasificación del caso.'],
+  ['iva', 'Porcentaje de IVA', 'Es la tarifa general del IVA.'],
 ];
 
 function validar(reglas, valores, esperado) {
   return reglas.flatMap(([campo, rotulo, pista, modo]) => {
     const v = String(valores[campo] ?? '').trim();
     if (!v) return [{ campo, mensaje: `${rotulo}: falta. ${pista}` }];
-    if (modo !== 'libre' && !igual(v, esperado[campo])) return [{ campo, mensaje: `${rotulo}: no coincide con los documentos del caso. ${pista}` }];
+    if (modo !== 'libre' && !igual(v, esperado[campo], modo)) return [{ campo, mensaje: `${rotulo}: no coincide con los documentos del caso. ${pista}` }];
     return [];
   });
 }
@@ -137,6 +156,29 @@ export const validarEncabezado = (v) => validar(REGLAS_ENCABEZADO, v, CASO.encab
 export const validarSubpartida = (v) => validar(REGLAS_SUBPARTIDA, v, CASO.subpartida);
 
 export const dvImportador = (nit) => digitoVerificacion(nit);
+
+// La declaración del alumno pasada a las casillas del formulario 500, para verla e imprimirla
+export function aFormulario500(enc, sub) {
+  const subpartida = String(sub.subpartida ?? '').replace(/\D/g, '');
+  return {
+    anio: String(new Date().getFullYear()), tipo_declaracion: '1',
+    imp_nit: enc.imp_nit, imp_razon: enc.imp_nombre, imp_seccional: enc.administracion, imp_direccion: enc.imp_direccion,
+    imp_telefono: enc.imp_telefono, imp_dpto: enc.imp_departamento, imp_ciudad: enc.imp_ciudad,
+    dec_nit: enc.imp_nit, dec_razon: `${enc.imp_nombre} (actúa directamente)`, dec_documento: enc.signatario_doc, dec_nombre: enc.signatario_nombre,
+    lugar_ingreso: enc.lugar_ingreso, deposito: enc.deposito, manifiesto: enc.manifiesto, fecha_llegada: enc.manifiesto_fecha,
+    doc_transporte: enc.doc_transporte, doc_transporte_fecha: enc.doc_transporte_fecha,
+    prov_razon: enc.exp_nombre, prov_ciudad: enc.exp_ciudad, prov_pais: enc.exp_pais, prov_direccion: enc.exp_direccion,
+    factura_num: enc.factura, factura_fecha: enc.factura_fecha, pais_procedencia: enc.pais_procedencia, modo_transporte: enc.modo_transporte,
+    bandera: enc.bandera, destino_mercancia: enc.depto_destino, transportadora: enc.transportadora, tasa_cambio: String(TASA_SEMANA),
+    subpartida: subpartida.length === 10 ? `${subpartida.slice(0, 4)}.${subpartida.slice(4, 6)}.${subpartida.slice(6, 8)}.${subpartida.slice(8)}` : sub.subpartida,
+    modalidad: String(sub.modalidad ?? '').toUpperCase(), cuotas: sub.cuotas, pais_origen: sub.pais_origen, forma_pago: sub.forma_pago,
+    tipo_importacion: sub.tipo_importacion, pais_compra: sub.pais_compra, peso_bruto: sub.peso_bruto, peso_neto: sub.peso_neto,
+    embalaje: sub.embalaje, bultos: sub.bultos, num_subpartidas: sub.subpartidas, unidad_fisica: sub.unidad_comercial, cantidad: sub.cantidad,
+    v_fob: sub.fob, v_fletes: sub.fletes, v_seguros: sub.seguros, v_otros: sub.otros, v_ajuste: sub.ajuste,
+    tasa_arancel: sub.arancel, tasa_iva: sub.iva,
+    descripcion: 'Bombas de engranajes externos para aceite hidráulico, sin motor. 500 unidades.',
+  };
+}
 
 // Autoliquidación: la misma fórmula del formulario 500
 export function liquidar(v, tasa = TASA_SEMANA) {

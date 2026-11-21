@@ -23,10 +23,22 @@ export default function EditorFormulario({ form, onVolver }) {
   return <Lienzo key={definicion.id} definicion={definicion} onVolver={onVolver} />;
 }
 
+// Valores que deja otra pantalla (la declaración hecha en SIGLO XXII) para abrirlos aquí una vez
+export const clavePrecarga = (id) => `boncloud-precarga-${id}`;
+function leerPrecarga(id) {
+  try {
+    const datos = sessionStorage.getItem(clavePrecarga(id));
+    return datos ? JSON.parse(datos) : null;
+  } catch { return null; }
+}
+
 function Lienzo({ definicion, onVolver }) {
-  const [valores, setValores] = useState(definicion.inicial);
+  const [precarga] = useState(() => leerPrecarga(definicion.id));
+  // Se borra después de usarla (no al leerla: en desarrollo React arma la pantalla dos veces)
+  useEffect(() => { try { sessionStorage.removeItem(clavePrecarga(definicion.id)); } catch { /* sin almacenamiento */ } }, [definicion.id]);
+  const [valores, setValores] = useState(() => (precarga ? { ...definicion.inicial(), ...precarga.valores } : definicion.inicial()));
   const [errores, setErrores] = useState(() => new Set());
-  const [mensaje, setMensaje] = useState(null); // { tipo: 'error' | 'info', texto }
+  const [mensaje, setMensaje] = useState(() => (precarga ? { tipo: 'info', texto: precarga.mensaje } : null)); // { tipo: 'error' | 'info', texto }
   const [version, setVersion] = useState(0); // al reiniciar se vuelven a montar los campos libres
 
   const poner = useCallback((nombre, valor) => {
