@@ -21,15 +21,19 @@ const PASOS = [
   ['menu', 'Menú'],
   ['previos', 'Parámetros previos'],
   ['encabezado', 'Encabezado'],
-  ['subpartida', 'Subpartida'],
-  ['fin', 'Guardada'],
+  ['subpartida', 'Ítem'],
+  ['informar', 'Informar'],
+  ['fin', 'Terminada'],
 ];
+// Número de radicación de práctica que el sistema asigna al guardar el encabezado
+const RADICACION = '48000457';
 const AYUDA = {
   login: 'En el sistema real, el usuario lo asigna la DIAN a cada agencia de aduanas o usuario aduanero.',
   menu: `Para abrir una declaración nueva sigue esta ruta: ${RUTA_MENU.join(' → ')}.`,
   previos: 'Antes del encabezado el sistema pregunta el tipo de declaración (Inicial), el departamento del importador y el documento que respalda la importación (el documento de transporte).',
   encabezado: 'Revisa el inventario del documento de transporte y llena el encabezado con los documentos del caso. Los documentos traen nombres, no códigos: búscalos con «Buscar código» junto a cada campo o en las tablas de abajo. Al guardar, el sistema te dirá qué no coincide y dónde mirar.',
   subpartida: 'Llena los datos de la mercancía y los valores; los códigos se buscan en las tablas. Escribe los porcentajes de arancel e IVA y pulsa «Autoliquidar» para que el sistema calcule los tributos. Después, «Guardar».',
+  declaracion: 'El encabezado quedó guardado y el sistema le asignó un número de radicación. Desde aquí se completa la declaración por partes: ingresa el ítem (la subpartida) y, cuando esté guardado, pulsa «Informar».',
   fin: 'Terminaste el recorrido. Genera el formulario 500 con tu declaración para imprimirlo o guardarlo en PDF. En el sistema real seguirían los documentos soporte, la aceptación, el pago y el levante.',
 };
 const pesos = (n) => Math.round(n || 0).toLocaleString('es-CO');
@@ -121,6 +125,8 @@ export default function SigloXXII() {
   const [enc, setEnc] = useState({});
   const [sub, setSub] = useState({ cuotas: '0', otros: '0', ajuste: '0' });
   const [liq, setLiq] = useState(null);
+  const [itemGuardado, setItemGuardado] = useState(false);
+  const listaRef = useRef(null);
   const [malos, setMalos] = useState(new Map());
   const avisoRef = useRef(null);
   const navigate = useNavigate();
@@ -136,7 +142,7 @@ export default function SigloXXII() {
   const reiniciar = () => {
     setErrores(0); setConSolucion(false); setRegistro(null); enviado.current = false;
     setRuta([]); setAcceso({ usuario: '', clave: '' }); setPrevios({ etapa: 1, tipo: 'Inicial', departamento: '', respaldo: 'DOCUMENTO DE TRANSPORTE' });
-    setEnc({}); setSub({ cuotas: '0', otros: '0', ajuste: '0' }); setLiq(null); ir('login');
+    setItemGuardado(false); setEnc({}); setSub({ cuotas: '0', otros: '0', ajuste: '0' }); setLiq(null); ir('login');
   };
 
   const entrar = (e) => {
@@ -165,8 +171,7 @@ export default function SigloXXII() {
     const faltas = validarEncabezado(enc);
     marcar(faltas);
     if (faltas.length) { fallo({ tipo: 'error', texto: `Tiene ${faltas.length} ${faltas.length === 1 ? 'inconsistencia' : 'inconsistencias'}: el encabezado no se puede guardar todavía.`, errores: faltas.map((x) => x.mensaje) }); return; }
-    ir('subpartida');
-    setMensaje({ texto: 'Encabezado guardado. Ahora ingresa la subpartida de la declaración.' });
+    ir('declaracion');
   };
 
   const autoliquidar = () => { setLiq(liquidar(sub)); setMensaje(null); };
@@ -175,7 +180,9 @@ export default function SigloXXII() {
     marcar(faltas);
     if (faltas.length) { fallo({ tipo: 'error', texto: `Tiene ${faltas.length} ${faltas.length === 1 ? 'inconsistencia' : 'inconsistencias'}: la subpartida no se puede guardar todavía.`, errores: faltas.map((x) => x.mensaje) }); return; }
     if (!liq) { fallo({ tipo: 'error', texto: 'Falta la autoliquidación: pulsa «Autoliquidar» para calcular los tributos antes de guardar.' }); return; }
-    ir('fin');
+    setItemGuardado(true);
+    ir('declaracion');
+    setMensaje({ texto: 'El ítem quedó guardado. Ya puedes informar la declaración.' });
   };
 
   // Lleva la declaración al formulario 500, desde donde se imprime o se guarda en PDF
@@ -206,7 +213,9 @@ export default function SigloXXII() {
       .catch(() => setRegistro('fallo'));
   }, [paso, tokenApi, errores, conSolucion]);
 
-  const indice = PASOS.findIndex(([id]) => id === paso);
+  // La pantalla de la declaración radicada cae en el paso que sigue: el ítem o informar
+  const pasoVisible = paso === 'declaracion' ? (itemGuardado ? 'informar' : 'subpartida') : paso;
+  const indice = PASOS.findIndex(([id]) => id === pasoVisible);
   const r = liq || {};
   const gastos = (parseFloat(sub.fletes) || 0) + (parseFloat(sub.seguros) || 0) + (parseFloat(sub.otros) || 0);
   const conSesion = paso !== 'login';
@@ -255,10 +264,7 @@ export default function SigloXXII() {
               <div ref={avisoRef} className={`${css.mensaje}${mensaje.tipo === 'error' ? ` ${css.error}` : ''}`} role={mensaje.tipo === 'error' ? 'alert' : 'status'}>
                 <strong>{mensaje.texto}</strong>
                 {mensaje.errores && (
-                  <details>
-                    <summary>Ver la lista · cada campo marcado en rojo dice qué revisar</summary>
-                    <ul>{mensaje.errores.map((x) => <li key={x}>{x}</li>)}</ul>
-                  </details>
+                  <> <button type="button" className={css.buscar} onClick={() => listaRef.current?.scrollIntoView?.({ behavior: 'smooth', block: 'start' })}>Ver lista abajo</button></>
                 )}
               </div>
             )}
@@ -357,6 +363,47 @@ export default function SigloXXII() {
               </>
             )}
 
+            {paso === 'declaracion' && (
+              <div className={css.tarjeta}>
+                <div className={css.radicada}>
+                  <span className={css.exitoIcono} aria-hidden="true">✓</span>
+                  <div>
+                    <h2>Encabezado declaración de importación</h2>
+                    <p className={css.suave}>Número de radicación <strong className={css.codigo}>{RADICACION}</strong> · Los datos de su documento han sido almacenados con éxito.</p>
+                  </div>
+                </div>
+                <div className={css.scroll}>
+                  <table className={css.secciones}>
+                    <thead><tr><th scope="col">Parte de la declaración</th><th scope="col">Estado</th><th scope="col"><span className={css.oculto}>Acción</span></th></tr></thead>
+                    <tbody>
+                      <tr>
+                        <td><b>Encabezado</b><small>Importador, documentos de transporte y lugares</small></td>
+                        <td><span className={`${css.estadoSec} ${css.listo}`}>Guardado</span></td>
+                        <td><button type="button" className={css.secundario} onClick={() => ir('encabezado')}>Modificar</button></td>
+                      </tr>
+                      <tr>
+                        <td><b>Ítem</b><small>Subpartida, valores y autoliquidación</small></td>
+                        <td><span className={`${css.estadoSec} ${itemGuardado ? css.listo : css.pendiente}`}>{itemGuardado ? 'Guardado' : 'Pendiente'}</span></td>
+                        <td><button type="button" className={itemGuardado ? css.secundario : css.primario} onClick={() => ir('subpartida')}>{itemGuardado ? 'Modificar ítem' : 'Ingresar ítem'}</button></td>
+                      </tr>
+                      {[['Descripción', 'Descripción detallada de la mercancía'], ['Totales', 'Totales de la declaración'], ['Doc. soporte', 'Radicación de los documentos soporte']].map(([nombre, detalle]) => (
+                        <tr key={nombre} className={css.atenuada}>
+                          <td><b>{nombre}</b><small>{detalle}</small></td>
+                          <td><span className={css.estadoSec}>En preparación</span></td>
+                          <td><small>Falta esta pantalla en el simulador</small></td>
+                        </tr>
+                      ))}
+                      <tr>
+                        <td><b>Informar</b><small>Cierra la declaración y genera el formulario 500</small></td>
+                        <td><span className={`${css.estadoSec} ${itemGuardado ? css.pendiente : ''}`}>{itemGuardado ? 'Listo para informar' : 'Primero el ítem'}</span></td>
+                        <td><button type="button" className={css.primario} disabled={!itemGuardado} onClick={() => ir('fin')}>Informar</button></td>
+                      </tr>
+                    </tbody>
+                  </table>
+                </div>
+              </div>
+            )}
+
             {paso === 'subpartida' && (
               <div className={css.tarjeta}>
                 <div className={css.cabecera}>
@@ -415,10 +462,20 @@ export default function SigloXXII() {
               </div>
             )}
 
+            {mensaje?.errores && (paso === 'encabezado' || paso === 'subpartida') && (
+              <section ref={listaRef} className={css.inconsistencias} aria-label="Lista de inconsistencias a corregir">
+                <h3>Lista de inconsistencias a corregir</h3>
+                <table>
+                  <thead><tr><th scope="col">No.</th><th scope="col">Descripción de la inconsistencia</th></tr></thead>
+                  <tbody>{mensaje.errores.map((x, i) => <tr key={x}><td>{i + 1}</td><td>{x}</td></tr>)}</tbody>
+                </table>
+              </section>
+            )}
+
             {paso === 'fin' && (
               <div className={css.tarjeta}>
-                <div className={css.exito} role="status"><span aria-hidden="true">✓</span> Declaración guardada</div>
-                <p className={css.suave}>Número de radicación de práctica: 48-{HOY.getFullYear()}-000457 (ficticio)</p>
+                <div className={css.exito} role="status"><span aria-hidden="true">✓</span> Declaración guardada e informada</div>
+                <p className={css.suave}>Número de radicación {RADICACION} (de práctica). En el borrador del formulario el número de formulario aparece «por generar»: lo asigna la DIAN al aceptar la declaración.</p>
                 <div className={css.cifras}>
                   <div><span>Valor en aduana</span><strong>USD {r.aduanaUSD?.toLocaleString('es-CO')}</strong></div>
                   <div><span>Arancel</span><strong>${pesos(r.arancel)}</strong></div>
@@ -461,6 +518,9 @@ export default function SigloXXII() {
             ))}
           </div>
           <h3>Documentos del caso</h3>
+          <p className={css.ayuda}>
+            Como en la agencia, trabaja con los documentos abiertos al lado. <a href="#/formularios/001?caso=1" target="_blank" rel="noopener noreferrer">Abrir el RUT del importador (formulario 001)</a> en otra pestaña.
+          </p>
           <p className={css.ayuda}>HidroColombia importa 500 bombas de engranajes de Shanghái a Cartagena (caso del módulo 1 de la Ruta).</p>
           {CASO.documentos.map((d) => (
             <details key={d.titulo} className={css.doc}>
@@ -480,19 +540,20 @@ function Inventario() {
   const i = CASO.inventario;
   return (
     <details className={css.inventario} open>
-      <summary>Consulta de inventario del documento de transporte {i.documento}</summary>
+      <summary>Consulta de inventario por documento de transporte</summary>
+      <p className={css.suave}>No. manifiesto {i.manifiesto} · No. documento de transporte {i.documento}</p>
       <dl className={css.datosInv}>
-        <div><dt>Manifiesto</dt><dd>{i.manifiesto}</dd></div>
-        <div><dt>Transportador</dt><dd>{i.transportador}</dd></div>
-        <div><dt>Depósito</dt><dd>{i.deposito}</dd></div>
-        <div><dt>Consignatario</dt><dd>{i.consignatario}</dd></div>
-        <div><dt>Fecha del manifiesto</dt><dd>{i.fechaManifiesto}</dd></div>
-        <div><dt>Vencen los términos</dt><dd>{i.vencimiento} · Prórroga: {i.prorroga}</dd></div>
-        <div><dt>Ubicación</dt><dd>{i.ubicacion}</dd></div>
-        <div><dt>Peso disponible</dt><dd>{i.peso.toLocaleString('es-CO')} kg</dd></div>
-        <div><dt>Cantidad disponible</dt><dd>{i.cantidad} bulto{i.cantidad === 1 ? '' : 's'}</dd></div>
+        <div><dt>1. Transportador / representante</dt><dd>{i.transportador}</dd></div>
+        <div><dt>2. Depósito</dt><dd>{i.deposito}</dd></div>
+        <div><dt>3. Consignatario</dt><dd>{i.consignatario}</dd></div>
+        <div><dt>4. Fecha y hora del manifiesto</dt><dd>{i.fechaManifiesto}</dd></div>
+        <div><dt>5. Vencimiento de términos</dt><dd>{i.vencimiento}</dd></div>
+        <div><dt>6. Incluye prórroga</dt><dd>{i.prorroga}</dd></div>
+        <div><dt>7. Ubicación</dt><dd>{i.ubicacion}</dd></div>
+        <div><dt>8. Peso disponible</dt><dd>{i.peso.toLocaleString('es-CO', { minimumFractionDigits: 2 })} kg</dd></div>
+        <div><dt>9. Cantidad disponible</dt><dd>{i.cantidad.toLocaleString('es-CO', { minimumFractionDigits: 2 })} (PK)</dd></div>
       </dl>
-      <p className={css.suave}>La declaración no puede amparar más peso ni más bultos de los que tiene disponibles el documento de transporte.</p>
+      <p className={css.suave}>La consulta trae los nombres; los códigos del depósito y del transportador se buscan en las tablas. La declaración no puede amparar más peso ni más bultos de los disponibles.</p>
     </details>
   );
 }

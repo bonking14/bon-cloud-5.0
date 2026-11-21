@@ -55,7 +55,7 @@ export const CASO = {
   // Consulta de inventario por documento de transporte: lo que el sistema muestra antes de declarar
   inventario: {
     manifiesto: '116575000000457', documento: 'SHACTG-2026-0457', transportador: 'Naviera del Pacífico (ficticia)',
-    deposito: 'DEP048 (depósito público ficticio)', consignatario: 'HidroColombia S.A.S. (ficticia)',
+    deposito: 'Depósito público del terminal marítimo de Cartagena (ficticio)', consignatario: 'HidroColombia S.A.S. (ficticia)',
     fechaManifiesto: '2026-03-10 08:30', vencimiento: '2026-04-09', prorroga: 'NO', ubicacion: 'Depósito', peso: 2600, cantidad: 1,
   },
   encabezado: {

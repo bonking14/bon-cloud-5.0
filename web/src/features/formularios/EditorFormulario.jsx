@@ -1,4 +1,5 @@
 import { useCallback, useEffect, useMemo, useState } from 'react';
+import { useSearchParams } from 'react-router-dom';
 import { faltantes } from '../../lib/formularios.js';
 import { FormularioContext } from './kit/contexto.js';
 import './kit/formularios-dian.css';
@@ -33,7 +34,10 @@ function leerPrecarga(id) {
 }
 
 function Lienzo({ definicion, onVolver }) {
-  const [precarga] = useState(() => leerPrecarga(definicion.id));
+  // ?caso=1 abre el formulario con el caso de práctica (por ejemplo, el RUT que consulta SIGLO XXII)
+  const [params] = useSearchParams();
+  const [precarga] = useState(() => leerPrecarga(definicion.id)
+    || (params.get('caso') === '1' && definicion.caso ? { valores: definicion.caso.valores(), mensaje: definicion.caso.mensaje } : null));
   // Se borra después de usarla (no al leerla: en desarrollo React arma la pantalla dos veces)
   useEffect(() => { try { sessionStorage.removeItem(clavePrecarga(definicion.id)); } catch { /* sin almacenamiento */ } }, [definicion.id]);
   const [valores, setValores] = useState(() => (precarga ? { ...definicion.inicial(), ...precarga.valores } : definicion.inicial()));

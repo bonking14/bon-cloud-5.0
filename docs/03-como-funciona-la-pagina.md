@@ -100,8 +100,13 @@ nota y la fecha, sin necesidad de cuenta.
   estudiante busca cada código con «Buscar código» junto al campo o en las tablas de códigos
   (administraciones, lugares de ingreso, depósitos, países, departamentos, ciudades, modos de
   transporte, transportadores, agencias de aduanas, embalajes, unidades y modalidades). Los
-  errores dicen dónde buscar, sin dar la respuesta. Al terminar, «Generar el formulario 500
-  (PDF)» abre el formulario 500 con su declaración para imprimirlo o guardarlo en PDF.
+  errores salen como en el sistema, en una «Lista de inconsistencias a corregir» numerada, y
+  dicen dónde buscar sin dar la respuesta. Al guardar el encabezado, el sistema asigna un número
+  de radicación y muestra las partes de la declaración: Encabezado, Ítem, Descripción, Totales,
+  Doc. soporte e Informar (Descripción, Totales y Doc. soporte están en preparación). Con el
+  ítem guardado se puede «Informar», y «Generar el formulario 500 (PDF)» abre el formulario 500
+  con la declaración para imprimirlo o guardarlo en PDF. Desde la guía se abre el RUT del
+  importador (formulario 001) en otra pestaña, para trabajar con los documentos al lado.
 
 ### Material de consulta
 

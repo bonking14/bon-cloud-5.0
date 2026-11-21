@@ -1,5 +1,6 @@
 import { describe, it, expect, vi, afterEach } from 'vitest';
 import { render, screen, fireEvent, cleanup } from '@testing-library/react';
+import { MemoryRouter } from 'react-router-dom';
 import EditorFormulario from './EditorFormulario.jsx';
 import { formularios } from './catalogo.js';
 import { digitoVerificacion } from '../../lib/nit.js';
@@ -7,7 +8,7 @@ import { digitoVerificacion } from '../../lib/nit.js';
 afterEach(cleanup);
 // Cada formulario se carga con import(): con toda la suite corriendo puede tardar más de 1 s
 const ESPERA = { timeout: 8000 };
-const abrir = (id) => render(<EditorFormulario form={formularios.find((f) => f.id === id)} onVolver={() => {}} />);
+const abrir = (id, ruta = '/') => render(<MemoryRouter initialEntries={[ruta]}><EditorFormulario form={formularios.find((f) => f.id === id)} onVolver={() => {}} /></MemoryRouter>);
 
 describe('formularios DIAN en React', () => {
   it('500: el caso de la Ruta liquida $65.264.000 y avisa que pide DAV', async () => {
@@ -44,6 +45,12 @@ describe('formularios DIAN en React', () => {
     expect(val('Total liquidado')).toBe('0');
     expect(val('Pago total')).toBe('0');
     expect(screen.getByText(/Importación temporal de largo plazo: los tributos se liquidan en dólares/)).toBeTruthy();
+  });
+
+  it('001: con ?caso=1 abre el RUT del caso, como lo consulta SIGLO XXII', async () => {
+    abrir('001', '/formularios/001?caso=1');
+    expect(await screen.findByText(/Se cargó el RUT de HidroColombia/, {}, ESPERA)).toBeTruthy();
+    expect(screen.getByLabelText('Número de Identificación Tributaria (NIT)').value).toBe('900123456');
   });
 
   it('500: abre con la declaración que deja SIGLO XXII y avisa cómo guardarla en PDF', async () => {

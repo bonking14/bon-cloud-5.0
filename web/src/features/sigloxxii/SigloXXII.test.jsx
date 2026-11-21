@@ -48,10 +48,15 @@ describe('SIGLO XXII', () => {
     fireEvent.click(screen.getByRole('button', { name: 'Continuar' }));
     // encabezado: vacío no guarda y dice qué falta
     fireEvent.click(screen.getByRole('button', { name: 'Guardar' }));
-    expect(screen.getByRole('alert').textContent).toMatch(/NIT del importador: falta/);
+    expect(screen.getByRole('alert').textContent).toMatch(/Tiene \d+ inconsistencias/);
+    expect(screen.getByRole('region', { name: 'Lista de inconsistencias a corregir' }).textContent).toMatch(/NIT del importador: falta/);
     fireEvent.click(screen.getByText('Ver la solución de esta pantalla'));
     expect(screen.getByLabelText('DV').value).toBe('8');
     fireEvent.click(screen.getByRole('button', { name: 'Guardar' }));
+    // el sistema radica el encabezado y deja seguir con el ítem; sin ítem no se puede informar
+    expect(screen.getByText(/almacenados con éxito/)).toBeTruthy();
+    expect(screen.getByRole('button', { name: 'Informar' }).disabled).toBe(true);
+    fireEvent.click(screen.getByRole('button', { name: 'Ingresar ítem' }));
     // subpartida: sin autoliquidar no guarda
     fireEvent.click(screen.getByText('Ver la solución de esta pantalla'));
     fireEvent.click(screen.getByRole('button', { name: 'Guardar' }));
@@ -59,6 +64,7 @@ describe('SIGLO XXII', () => {
     fireEvent.click(screen.getByRole('button', { name: 'Autoliquidar' }));
     expect(screen.getByTestId('sx-total').textContent).toBe('65.264.000');
     fireEvent.click(screen.getByRole('button', { name: 'Guardar' }));
+    fireEvent.click(screen.getByRole('button', { name: 'Informar' }));
     expect(screen.getByRole('status').textContent).toMatch(/Declaración guardada/);
     expect(screen.getByText(/total a pagar \$65.264.000/)).toBeTruthy();
   });
@@ -72,9 +78,11 @@ describe('SIGLO XXII', () => {
     fireEvent.click(screen.getByRole('button', { name: 'Continuar' }));
     fireEvent.click(screen.getByText('Ver la solución de esta pantalla'));
     fireEvent.click(screen.getByRole('button', { name: 'Guardar' }));
+    fireEvent.click(screen.getByRole('button', { name: 'Ingresar ítem' }));
     fireEvent.click(screen.getByText('Ver la solución de esta pantalla'));
     fireEvent.click(screen.getByRole('button', { name: 'Autoliquidar' }));
     fireEvent.click(screen.getByRole('button', { name: 'Guardar' }));
+    fireEvent.click(screen.getByRole('button', { name: 'Informar' }));
     expect(screen.getByTestId('sx-registro').textContent).toMatch(/invitado/);
     expect(pedir).not.toHaveBeenCalled();
   });
@@ -93,9 +101,11 @@ describe('SIGLO XXII', () => {
     fireEvent.click(screen.getByRole('button', { name: 'Guardar' })); // encabezado vacío: segundo error
     fireEvent.click(screen.getByText('Ver la solución de esta pantalla'));
     fireEvent.click(screen.getByRole('button', { name: 'Guardar' }));
+    fireEvent.click(screen.getByRole('button', { name: 'Ingresar ítem' }));
     fireEvent.click(screen.getByText('Ver la solución de esta pantalla'));
     fireEvent.click(screen.getByRole('button', { name: 'Autoliquidar' }));
     fireEvent.click(screen.getByRole('button', { name: 'Guardar' }));
+    fireEvent.click(screen.getByRole('button', { name: 'Informar' }));
     expect(pedir).toHaveBeenCalledTimes(1);
     expect(pedir).toHaveBeenCalledWith('/practicas', { metodo: 'POST', token: 'jwt', cuerpo: { practica: 'sigloxxii-importacion', errores: 2, conSolucion: true } });
     expect((await screen.findByText(/quedó registrada/)).textContent).toMatch(/2 pantallas con errores/);
@@ -115,9 +125,11 @@ describe('SIGLO XXII', () => {
     expect(screen.getByLabelText('Bandera (cód.)').value).toBe('PA');
     fireEvent.click(screen.getByText('Ver la solución de esta pantalla'));
     fireEvent.click(screen.getByRole('button', { name: 'Guardar' }));
+    fireEvent.click(screen.getByRole('button', { name: 'Ingresar ítem' }));
     fireEvent.click(screen.getByText('Ver la solución de esta pantalla'));
     fireEvent.click(screen.getByRole('button', { name: 'Autoliquidar' }));
     fireEvent.click(screen.getByRole('button', { name: 'Guardar' }));
+    fireEvent.click(screen.getByRole('button', { name: 'Informar' }));
     fireEvent.click(screen.getByRole('button', { name: 'Generar el formulario 500 (PDF)' }));
     const precarga = JSON.parse(sessionStorage.getItem('boncloud-precarga-500'));
     expect(precarga.valores.subpartida).toBe('8413.60.90.00');
