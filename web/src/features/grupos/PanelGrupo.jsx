@@ -130,7 +130,7 @@ export default function PanelGrupo() {
               })}
             </tbody>
           </table>
-          <p className={css.pista} style={{ marginTop: 10 }}>El promedio usa la mejor nota de cada lección con quiz registrado. Las lecciones aprobadas antes de que existiera el registro de notas aparecen como aprobadas, sin nota. La columna SIGLO XXII indica si el estudiante terminó cada práctica del simulador (la declaración de importación y el recibo oficial de pago); en el detalle se ve cuántas pantallas le devolvió el sistema con errores en su mejor intento y si usó el botón de la solución.</p>
+          <p className={css.pista} style={{ marginTop: 10 }}>El promedio usa la mejor nota de cada lección con quiz registrado. Las lecciones aprobadas antes de que existiera el registro de notas aparecen como aprobadas, sin nota. La columna SIGLO XXII indica si el estudiante terminó cada práctica del simulador (la declaración de importación, el recibo oficial de pago y la declaración de corrección); en el detalle se ve cuántas pantallas le devolvió el sistema con errores en su mejor intento y si usó el botón de la solución.</p>
         </div>
       )}
     </div>

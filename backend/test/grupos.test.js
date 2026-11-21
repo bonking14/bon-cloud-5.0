@@ -67,6 +67,11 @@ describe('prácticas en simuladores', () => {
     assert.equal(db.consultas[0].params[1], 'sigloxxii-rop');
   });
 
+  test('acepta también la práctica de la declaración de corrección', async () => {
+    db.responder = async () => ({ rows: [{ id: 3 }] });
+    assert.equal((await pedir({ practica: 'sigloxxii-correccion', errores: 1, conSolucion: false })).status, 201);
+  });
+
   test('con el tope por hora alcanzado responde 429', async () => {
     assert.equal((await pedir({ practica: 'sigloxxii-importacion', errores: 0, conSolucion: false })).status, 429);
   });

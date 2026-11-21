@@ -1,6 +1,7 @@
 import { calcular500 } from './formularios.js';
 import { digitoVerificacion } from './nit.js';
 import { normalizar } from './texto.js';
+import { generarCaso } from './casosSiglo.js';
 
 // SIGLO XXII: simulador educativo del trámite de una declaración de importación en el sistema
 // informático aduanero (el recorrido sigue el del sistema SIGLO XXI de la DIAN: ingreso, menú,
@@ -42,44 +43,11 @@ export const TIPOS_IMPORTACION = [['01', 'Reembolsable'], ['02', 'Donación'], [
 export const CODIGOS_EMPRESA = ['Empresa Privada', 'Empresa Mixta', 'Empresa Pública', 'Persona Natural'];
 
 // Caso del módulo 1 de la Ruta: 500 bombas de engranajes, de Shanghái a Cartagena
-export const CASO = {
-  documentos: [
-    // Los documentos traen nombres, no códigos: el código se busca en las tablas, como en el trabajo
-    { titulo: 'RUT del importador', datos: [['Razón social', 'HidroColombia S.A.S. (empresa ficticia)'], ['NIT', '900123456-8'], ['Dirección', 'Zona Industrial de Mamonal'], ['Ciudad', 'Cartagena'], ['Departamento', 'Bolívar'], ['Teléfono', '6050000000'], ['Tipo de empresa', 'Sociedad privada']] },
-    { titulo: 'Factura comercial', datos: [['Número', 'ZH-2026-118'], ['Fecha', '5 de febrero de 2026'], ['Vendedor', 'Zhejiang Hydraulic Co. (ficticio)'], ['Ciudad y país', 'Shanghái, China'], ['Dirección', '88 Industrial Road'], ['Mercancía', '500 unidades de bombas de engranajes externos para aceite hidráulico, sin motor'], ['Marca', 'HYDROZ (ficticia)'], ['Referencia', 'GP-25'], ['Seriales', 'ZH25-0001 a ZH25-0500'], ['Valor', 'USD 60.000 FOB Shanghái'], ['Pago', 'Transferencia bancaria al proveedor (giro directo)']] },
-    { titulo: 'Documento de transporte (B/L)', datos: [['Número', 'SHACTG-2026-0457'], ['Fecha', '12 de febrero de 2026'], ['Puerto de embarque', 'Shanghái, China'], ['Puerto de llegada', 'Cartagena, Colombia'], ['Medio', 'Buque portacontenedores'], ['Bandera del buque', 'Panamá'], ['Naviera', 'Naviera del Pacífico (ficticia)'], ['Bultos', '1 bulto (paquete), en contenedor'], ['Peso bruto', '2.600 kg'], ['Peso neto', '2.400 kg'], ['Flete', 'USD 3.500']] },
-    { titulo: 'Manifiesto de carga', datos: [['Número', '116575000000457'], ['Fecha', '10 de marzo de 2026'], ['Depósito de llegada', 'Depósito público del terminal marítimo de Cartagena (ficticio)']] },
-    { titulo: 'Lista de empaque', datos: [['Número', 'PL-2026-118'], ['Fecha', '5 de febrero de 2026'], ['Contenido', '1 estiba (paquete) con 500 bombas en cajas individuales']] },
-    { titulo: 'Póliza de seguro', datos: [['Aseguradora', 'Seguros del Litoral (ficticia)'], ['Prima', 'USD 300']] },
-    { titulo: 'Clasificación y tributos', datos: [['Subpartida', '8413.60.90.00 (ficha técnica y lección 3)'], ['Tipo de importación', 'Para quedarse en el país, pagada al proveedor'], ['Arancel', '5% (de práctica)'], ['IVA', 'Tarifa general'], ['Acuerdo comercial', 'China no tiene acuerdo comercial vigente con Colombia: no se pide preferencia'], ['Requisitos', 'La subpartida no exige registro ni licencia previa de importación']] },
-    { titulo: 'Declaración andina del valor', datos: [['Formulario', '560, radicada en el sistema antes de la declaración'], ['No. de radicado', '48000456'], ['Fecha', '11 de marzo de 2026']] },
-    { titulo: 'Instrucción de pago', datos: [['Forma de pago de los tributos', 'Un solo cheque de gerencia por el total'], ['No. del cheque', '004571'], ['Banco', 'Banco de Bogotá']] },
-    { titulo: 'Quien firma', datos: [['Nombre', 'Ana María Pérez Gómez'], ['Cédula', '1.000.000.001'], ['Cargo', 'Representante legal de HidroColombia']] },
-  ],
-  // Consulta de inventario por documento de transporte: lo que el sistema muestra antes de declarar
-  inventario: {
-    manifiesto: '116575000000457', documento: 'SHACTG-2026-0457', transportador: 'Naviera del Pacífico (ficticia)',
-    deposito: 'Depósito público del terminal marítimo de Cartagena (ficticio)', consignatario: 'HidroColombia S.A.S. (ficticia)',
-    fechaManifiesto: '2026-03-10 08:30', vencimiento: '2026-04-09', prorroga: 'NO', ubicacion: 'Depósito', peso: 2600, cantidad: 1,
-  },
-  encabezado: {
-    administracion: '48', lugar_ingreso: 'CTG', deposito: 'DEP048',
-    manifiesto: '116575000000457', manifiesto_fecha: '2026-03-10', doc_transporte: 'SHACTG-2026-0457', doc_transporte_fecha: '2026-02-12',
-    signatario_doc: '1000000001', signatario_nombre: 'PEREZ GOMEZ ANA MARIA',
-    imp_nit: '900123456', imp_nombre: 'HIDROCOLOMBIA S.A.S.', imp_direccion: 'ZONA INDUSTRIAL DE MAMONAL', imp_telefono: '6050000000',
-    imp_ciudad: '13001', imp_departamento: '13', imp_codigo: 'Empresa Privada',
-    exp_nombre: 'ZHEJIANG HYDRAULIC CO.', exp_ciudad: 'SHANGHAI', exp_pais: 'CN', exp_direccion: '88 INDUSTRIAL ROAD',
-    factura: 'ZH-2026-118', factura_fecha: '2026-02-05',
-    pais_procedencia: 'CN', modo_transporte: '1', bandera: 'PA', depto_destino: '13', transportadora: '0457',
-  },
-  subpartida: {
-    modalidad: 'C100', cuotas: '0', subpartida: '8413609000', pais_origen: 'CN', forma_pago: '01', tipo_importacion: '01', pais_compra: 'CN',
-    peso_bruto: '2600', peso_neto: '2400', embalaje: 'PK', bultos: '1', subpartidas: '1', unidad_comercial: 'U', cantidad: '500',
-    fob: '60000', fletes: '3500', seguros: '300', otros: '0', ajuste: '0', arancel: '5', iva: '19',
-  },
-  descripcion: 'BOMBAS DE ENGRANAJES EXTERNOS PARA ACEITE HIDRAULICO, SIN MOTOR. MARCA HYDROZ, REFERENCIA GP-25, SERIALES ZH25-0001 A ZH25-0500. CANTIDAD: 500 UNIDADES. USO: SISTEMAS HIDRAULICOS INDUSTRIALES.',
-  pago: { numero: '004571', banco: '001' },
-};
+// El caso de ejemplo (semilla 0); cada cuenta recibe el suyo con generarCaso(semilla)
+export const CASO = generarCaso(0);
+export { generarCaso };
+// Caso de cada cuenta: el invitado practica con el de ejemplo; «otro caso» suma 1000 a la semilla
+export const semillaDe = (usuario, otro = 0) => (usuario && !usuario.invitado && Number.isInteger(usuario.id) ? usuario.id : 0) + otro * 1000;
 
 const limpiar = (t) => normalizar(String(t ?? '').trim()).replace(/[.\s\-/]/g, '');
 // Fechas: acepta AAAA-MM-DD, AAAA/MM/DD, DD/MM/AAAA y DD-MM-AAAA
@@ -134,7 +102,7 @@ const REGLAS_ENCABEZADO = [
 const REGLAS_SUBPARTIDA = [
   ['modalidad', 'Modalidad', 'Es una importación ordinaria: busca su código en la tabla de modalidades.'],
   ['subpartida', 'Subpartida arancelaria', 'Diez dígitos, según la clasificación del caso.'],
-  ['pais_origen', 'País de origen', 'Es el país donde se fabricaron las bombas, según la factura.'],
+  ['pais_origen', 'País de origen', 'Es el país donde se fabricó la mercancía, según la factura.'],
   ['forma_pago', 'Forma de pago de la importación', 'Mira en la factura cómo se le paga al proveedor.'],
   ['tipo_importacion', 'Tipo de importación', 'Mira en los documentos si la mercancía se le paga al proveedor.'],
   ['pais_compra', 'País de compra', 'Es el país del vendedor, según la factura.'],
@@ -160,8 +128,8 @@ function validar(reglas, valores, esperado) {
     return [];
   });
 }
-export const validarEncabezado = (v) => validar(REGLAS_ENCABEZADO, v, CASO.encabezado);
-export const validarSubpartida = (v) => validar(REGLAS_SUBPARTIDA, v, CASO.subpartida);
+export const validarEncabezado = (v, caso = CASO) => validar(REGLAS_ENCABEZADO, v, caso.encabezado);
+export const validarSubpartida = (v, caso = CASO) => validar(REGLAS_SUBPARTIDA, v, caso.subpartida);
 
 export const dvImportador = (nit) => digitoVerificacion(nit);
 
@@ -201,21 +169,12 @@ export const NUMERO_ACEPTACION = '482026000004571';
 
 // Descripción de la mercancía (casilla 43): debe identificarla e individualizarla. Cada regla es
 // [qué debe aparecer, cómo se reconoce, dónde mirar]
-const DESCRIPCION_MINIMA = [
-  ['el nombre de la mercancía', /bomba/, 'Di qué es, como en la factura.'],
-  ['el tipo', /engranaje/, 'La factura dice de qué tipo son las bombas.'],
-  ['para qué sirve', /hidraulic|aceite/, 'La factura dice con qué líquido trabajan.'],
-  ['si trae motor', /sin motor/, 'Es lo que separa esta subpartida de las bombas con motor.'],
-  ['la marca', /hydroz/, 'Está en la factura.'],
-  ['la referencia o modelo', /gp\W?25/, 'Está en la factura.'],
-  ['los seriales', /zh25\W?0001/, 'Están en la factura: anota el rango completo.'],
-  ['la cantidad', /\b500\b/, 'Cuántas unidades ampara la declaración.'],
-];
+// Las reglas de cada caso están en casosSiglo.js (descripcionMinima)
 const normaTexto = (t) => normalizar(String(t ?? '')).toLowerCase();
-export function validarDescripcion(texto) {
+export function validarDescripcion(texto, caso = CASO) {
   const t = normaTexto(texto);
   if (t.trim().length < 20) return [{ campo: 'descripcion', mensaje: 'Descripción de la mercancía: falta. Describe la mercancía de forma que se pueda identificar sin ver otros documentos.' }];
-  return DESCRIPCION_MINIMA.filter(([, re]) => !re.test(t))
+  return caso.descripcionMinima.filter(([, re]) => !re.test(t))
     .map(([que, , pista]) => ({ campo: 'descripcion', mensaje: `Descripción de la mercancía: falta ${que}. ${pista}` }));
 }
 
@@ -226,36 +185,59 @@ export const numero = (t) => {
   return s === '' ? NaN : Number(s);
 };
 export const totalesGenerales = (liq) => ({ arancel: liq.arancel, iva: liq.iva, sanciones: 0, otros: 0 });
-export function solucionTotales(liq) {
+export function solucionTotales(liq, caso = CASO, op = {}) {
+  if (op.anteriores) {
+    const pagar = aPagar(liq, op);
+    return { pagado_arancel: String(pagar.arancel), pagado_iva: String(pagar.iva), sanciones: String(op.sancion || 0), pagado_otros: '0',
+      efectivo: String(pagar.arancel + pagar.iva + (op.sancion || 0)), cheque_valor: '0', cheque_numero: '', cheque_banco: '' };
+  }
   const g = totalesGenerales(liq);
   return { pagado_arancel: String(g.arancel), pagado_iva: String(g.iva), sanciones: '0', pagado_otros: '0',
-    efectivo: '0', cheque_valor: String(g.arancel + g.iva), cheque_numero: CASO.pago.numero, cheque_banco: CASO.pago.banco };
+    efectivo: '0', cheque_valor: String(g.arancel + g.iva), cheque_numero: caso.pago.numero, cheque_banco: caso.pago.banco };
 }
 export function totalPagado(t) {
   return ['pagado_arancel', 'pagado_iva', 'sanciones', 'pagado_otros'].reduce((s, k) => s + (numero(t[k]) || 0), 0);
 }
-export function validarTotales(t, liq) {
+// Lo que se paga con esta declaración: todo lo liquidado, o en una corrección, lo liquidado menos lo ya pagado
+function aPagar(liq, op = {}) {
   const g = totalesGenerales(liq);
+  const a = op.anteriores || { arancel: 0, iva: 0 };
+  return { arancel: g.arancel - a.arancel, iva: g.iva - a.iva, otros: 0 };
+}
+export function validarTotales(t, liq, caso = CASO, op = {}) {
+  const g = totalesGenerales(liq);
+  const p = aPagar(liq, op);
   const faltas = [];
   const pon = (campo, mensaje) => faltas.push({ campo, mensaje });
-  [['pagado_arancel', '69. Arancel pagado', g.arancel], ['pagado_iva', '70. IVA pagado', g.iva], ['pagado_otros', '72. Otros pagado', g.otros]].forEach(([campo, rotulo, general]) => {
+  [['pagado_arancel', '69. Arancel pagado', g.arancel, p.arancel], ['pagado_iva', '70. IVA pagado', g.iva, p.iva], ['pagado_otros', '72. Otros pagado', g.otros, p.otros]].forEach(([campo, rotulo, general, debe]) => {
     const n = numero(t[campo]);
     if (Number.isNaN(n)) pon(campo, `${rotulo}: falta. Escribe lo que se paga con esta declaración.`);
     else if (n > general) pon(campo, `${rotulo}: no puede ser mayor que el total general.`);
-    else if (n !== general) pon(campo, `${rotulo}: no coincide. Es una declaración inicial sin pagos anteriores: se paga todo lo liquidado.`);
+    else if (n !== debe) {
+      pon(campo, op.anteriores
+        ? `${rotulo}: no coincide. En una corrección se paga lo nuevo liquidado menos lo que ya se pagó (casilla 67).`
+        : `${rotulo}: no coincide. Es una declaración inicial sin pagos anteriores: se paga todo lo liquidado.`);
+    }
   });
   const sanc = numero(t.sanciones);
+  const sancion = op.sancion || 0;
   if (Number.isNaN(sanc)) pon('sanciones', '71. Sanciones: falta. Si no hay sanción, escribe 0.');
-  else if (sanc !== 0) pon('sanciones', '71. Sanciones: no coincide. Esta declaración se presenta a tiempo y por primera vez: no lleva sanción.');
+  else if (sanc !== sancion) {
+    pon('sanciones', sancion
+      ? '71. Sanciones: no coincide. Mira la liquidación de la sanción en los documentos del caso.'
+      : '71. Sanciones: no coincide. Esta declaración se presenta a tiempo y por primera vez: no lleva sanción.');
+  }
   const efectivo = numero(t.efectivo) || 0;
   const cheque = numero(t.cheque_valor) || 0;
+  const enEfectivo = op.forma === 'EF';
   if (efectivo + cheque !== totalPagado(t)) pon('cheque_valor', `74 y 75. Forma de pago: el efectivo más el cheque deben sumar el total pagado (${totalPagado(t).toLocaleString('es-CO')}).`);
-  else if (efectivo) pon('efectivo', '74. Efectivo: no coincide. Mira la instrucción de pago del importador.');
+  else if (enEfectivo ? cheque : efectivo) pon(enEfectivo ? 'cheque_valor' : 'efectivo', `${enEfectivo ? '75. Cheque' : '74. Efectivo'}: no coincide. Mira la instrucción de pago del importador.`);
+  if (enEfectivo) return faltas;
   if (cheque) {
     if (!String(t.cheque_numero ?? '').trim()) pon('cheque_numero', '75. Número del cheque: falta. Está en la instrucción de pago.');
-    else if (!igual(t.cheque_numero, CASO.pago.numero)) pon('cheque_numero', '75. Número del cheque: no coincide con la instrucción de pago.');
+    else if (!igual(t.cheque_numero, caso.pago.numero)) pon('cheque_numero', '75. Número del cheque: no coincide con la instrucción de pago.');
     if (!String(t.cheque_banco ?? '').trim()) pon('cheque_banco', '75. Código del banco: falta. Búscalo en la tabla de bancos.');
-    else if (!igual(String(t.cheque_banco).padStart(3, '0'), CASO.pago.banco)) pon('cheque_banco', '75. Código del banco: no coincide. Mira el banco en la instrucción de pago y búscalo en la tabla de bancos.');
+    else if (!igual(String(t.cheque_banco).padStart(3, '0'), caso.pago.banco)) pon('cheque_banco', '75. Código del banco: no coincide. Mira el banco en la instrucción de pago y búscalo en la tabla de bancos.');
   }
   return faltas;
 }
@@ -263,20 +245,12 @@ export function validarTotales(t, liq) {
 // Documentos soporte: «posibles documentos o requisitos a que puede estar sometida esta importación».
 // Para cada uno se elige si se presentó, no se presentó o no se requiere, con número y fecha.
 export const ESTADOS_SOPORTE = [['SI', 'Sí presentado'], ['NO', 'No presentado'], ['NR', 'No requerido']];
-export const DOCUMENTOS_SOPORTE = [
-  { id: 'factura', nombre: 'Factura comercial', estado: 'SI', numero: 'ZH-2026-118', fecha: '2026-02-05', pista: 'Mira la factura comercial.' },
-  { id: 'transporte', nombre: 'Documento de transporte', estado: 'SI', numero: 'SHACTG-2026-0457', fecha: '2026-02-12', pista: 'Mira el B/L.' },
-  { id: 'empaque', nombre: 'Lista de empaque', estado: 'SI', numero: 'PL-2026-118', fecha: '2026-02-05', pista: 'Mira la lista de empaque.' },
-  { id: 'valor', nombre: 'Declaración andina del valor', estado: 'SI', numero: '48000456', fecha: '2026-03-11', pista: 'Se exige porque el valor FOB pasa de USD 5.000. Como se radicó en el sistema, el número es el de radicado.' },
-  { id: 'mandato', nombre: 'Mandato aduanero', estado: 'NR', pista: 'Solo se exige cuando una agencia de aduanas declara por el importador. Mira quién firma.' },
-  { id: 'origen', nombre: 'Certificado de origen', estado: 'NR', pista: 'Solo se presenta para pedir una preferencia de un acuerdo comercial. Mira la clasificación del caso.' },
-  { id: 'registro', nombre: 'Registro o licencia de importación', estado: 'NR', pista: 'Mira en la clasificación del caso si la subpartida exige requisitos previos.' },
-];
-export function solucionSoporte() {
-  return Object.fromEntries(DOCUMENTOS_SOPORTE.map((d) => [d.id, d.estado === 'SI' ? { estado: 'SI', numero: d.numero, fecha: d.fecha } : { estado: d.estado }]));
+export const DOCUMENTOS_SOPORTE = CASO.soportes;
+export function solucionSoporte(caso = CASO) {
+  return Object.fromEntries(caso.soportes.map((d) => [d.id, d.estado === 'SI' ? { estado: 'SI', numero: d.numero, fecha: d.fecha } : { estado: d.estado }]));
 }
-export function validarSoporte(s) {
-  return DOCUMENTOS_SOPORTE.flatMap((d) => {
+export function validarSoporte(s, caso = CASO) {
+  return caso.soportes.flatMap((d) => {
     const x = s[d.id] || {};
     if (!x.estado) return [{ campo: d.id, mensaje: `${d.nombre}: falta elegir si se presentó. ${d.pista}` }];
     if (x.estado === 'NO') return [{ campo: d.id, mensaje: `${d.nombre}: si un documento se exige y no se tiene, la declaración no se puede presentar. ${d.pista}` }];
@@ -299,21 +273,21 @@ export const ACEPTACION = { numero: NUMERO_ACEPTACION, fecha: '2026-03-12' };
 export const AUTOADHESIVO = { numero: '90010004571236', fecha: '2026-03-12' };
 export const LEVANTE = { numero: '482026000009871', fecha: '2026-03-13' };
 
-export function validarPago(v, total) {
+export function validarPago(v, total, caso = CASO) {
   const faltas = [];
   const pon = (campo, mensaje) => faltas.push({ campo, mensaje });
   if (!String(v.aceptacion ?? '').trim()) pon('aceptacion', 'Número de aceptación: falta. Es el que dio el sistema al informar la declaración.');
   else if (!igual(v.aceptacion, ACEPTACION.numero)) pon('aceptacion', 'Número de aceptación: no coincide con el que dio el sistema al informar.');
   if (!String(v.banco ?? '').trim()) pon('banco', 'Banco: falta. Búscalo en la tabla de bancos.');
-  else if (!igual(String(v.banco).padStart(3, '0'), CASO.pago.banco)) pon('banco', 'Banco: no coincide. Mira la instrucción de pago y busca el código en la tabla de bancos.');
+  else if (!igual(String(v.banco).padStart(3, '0'), caso.pago.banco)) pon('banco', 'Banco: no coincide. Mira la instrucción de pago y busca el código en la tabla de bancos.');
   const valor = numero(v.valor);
   if (Number.isNaN(valor)) pon('valor', 'Valor pagado: falta. Es el total pagado con esta declaración (casilla 73).');
   else if (valor !== total) pon('valor', 'Valor pagado: no coincide con el total pagado con esta declaración (casilla 73). El banco no recibe un valor distinto.');
   if (!String(v.cheque ?? '').trim()) pon('cheque', 'Número del cheque: falta. Está en la instrucción de pago.');
-  else if (!igual(v.cheque, CASO.pago.numero)) pon('cheque', 'Número del cheque: no coincide con la instrucción de pago.');
+  else if (!igual(v.cheque, caso.pago.numero)) pon('cheque', 'Número del cheque: no coincide con la instrucción de pago.');
   return faltas;
 }
-export const solucionPago = (total) => ({ aceptacion: ACEPTACION.numero, banco: CASO.pago.banco, valor: String(total), cheque: CASO.pago.numero });
+export const solucionPago = (total, caso = CASO) => ({ aceptacion: ACEPTACION.numero, banco: caso.pago.banco, valor: String(total), cheque: caso.pago.numero });
 
 export function validarLevante(v) {
   const reglas = [
@@ -371,5 +345,78 @@ export function validarRop(v) {
   if (Number.isNaN(total)) faltas.push({ campo: 'total', mensaje: 'Total pagado: falta. Es la suma de arancel, IVA, sanciones, otros e intereses de mora.' });
   else if (total !== suma) faltas.push({ campo: 'total', mensaje: `Total pagado: no coincide con la suma de los conceptos (${suma.toLocaleString('es-CO')}).` });
   if (v.forma === 'TV' && !v.titulo) faltas.push({ campo: 'titulo', mensaje: 'Código del título: falta. Si paga con título valor, elige cuál.' });
+  return faltas;
+}
+
+// ---------- Inspección aduanera ----------
+// Al pedir el levante, el sistema puede dar levante automático o seleccionar la declaración para
+// inspección documental (el funcionario revisa los documentos soporte) o física (además revisa la
+// mercancía y deja un acta con lo que encontró).
+export const TIPOS_INSPECCION = { documental: 'Inspección documental', fisica: 'Inspección física' };
+// Documentos que el declarante tiene a mano: debe presentar solo los soportes de la declaración
+export const DOCUMENTOS_A_MANO = [
+  ['factura', 'Factura comercial'], ['transporte', 'Documento de transporte (B/L)'], ['empaque', 'Lista de empaque'],
+  ['valor', 'Declaración andina del valor'], ['poliza', 'Póliza de seguro'], ['rut', 'RUT del importador'],
+  ['mandato', 'Mandato aduanero'], ['origen', 'Certificado de origen'],
+];
+const soportesPresentados = (caso) => caso.soportes.filter((d) => d.estado === 'SI').map((d) => d.id);
+export function solucionInspeccion(caso = CASO) {
+  const v = Object.fromEntries(soportesPresentados(caso).map((id) => [`doc_${id}`, true]));
+  if (caso.inspeccion === 'fisica') caso.hallazgos.forEach((_, i) => { v[`acta_${i}`] = 'SI'; });
+  return v;
+}
+export function validarInspeccion(v, caso = CASO) {
+  const exigidos = soportesPresentados(caso);
+  const faltas = [];
+  DOCUMENTOS_A_MANO.forEach(([id, nombre]) => {
+    if (exigidos.includes(id) && !v[`doc_${id}`]) faltas.push({ campo: `doc_${id}`, mensaje: `${nombre}: falta presentarlo. El funcionario revisa los documentos soporte de la declaración.` });
+    if (!exigidos.includes(id) && v[`doc_${id}`]) faltas.push({ campo: `doc_${id}`, mensaje: `${nombre}: no es documento soporte de esta declaración. Mira los documentos soporte que radicaste.` });
+  });
+  if (caso.inspeccion === 'fisica') {
+    caso.hallazgos.forEach(([dato], i) => {
+      const x = v[`acta_${i}`];
+      if (!x) faltas.push({ campo: `acta_${i}`, mensaje: `Acta, ${dato}: falta decir si coincide con lo declarado.` });
+      else if (x !== 'SI') faltas.push({ campo: `acta_${i}`, mensaje: `Acta, ${dato}: revisa otra vez la declaración y los documentos: lo que encontró el funcionario sí coincide.` });
+    });
+  }
+  return faltas;
+}
+
+// ---------- Práctica 3: declaración de corrección ----------
+// Después del levante, la agencia se entera de que el flete real fue mayor que el declarado. Con una
+// declaración de corrección se corrige el valor, se liquidan los tributos otra vez y se paga la
+// diferencia (lo nuevo menos lo pagado, casilla 67) con la sanción que corresponda.
+export const PRACTICA_CORRECCION = 'sigloxxii-correccion';
+export const ACEPTACION_CORRECCION = { numero: '482026000005102', fecha: '2026-04-06' };
+const fechaDMA = (iso) => iso.split('-').reverse().join('/');
+const pesosTexto = (n) => `$${n.toLocaleString('es-CO')}`;
+export function datosCorreccion(caso = CASO) {
+  const anterior = liquidar(caso.subpartida);
+  const corregida = { ...caso.subpartida, fletes: String(caso.correccion.fleteReal) };
+  const nueva = liquidar(corregida);
+  const mayorValor = (nueva.arancel - anterior.arancel) + (nueva.iva - anterior.iva);
+  // Sanción de práctica: 10 % del mayor valor, redondeada a miles. La real depende del régimen sancionatorio vigente.
+  const sancion = Math.round((mayorValor * 0.1) / 1000) * 1000;
+  return {
+    anterior, corregida, nueva, mayorValor, sancion,
+    anteriores: { arancel: anterior.arancel, iva: anterior.iva },
+    caso: { ...caso, subpartida: corregida },
+    documentos: [
+      { titulo: 'Declaración anterior', datos: [['No. de aceptación', ACEPTACION.numero], ['Fecha de aceptación', fechaDMA(ACEPTACION.fecha)], ['Levante', `${LEVANTE.numero} del ${fechaDMA(LEVANTE.fecha)}`], ['Flete declarado', `USD ${Number(caso.subpartida.fletes).toLocaleString('es-CO')}`], ['Tributos pagados', `${pesosTexto(anterior.arancel + anterior.iva)} (arancel ${pesosTexto(anterior.arancel)} e IVA ${pesosTexto(anterior.iva)})`]] },
+      { titulo: 'Factura de flete corregida', datos: [['Número', caso.correccion.facturaFlete], ['Naviera', 'La del B/L'], ['Flete real', `USD ${caso.correccion.fleteReal.toLocaleString('es-CO')}`], ['Motivo', 'Recargo por combustible que no se había facturado']] },
+      { titulo: 'Liquidación de la sanción', datos: [['Sanción', pesosTexto(sancion)], ['Nota', 'Dato de práctica (10 % del mayor valor). La sanción real depende del régimen sancionatorio vigente: verifícala con tu docente.']] },
+      { titulo: 'Instrucción de pago', datos: [['Forma de pago', 'En efectivo: el mayor valor de los tributos y la sanción']] },
+      ...caso.documentos.filter((d) => !['Instrucción de pago', 'Declaración andina del valor'].includes(d.titulo)),
+    ],
+  };
+}
+
+// Parámetros previos de la corrección: la declaración que se corrige
+export function validarDeclaracionAnterior(numeroAnterior, fechaAnterior) {
+  const faltas = [];
+  if (!String(numeroAnterior ?? '').trim()) faltas.push({ campo: 'anterior', mensaje: 'No. de aceptación de la declaración anterior: falta. Está en la declaración anterior.' });
+  else if (!igual(numeroAnterior, ACEPTACION.numero)) faltas.push({ campo: 'anterior', mensaje: 'No. de aceptación de la declaración anterior: no coincide. Mira la declaración anterior.' });
+  if (!String(fechaAnterior ?? '').trim()) faltas.push({ campo: 'anterior_fecha', mensaje: 'Fecha de aceptación de la declaración anterior: falta.' });
+  else if (!igual(fechaAnterior, ACEPTACION.fecha, 'fecha')) faltas.push({ campo: 'anterior_fecha', mensaje: 'Fecha de aceptación de la declaración anterior: no coincide. Mira la declaración anterior.' });
   return faltas;
 }

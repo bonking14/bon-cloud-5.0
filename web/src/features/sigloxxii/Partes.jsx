@@ -1,4 +1,4 @@
-import { ACEPTACION, AUTOADHESIVO, DOCUMENTOS_SOPORTE, ESTADOS_SOPORTE, TASA_SEMANA, numero, totalPagado, totalesGenerales } from '../../lib/sigloxxii.js';
+import { ACEPTACION, AUTOADHESIVO, DOCUMENTOS_A_MANO, DOCUMENTOS_SOPORTE, ESTADOS_SOPORTE, TASA_SEMANA, TIPOS_INSPECCION, numero, totalPagado, totalesGenerales } from '../../lib/sigloxxii.js';
 import css from './SigloXXII.module.css';
 
 // Pantallas de la declaración después del ítem, según el manual del declarante de SIGLO XXI:
@@ -44,7 +44,7 @@ export function Descripcion({ texto, poner, malos, onSalvar, subpartida, radicac
   );
 }
 
-export function Totales({ t, poner, malos, liq, onSalvar, onBuscar, radicacion }) {
+export function Totales({ t, poner, malos, liq, onSalvar, onBuscar, radicacion, anteriores, tipo = 'Inicial' }) {
   const g = totalesGenerales(liq);
   const general = g.arancel + g.iva + g.sanciones + g.otros;
   const input = (campo, rotulo) => (
@@ -55,32 +55,37 @@ export function Totales({ t, poner, malos, liq, onSalvar, onBuscar, radicacion }
     </>
   );
   const filas = [
-    ['69', 'Total arancel', g.arancel, 'pagado_arancel'],
-    ['70', 'Total IVA', g.iva, 'pagado_iva'],
-    ['71', 'Sanciones', null, 'sanciones'],
-    ['72', 'Total otros', g.otros, 'pagado_otros'],
+    ['69', 'Total arancel', g.arancel, 'pagado_arancel', anteriores?.arancel],
+    ['70', 'Total IVA', g.iva, 'pagado_iva', anteriores?.iva],
+    ['71', 'Sanciones', null, 'sanciones', 0],
+    ['72', 'Total otros', g.otros, 'pagado_otros', 0],
   ];
   const pagado = totalPagado(t);
   return (
     <div className={css.tarjeta}>
       <div className={css.cabecera}>
         <h2>Totales declaración de importación</h2>
-        <span className={css.chip}>1. Tipo: Inicial · 24. TRM {TASA_SEMANA.toLocaleString('es-CO')} · Radicación {radicacion}</span>
+        <span className={css.chip}>1. Tipo: {tipo} · 24. TRM {TASA_SEMANA.toLocaleString('es-CO')} · Radicación {radicacion}</span>
       </div>
-      <p className={css.suave}>67. Pagos anteriores: 0 (solo se traen en correcciones, modificaciones o legalizaciones).</p>
+      <p className={css.suave}>
+        {anteriores
+          ? '67. Pagos anteriores: el sistema trae lo que se pagó con la declaración anterior. Con esta se paga la diferencia.'
+          : '67. Pagos anteriores: 0 (solo se traen en correcciones, modificaciones o legalizaciones).'}
+      </p>
       <div className={css.scroll}>
         <table className={`${css.liq} ${css.totales}`}>
-          <thead><tr><th scope="col">68. Concepto</th><th scope="col">Total general $</th><th scope="col">Total pagado con esta declaración $</th></tr></thead>
+          <thead><tr><th scope="col">68. Concepto</th><th scope="col">Total general $</th>{anteriores && <th scope="col">67. Pagos anteriores $</th>}<th scope="col">Total pagado con esta declaración $</th></tr></thead>
           <tbody>
-            {filas.map(([n, concepto, valor, campo]) => (
+            {filas.map(([n, concepto, valor, campo, anterior]) => (
               <tr key={n}>
                 <td>{n}. {concepto}</td>
                 <td>{valor === null ? input(campo, `${n}. ${concepto}`) : pesos(valor)}</td>
+                {anteriores && <td>{pesos(anterior)}</td>}
                 <td>{campo === 'sanciones' ? pesos(numero(t.sanciones) || 0) : input(campo, `${n}. ${concepto} pagado`)}</td>
               </tr>
             ))}
           </tbody>
-          <tfoot><tr><td>73. Total</td><td>{pesos(general + (numero(t.sanciones) || 0))}</td><td data-testid="sx-total-pagado">{pesos(pagado)}</td></tr></tfoot>
+          <tfoot><tr><td>73. Total</td><td>{pesos(general + (numero(t.sanciones) || 0))}</td>{anteriores && <td>{pesos(anteriores.arancel + anteriores.iva)}</td>}<td data-testid="sx-total-pagado">{pesos(pagado)}</td></tr></tfoot>
         </table>
       </div>
       <fieldset className={css.seccion}>
@@ -107,7 +112,7 @@ export function Totales({ t, poner, malos, liq, onSalvar, onBuscar, radicacion }
   );
 }
 
-export function Soporte({ s, poner, malos, onSalvar, radicacion }) {
+export function Soporte({ s, poner, malos, onSalvar, radicacion, soportes = DOCUMENTOS_SOPORTE }) {
   const cambiar = (id, k, val) => poner(id, { ...(s[id] || {}), [k]: val });
   return (
     <div className={css.tarjeta}>
@@ -123,7 +128,7 @@ export function Soporte({ s, poner, malos, onSalvar, radicacion }) {
         <table className={`${css.liq} ${css.soporte}`}>
           <thead><tr><th scope="col">Documento</th><th scope="col">Estado</th><th scope="col">Número</th><th scope="col">Fecha de expedición</th></tr></thead>
           <tbody>
-            {DOCUMENTOS_SOPORTE.map((d) => {
+            {soportes.map((d) => {
               const x = s[d.id] || {};
               const mal = Boolean(malos?.get(d.id));
               return (
@@ -251,6 +256,62 @@ export function Levante({ v, poner, malos, onSalvar }) {
       </div>
       <p className={css.nota}>El sistema puede dar levante automático o seleccionar la declaración para inspección física o documental. En esta práctica da levante automático.</p>
       <div className={css.acciones}><button type="button" className={css.primario} onClick={onSalvar}>Solicitar levante</button></div>
+    </div>
+  );
+}
+
+// Inspección: el sistema seleccionó la declaración. En la documental se presentan los documentos
+// soporte; en la física, además, se revisa el acta de lo que el funcionario encontró en la mercancía.
+export function Inspeccion({ tipo, hallazgos, v, poner, malos, onSalvar }) {
+  return (
+    <div className={css.tarjeta}>
+      <div className={css.cabecera}>
+        <h2>{TIPOS_INSPECCION[tipo]}</h2>
+        <span className={css.chip}>Aceptación {ACEPTACION.numero}</span>
+      </div>
+      <p className={css.suave}>
+        {tipo === 'fisica'
+          ? 'El sistema seleccionó la declaración para inspección física: un funcionario de la DIAN revisa los documentos y la mercancía en el depósito, y deja un acta con lo que encontró. El levante lo autoriza el funcionario.'
+          : 'El sistema seleccionó la declaración para inspección documental: un funcionario de la DIAN revisa los documentos soporte antes de autorizar el levante.'}
+      </p>
+      <fieldset className={css.seccion}>
+        <legend>Documentos que le presentas al funcionario</legend>
+        <div className={css.checks}>
+          {DOCUMENTOS_A_MANO.map(([id, nombre]) => (
+            <label key={id} className={malos?.get(`doc_${id}`) ? css.checkMal : undefined}>
+              <input type="checkbox" checked={Boolean(v[`doc_${id}`])} onChange={(e) => poner(`doc_${id}`, e.target.checked)} /> {nombre}
+              <Error malos={malos} campo={`doc_${id}`} />
+            </label>
+          ))}
+        </div>
+      </fieldset>
+      {tipo === 'fisica' && (
+        <fieldset className={css.seccion}>
+          <legend>Acta de inspección: lo que encontró el funcionario</legend>
+          <p className={css.suave}>Compara cada dato con lo que declaraste y con los documentos del caso.</p>
+          <div className={css.scroll}>
+            <table className={`${css.liq} ${css.soporte}`}>
+              <thead><tr><th scope="col">Dato</th><th scope="col">Encontrado en la mercancía</th><th scope="col">¿Coincide con lo declarado?</th></tr></thead>
+              <tbody>
+                {hallazgos.map(([dato, valor], i) => (
+                  <tr key={dato} className={malos?.get(`acta_${i}`) ? css.filaMal : undefined}>
+                    <td>{dato}<Error malos={malos} campo={`acta_${i}`} /></td>
+                    <td>{valor}</td>
+                    <td>
+                      <select aria-label={`¿Coincide? ${dato}`} value={v[`acta_${i}`] ?? ''} onChange={(e) => poner(`acta_${i}`, e.target.value)}>
+                        <option value="">Selecciona…</option>
+                        <option value="SI">Sí coincide</option>
+                        <option value="NO">No coincide</option>
+                      </select>
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+        </fieldset>
+      )}
+      <div className={css.acciones}><button type="button" className={css.primario} onClick={onSalvar}>Terminar la inspección</button></div>
     </div>
   );
 }

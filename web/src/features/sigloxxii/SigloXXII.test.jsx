@@ -2,7 +2,7 @@ import { describe, it, expect, afterEach, vi } from 'vitest';
 import { render, screen, fireEvent, cleanup } from '@testing-library/react';
 import { MemoryRouter } from 'react-router-dom';
 import SigloXXII from './SigloXXII.jsx';
-import { CASO, RUTA_MENU, liquidar } from '../../lib/sigloxxii.js';
+import { CASO, RUTA_MENU, datosCorreccion, generarCaso, liquidar } from '../../lib/sigloxxii.js';
 import { pedir } from '../../auth/api.js';
 
 // Sesión simulada: por defecto, invitado
@@ -112,7 +112,8 @@ describe('SIGLO XXII', () => {
     entrar('a000042');
     RUTA_MENU.forEach((o) => fireEvent.click(screen.getByRole('menuitem', { name: o })));
     fireEvent.click(screen.getByRole('button', { name: 'Siguiente' }));
-    fireEvent.change(screen.getByLabelText('Departamento importador'), { target: { value: '13' } });
+    // su caso es el 42: otro importador, en otro departamento
+    fireEvent.change(screen.getByLabelText('Departamento importador'), { target: { value: generarCaso(42).importador.departamento } });
     fireEvent.click(screen.getByRole('button', { name: 'Continuar' }));
     fireEvent.click(screen.getByRole('button', { name: 'Guardar' })); // encabezado vacío: segundo error
     fireEvent.click(screen.getByText('Ver la solución de esta pantalla'));
@@ -260,5 +261,99 @@ describe('SIGLO XXII', () => {
     fireEvent.click(screen.getByRole('button', { name: 'Preinformar' }));
     expect(screen.getByTestId('sx-aceptacion-rop').textContent).toBe('489026000000731');
     expect(pedir).toHaveBeenCalledWith('/practicas', { metodo: 'POST', token: 'jwt', cuerpo: { practica: 'sigloxxii-rop', errores: 2, conSolucion: false } });
+  });
+
+  // Hace todo con la solución hasta pedir el levante, con el caso de la cuenta
+  function hastaLevante(id) {
+    Object.assign(sesion, { usuario: { id, nombre: 'Ana' }, tokenApi: 'jwt' });
+    abrir();
+    entrar(`A${String(id).padStart(6, '0')}`);
+    RUTA_MENU.forEach((o) => fireEvent.click(screen.getByRole('menuitem', { name: o })));
+    fireEvent.click(screen.getByRole('button', { name: 'Siguiente' }));
+    fireEvent.change(screen.getByLabelText('Departamento importador'), { target: { value: generarCaso(id).importador.departamento } });
+    fireEvent.click(screen.getByRole('button', { name: 'Continuar' }));
+    solucion(); guardar();
+    fireEvent.click(screen.getByRole('button', { name: 'Ingresar ítem' }));
+    solucion(); fireEvent.click(screen.getByRole('button', { name: 'Autoliquidar' })); guardar();
+    fireEvent.click(screen.getByRole('button', { name: 'Ingresar descripción' })); solucion(); guardar();
+    fireEvent.click(screen.getByRole('button', { name: 'Ingresar totales' })); solucion(); guardar();
+    fireEvent.click(screen.getByRole('button', { name: 'Radicar' })); solucion(); guardar();
+    fireEvent.click(screen.getByRole('button', { name: 'Informar' }));
+    fireEvent.click(screen.getByRole('button', { name: 'Confirmar' }));
+    solucion(); fireEvent.click(screen.getByRole('button', { name: 'Pagar' }));
+    solucion(); fireEvent.click(screen.getByRole('button', { name: 'Solicitar levante' }));
+  }
+  const semillaCon = (inspeccion) => { for (let id = 1; ; id += 1) if (generarCaso(id).inspeccion === inspeccion) return id; };
+
+  it('cada cuenta tiene su propio caso y abre el RUT de su importador', () => {
+    const a = generarCaso(7);
+    const b = generarCaso(8);
+    expect([a.encabezado.factura, a.subpartida.cantidad]).not.toEqual([b.encabezado.factura, b.subpartida.cantidad]);
+    Object.assign(sesion, { usuario: { id: 7, nombre: 'Ana' }, tokenApi: 'jwt' });
+    abrir();
+    expect(screen.getByTestId('sx-caso').textContent).toMatch(/Caso No. 7 \(es solo tuyo\)/);
+    expect(screen.getByText(a.resumen)).toBeTruthy();
+    // el RUT que se abre es el de su importador
+    expect(screen.getByRole('link', { name: /Abrir el RUT/ }).getAttribute('href')).toBe('#/formularios/001?caso=1&semilla=7');
+  });
+
+  it('inspección documental: solo se le presentan al funcionario los documentos soporte', () => {
+    hastaLevante(semillaCon('documental'));
+    expect(screen.getByRole('status').textContent).toMatch(/seleccionó la declaración para inspección documental/);
+    fireEvent.click(screen.getByLabelText('Factura comercial'));
+    fireEvent.click(screen.getByLabelText('Mandato aduanero'));
+    fireEvent.click(screen.getByRole('button', { name: 'Terminar la inspección' }));
+    const lista = screen.getByRole('region', { name: 'Lista de inconsistencias a corregir' }).textContent;
+    expect(lista).toMatch(/Lista de empaque: falta presentarlo/);
+    expect(lista).toMatch(/Mandato aduanero: no es documento soporte/);
+    solucion();
+    fireEvent.click(screen.getByRole('button', { name: 'Terminar la inspección' }));
+    expect(screen.getByText(/lo autorizó el funcionario después de la inspección documental/)).toBeTruthy();
+  });
+
+  it('inspección física: se revisa el acta dato por dato', () => {
+    hastaLevante(semillaCon('fisica'));
+    solucion();
+    fireEvent.change(screen.getByLabelText('¿Coincide? Peso bruto'), { target: { value: 'NO' } });
+    fireEvent.click(screen.getByRole('button', { name: 'Terminar la inspección' }));
+    expect(screen.getByRole('region', { name: 'Lista de inconsistencias a corregir' }).textContent).toMatch(/Acta, Peso bruto: revisa otra vez/);
+    fireEvent.change(screen.getByLabelText('¿Coincide? Peso bruto'), { target: { value: 'SI' } });
+    fireEvent.click(screen.getByRole('button', { name: 'Terminar la inspección' }));
+    expect(screen.getByTestId('sx-levante').textContent).toBe('482026000009871');
+    expect(screen.getByText(/después de la inspección física/)).toBeTruthy();
+  });
+
+  it('práctica 3: corrección del flete, con pagos anteriores y sanción', () => {
+    Object.assign(sesion, { usuario: { id: 42, nombre: 'Ana' }, tokenApi: 'jwt' });
+    const c = generarCaso(42);
+    const d = datosCorreccion(c);
+    abrir();
+    fireEvent.click(screen.getByRole('button', { name: '3. Declaración de corrección' }));
+    entrar('A000042');
+    RUTA_MENU.forEach((o) => fireEvent.click(screen.getByRole('menuitem', { name: o })));
+    // el tipo es Corrección
+    fireEvent.click(screen.getByRole('button', { name: 'Siguiente' }));
+    expect(screen.getByRole('alert').textContent).toMatch(/el tipo es «Corrección»/);
+    fireEvent.change(screen.getByLabelText('Tipo de declaración'), { target: { value: 'Corrección' } });
+    fireEvent.click(screen.getByRole('button', { name: 'Siguiente' }));
+    fireEvent.change(screen.getByLabelText('Departamento importador'), { target: { value: c.importador.departamento } });
+    fireEvent.change(screen.getByLabelText('Tipo de documento respaldo de la importación'), { target: { value: 'DECLARACIÓN ANTERIOR' } });
+    fireEvent.change(screen.getByLabelText('No. de aceptación de la declaración anterior'), { target: { value: '482026000004571' } });
+    fireEvent.change(screen.getByLabelText('Fecha de aceptación de la declaración anterior'), { target: { value: '12/03/2026' } });
+    fireEvent.click(screen.getByRole('button', { name: 'Continuar' }));
+    // el sistema trae el ítem anterior: sin corregir el flete no guarda
+    expect(screen.getByLabelText('Fletes').value).toBe(c.subpartida.fletes);
+    fireEvent.click(screen.getByRole('button', { name: 'Autoliquidar' })); guardar();
+    expect(screen.getByRole('region', { name: 'Lista de inconsistencias a corregir' }).textContent).toMatch(/Valor fletes USD: no coincide/);
+    fireEvent.change(screen.getByLabelText('Fletes'), { target: { value: String(c.correccion.fleteReal) } });
+    fireEvent.click(screen.getByRole('button', { name: 'Autoliquidar' })); guardar();
+    // totales: pagar otra vez todo es un error; se paga la diferencia
+    fireEvent.change(screen.getByLabelText('69. Total arancel pagado'), { target: { value: String(d.nueva.arancel) } });
+    guardar();
+    expect(screen.getByRole('region', { name: 'Lista de inconsistencias a corregir' }).textContent).toMatch(/se paga lo nuevo liquidado menos lo que ya se pagó/);
+    solucion(); guardar();
+    fireEvent.click(screen.getByRole('button', { name: 'Confirmar' }));
+    expect(screen.getByTestId('sx-aceptacion-correccion').textContent).toBe('482026000005102');
+    expect(pedir).toHaveBeenCalledWith('/practicas', { metodo: 'POST', token: 'jwt', cuerpo: { practica: 'sigloxxii-correccion', errores: 3, conSolucion: true } });
   });
 });

@@ -10,6 +10,7 @@ export const nota = (l) => (l?.mejorTotal ? Math.round((l.mejorAciertos / l.mejo
 export const PRACTICAS = [
   ['sigloxxii-importacion', 'SIGLO XXII · Declaración de importación', 'Declaración'],
   ['sigloxxii-rop', 'SIGLO XXII · Recibo oficial de pago', 'Recibo de pago'],
+  ['sigloxxii-correccion', 'SIGLO XXII · Declaración de corrección', 'Corrección'],
 ];
 
 // Texto corto de una práctica para la tabla: «Hecha (2 veces)» o «—»

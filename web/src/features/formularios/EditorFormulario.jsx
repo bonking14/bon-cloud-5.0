@@ -33,11 +33,16 @@ function leerPrecarga(id) {
   } catch { return null; }
 }
 
+// El mensaje del caso puede depender del caso de SIGLO XXII que se cargó
+const textoCaso = (caso, semilla = 0) => (typeof caso.mensaje === 'function' ? caso.mensaje(semilla) : caso.mensaje);
+
 function Lienzo({ definicion, onVolver }) {
   // ?caso=1 abre el formulario con el caso de práctica (por ejemplo, el RUT que consulta SIGLO XXII)
   const [params] = useSearchParams();
+  // &semilla=N trae el caso que SIGLO XXII le asignó al estudiante (por ahora, el RUT de su importador)
+  const semilla = Number(params.get('semilla')) || 0;
   const [precarga] = useState(() => leerPrecarga(definicion.id)
-    || (params.get('caso') === '1' && definicion.caso ? { valores: definicion.caso.valores(), mensaje: definicion.caso.mensaje } : null));
+    || (params.get('caso') === '1' && definicion.caso ? { valores: definicion.caso.valores(semilla), mensaje: textoCaso(definicion.caso, semilla) } : null));
   // Se borra después de usarla (no al leerla: en desarrollo React arma la pantalla dos veces)
   useEffect(() => { try { sessionStorage.removeItem(clavePrecarga(definicion.id)); } catch { /* sin almacenamiento */ } }, [definicion.id]);
   const [valores, setValores] = useState(() => (precarga ? { ...definicion.inicial(), ...precarga.valores } : definicion.inicial()));
@@ -75,7 +80,7 @@ function Lienzo({ definicion, onVolver }) {
   const cargarCaso = () => {
     setValores({ ...definicion.inicial(), ...definicion.caso.valores() });
     setErrores(new Set());
-    setMensaje({ tipo: 'info', texto: definicion.caso.mensaje });
+    setMensaje({ tipo: 'info', texto: textoCaso(definicion.caso) });
   };
 
   const reiniciar = () => {

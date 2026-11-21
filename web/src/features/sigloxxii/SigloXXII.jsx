@@ -1,4 +1,4 @@
-import { useEffect, useRef, useState } from 'react';
+import { useEffect, useMemo, useRef, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import Modal from '../../components/Modal.jsx';
 import { TABLAS, buscarCodigo } from '../../lib/codigosAduana.js';
@@ -10,8 +10,10 @@ import {
   ACEPTACION, CASO_ROP, LEVANTE, PRACTICA_ROP, ROP, RUTA_ROP, aFormulario500, solucionLevante, solucionPago, totalPagado,
   validarLevante, validarPago, validarRop, dvImportador, liquidar, opcionesMenu, solucionSoporte, solucionTotales, usuarioDePractica,
   validarDescripcion, validarEncabezado, validarSoporte, validarSubpartida, validarTotales,
+  ACEPTACION_CORRECCION, PRACTICA_CORRECCION, TIPOS_INSPECCION, datosCorreccion, generarCaso, semillaDe, solucionInspeccion,
+  validarDeclaracionAnterior, validarInspeccion,
 } from '../../lib/sigloxxii.js';
-import { Descripcion, Informar, Levante, Pago, Soporte, Totales } from './Partes.jsx';
+import { Descripcion, Informar, Inspeccion, Levante, Pago, Soporte, Totales } from './Partes.jsx';
 import { RopIngresar, RopRecibos } from './Rop.jsx';
 import css from './SigloXXII.module.css';
 
@@ -42,12 +44,24 @@ const PASOS_ROP = [
   ['roplista', 'Preinformar'],
   ['fin', 'Terminada'],
 ];
+// Práctica 3: corrección de una declaración ya aceptada (el flete real fue mayor)
+const PASOS_CORRECCION = [
+  ['login', 'Ingreso'],
+  ['menu', 'Menú'],
+  ['previos', 'Parámetros previos'],
+  ['subpartida', 'Ítem'],
+  ['totales', 'Totales'],
+  ['informar', 'Informar'],
+  ['fin', 'Terminada'],
+];
+// Cada práctica: pasos, ruta del menú, primera pantalla, identificador y documentos del caso
 const PRACTICAS = {
-  importacion: { nombre: 'Declaración de importación', pasos: PASOS, ruta: RUTA_MENU, primera: 'previos', id: PRACTICA, documentos: CASO.documentos },
-  rop: { nombre: 'Recibo oficial de pago', pasos: PASOS_ROP, ruta: RUTA_ROP, primera: 'rop', id: PRACTICA_ROP, documentos: CASO_ROP.documentos },
+  importacion: { nombre: 'Declaración de importación', pasos: PASOS, ruta: RUTA_MENU, primera: 'previos', id: PRACTICA, tipo: 'Inicial', documentos: (c) => c.documentos },
+  rop: { nombre: 'Recibo oficial de pago', pasos: PASOS_ROP, ruta: RUTA_ROP, primera: 'rop', id: PRACTICA_ROP, documentos: () => CASO_ROP.documentos },
+  correccion: { nombre: 'Declaración de corrección', pasos: PASOS_CORRECCION, ruta: RUTA_MENU, primera: 'previos', id: PRACTICA_CORRECCION, tipo: 'Corrección', documentos: (c) => datosCorreccion(c).documentos },
 };
 // Pantallas donde se puede pedir la solución y donde salen las inconsistencias
-const CON_SOLUCION = ['encabezado', 'subpartida', 'descripcion', 'totales', 'soporte', 'pago', 'levante', 'rop'];
+const CON_SOLUCION = ['encabezado', 'subpartida', 'descripcion', 'totales', 'soporte', 'pago', 'levante', 'inspeccion', 'rop'];
 // Número de radicación de práctica que el sistema asigna al guardar el encabezado
 const RADICACION = '48000457';
 const AYUDA = {
@@ -64,6 +78,11 @@ const AYUDA = {
   levante: 'El banco puso el autoadhesivo y transmitió el pago a la DIAN. Pide el levante con los números y fechas de la aceptación y del autoadhesivo.',
   rop: 'Un recibo oficial de pago sirve para pagar lo que quedó pendiente de una declaración ya aceptada. Mira el estado de cuenta: solo se paga el saldo, con sus intereses de mora.',
   roplista: 'El recibo quedó radicado. Revísalo y, si está bien, preinfórmalo: la DIAN le da un número de aceptación y ya no se puede cambiar.',
+  inspeccion: 'La DIAN seleccionó tu declaración para inspección. Preséntale al funcionario solo los documentos soporte de la declaración y, si es física, revisa el acta dato por dato contra lo que declaraste.',
+  previos_correccion: 'Una declaración de corrección corrige una ya aceptada. El tipo es «Corrección» y el respaldo es la declaración anterior: el sistema pide su número de aceptación y su fecha.',
+  subpartida_correccion: 'El sistema trajo el ítem de la declaración anterior. Busca en los documentos qué cambió, corrígelo, vuelve a autoliquidar y guarda.',
+  totales_correccion: 'La casilla 67 trae lo que ya se pagó. Con la corrección se paga solo la diferencia, más la sanción, en la forma de pago que indica la instrucción.',
+  informar_correccion: 'Revisa la corrección. Al confirmar, el sistema le da su propio número de aceptación.',
   fin: 'Terminaste el recorrido.',
 };
 const pesos = (n) => Math.round(n || 0).toLocaleString('es-CO');
@@ -166,6 +185,17 @@ export default function SigloXXII() {
   const [rop, setRop] = useState({ sanciones: '0', otros: '0' });
   const [practica, setPractica] = useState('importacion');
   const P = PRACTICAS[practica];
+  const [insp, setInsp] = useState({});
+  // El caso de cada cuenta sale de su número; «otro caso» cambia de caso sin cambiar de cuenta
+  const [otro, setOtro] = useState(0);
+  const semilla = semillaDe(usuario, otro);
+  const caso = useMemo(() => generarCaso(semilla), [semilla]);
+  const corr = useMemo(() => datosCorreccion(caso), [caso]);
+  const enCorreccion = practica === 'correccion';
+  // En la corrección, el ítem correcto es el de la declaración anterior con el flete real
+  const casoItem = enCorreccion ? corr.caso : caso;
+  const opTotales = enCorreccion ? { anteriores: corr.anteriores, sancion: corr.sancion, forma: 'EF' } : {};
+  const administracion = practica === 'rop' ? ADMINISTRACION : caso.administracion;
   const listaRef = useRef(null);
   const [malos, setMalos] = useState(new Map());
   const avisoRef = useRef(null);
@@ -182,7 +212,7 @@ export default function SigloXXII() {
   const reiniciar = () => {
     setErrores(0); setConSolucion(false); setRegistro(null); enviado.current = false;
     setRuta([]); setAcceso({ usuario: '', clave: '' }); setPrevios({ etapa: 1, tipo: 'Inicial', departamento: '', respaldo: 'DOCUMENTO DE TRANSPORTE' });
-    setPago({}); setLev({}); setRop({ sanciones: '0', otros: '0' });
+    setPago({}); setLev({}); setInsp({}); setRop({ sanciones: '0', otros: '0' });
     setItemGuardado(false); setDesc(''); setTot({}); setSop({}); setHechas({ descripcion: false, totales: false, soporte: false }); setEnc({}); setSub({ cuotas: '0', otros: '0', ajuste: '0' }); setLiq(null); ir('login');
   };
 
@@ -209,7 +239,7 @@ export default function SigloXXII() {
 
   const marcar = (faltas) => setMalos(new Map(faltas.map((x) => [x.campo, sinRotulo(x.mensaje)])));
   const salvarEncabezado = () => {
-    const faltas = validarEncabezado(enc);
+    const faltas = validarEncabezado(enc, caso);
     marcar(faltas);
     if (faltas.length) { fallo({ tipo: 'error', texto: `Tiene ${faltas.length} ${faltas.length === 1 ? 'inconsistencia' : 'inconsistencias'}: el encabezado no se puede guardar todavía.`, errores: faltas.map((x) => x.mensaje) }); return; }
     ir('declaracion');
@@ -217,11 +247,16 @@ export default function SigloXXII() {
 
   const autoliquidar = () => { setLiq(liquidar(sub)); setMensaje(null); };
   const salvarSubpartida = () => {
-    const faltas = validarSubpartida(sub);
+    const faltas = validarSubpartida(sub, casoItem);
     marcar(faltas);
     if (faltas.length) { fallo({ tipo: 'error', texto: `Tiene ${faltas.length} ${faltas.length === 1 ? 'inconsistencia' : 'inconsistencias'}: la subpartida no se puede guardar todavía.`, errores: faltas.map((x) => x.mensaje) }); return; }
     if (!liq) { fallo({ tipo: 'error', texto: 'Falta la autoliquidación: pulsa «Autoliquidar» para calcular los tributos antes de guardar.' }); return; }
     setItemGuardado(true);
+    if (enCorreccion) {
+      ir('totales');
+      setMensaje({ texto: 'El ítem corregido quedó guardado. Sigue con los totales: el sistema trae lo que ya se pagó.' });
+      return;
+    }
     // Si el ítem cambia, los totales que ya se habían guardado hay que revisarlos otra vez
     const habiaTotales = hechas.totales;
     setHechas((h) => ({ ...h, totales: false }));
@@ -253,12 +288,13 @@ export default function SigloXXII() {
   };
 
   const verSolucion = () => {
-    if (paso === 'encabezado') setEnc({ ...CASO.encabezado });
-    else if (paso === 'subpartida') { setSub({ ...CASO.subpartida }); setLiq(null); }
-    else if (paso === 'descripcion') setDesc(CASO.descripcion);
-    else if (paso === 'totales') setTot(solucionTotales(liq));
-    else if (paso === 'soporte') setSop(solucionSoporte());
-    else if (paso === 'pago') setPago(solucionPago(totalPagado(tot)));
+    if (paso === 'encabezado') setEnc({ ...caso.encabezado });
+    else if (paso === 'subpartida') { setSub({ ...casoItem.subpartida }); setLiq(null); }
+    else if (paso === 'descripcion') setDesc(caso.descripcion);
+    else if (paso === 'totales') setTot(solucionTotales(liq, caso, opTotales));
+    else if (paso === 'soporte') setSop(solucionSoporte(caso));
+    else if (paso === 'pago') setPago(solucionPago(totalPagado(tot), caso));
+    else if (paso === 'inspeccion') setInsp(solucionInspeccion(caso));
     else if (paso === 'levante') setLev(solucionLevante());
     else if (paso === 'rop') setRop({ ...CASO_ROP.solucion });
     setConSolucion(true);
@@ -278,6 +314,29 @@ export default function SigloXXII() {
 
   // Cambiar de práctica empieza de nuevo
   const cambiarPractica = (id) => { if (id !== practica) { setPractica(id); reiniciar(); } };
+  const otroCaso = () => { setOtro((n) => n + 1); reiniciar(); };
+  // Parámetros previos: el tipo de declaración y el respaldo dependen de la práctica
+  const continuarPrevios = () => {
+    if (previos.departamento !== caso.importador.departamento) {
+      fallo({ tipo: 'error', texto: `El importador del caso está en ${caso.importador.ciudad}: su departamento es ${caso.importador.departamentoNombre} (${caso.importador.departamento}).` });
+      return;
+    }
+    if (!enCorreccion) {
+      if (previos.respaldo !== 'DOCUMENTO DE TRANSPORTE') { fallo({ tipo: 'error', texto: 'La mercancía llegó con un B/L: el respaldo es el documento de transporte.' }); return; }
+      setEnc((x) => ({ ...x, imp_departamento: previos.departamento }));
+      ir('encabezado');
+      return;
+    }
+    if (previos.respaldo !== 'DECLARACIÓN ANTERIOR') { fallo({ tipo: 'error', texto: 'Una corrección se respalda en la declaración que se corrige: el respaldo es la declaración anterior.' }); return; }
+    const faltas = validarDeclaracionAnterior(previos.anterior, previos.anteriorFecha);
+    if (faltas.length) { marcar(faltas); fallo({ tipo: 'error', texto: faltas.map((x) => x.mensaje).join(' ') }); return; }
+    // El sistema trae el encabezado y el ítem de la declaración anterior
+    setEnc({ ...caso.encabezado });
+    setSub({ ...caso.subpartida });
+    setLiq(null);
+    ir('subpartida');
+    setMensaje({ texto: 'El sistema trajo los datos de la declaración anterior. Corrige lo que cambió, vuelve a autoliquidar y guarda.' });
+  };
   // Pago, levante y recibo oficial: si hay inconsistencias se listan; si no, sigue a la pantalla indicada
   const salvarYSeguir = (faltas, siguiente, texto) => {
     marcar(faltas);
@@ -288,7 +347,7 @@ export default function SigloXXII() {
 
   // La pantalla de la declaración radicada cae en la parte que sigue pendiente
   const pendiente = !itemGuardado ? 'subpartida' : ['descripcion', 'totales', 'soporte'].find((p) => !hechas[p]) || 'informar';
-  const pasoVisible = paso === 'declaracion' ? pendiente : paso;
+  const pasoVisible = paso === 'declaracion' ? pendiente : paso === 'inspeccion' ? 'levante' : paso;
   const indice = P.pasos.findIndex(([id]) => id === pasoVisible);
   const r = liq || {};
   const gastos = (parseFloat(sub.fletes) || 0) + (parseFloat(sub.seguros) || 0) + (parseFloat(sub.otros) || 0);
@@ -326,7 +385,7 @@ export default function SigloXXII() {
             <div className={css.marca}><span className={css.logo} aria-hidden="true">XXII</span>SIGLO XXII <small>· Importaciones</small></div>
             {conSesion && (
               <div className={css.sesion}>
-                <span className={css.chip}>Adm. {ADMINISTRACION.codigo} · {ADMINISTRACION.nombre}</span>
+                <span className={css.chip}>Adm. {administracion.codigo} · {administracion.nombre}</span>
                 <span className={css.chip}>TRM semana ${TASA_SEMANA.toLocaleString('es-CO')}</span>
                 <span className={css.usuario} aria-label="Usuario">{miUsuario}</span>
               </div>
@@ -363,7 +422,7 @@ export default function SigloXXII() {
                   <input id="sx-clave" type="password" autoComplete="off" placeholder="••••••••" value={acceso.clave} onChange={(e) => setAcceso({ ...acceso, clave: e.target.value })} />
                 </div>
                 <button type="submit" className={css.primario}>Entrar</button>
-                <p className={css.suave}>Administración {ADMINISTRACION.codigo} · {ADMINISTRACION.nombre}</p>
+                <p className={css.suave}>Administración {administracion.codigo} · {administracion.nombre}</p>
               </form>
             )}
 
@@ -415,21 +474,33 @@ export default function SigloXXII() {
                           {['DOCUMENTO DE TRANSPORTE', 'DECLARACIÓN ANTERIOR', 'PLANILLA DE ENVÍO'].map((t) => <option key={t}>{t}</option>)}
                         </select>
                       </div>
+                      {previos.respaldo === 'DECLARACIÓN ANTERIOR' && (
+                        <>
+                          <div className={css.campo} style={{ gridColumn: 'span 2' }}>
+                            <label htmlFor="sx-anterior">No. de aceptación de la declaración anterior</label>
+                            <input id="sx-anterior" autoComplete="off" value={previos.anterior ?? ''} aria-invalid={Boolean(malos.get('anterior'))} onChange={(e) => setPrevios({ ...previos, anterior: e.target.value })} />
+                          </div>
+                          <div className={css.campo} style={{ gridColumn: 'span 2' }}>
+                            <label htmlFor="sx-anterior-fecha">Fecha de aceptación de la declaración anterior</label>
+                            <input id="sx-anterior-fecha" autoComplete="off" placeholder="AAAA-MM-DD" value={previos.anteriorFecha ?? ''} aria-invalid={Boolean(malos.get('anterior_fecha'))} onChange={(e) => setPrevios({ ...previos, anteriorFecha: e.target.value })} />
+                          </div>
+                        </>
+                      )}
                     </>
                   )}
                 </div>
                 <div className={css.acciones}>
                   {previos.etapa === 1 ? (
                     <button type="button" className={css.primario} onClick={() => {
-                      if (previos.tipo !== 'Inicial') { fallo({ tipo: 'error', texto: 'En el caso se presenta por primera vez la declaración: el tipo es «Inicial».' }); return; }
+                      if (previos.tipo !== P.tipo) {
+                        fallo({ tipo: 'error', texto: enCorreccion ? 'Se va a corregir una declaración ya aceptada: el tipo es «Corrección».' : 'En el caso se presenta por primera vez la declaración: el tipo es «Inicial».' });
+                        return;
+                      }
                       setMensaje(null); setPrevios({ ...previos, etapa: 2 });
                     }}>Siguiente</button>
                   ) : (
                     <button type="button" className={css.primario} onClick={() => {
-                      if (previos.departamento !== CASO.encabezado.imp_departamento) { fallo({ tipo: 'error', texto: 'El importador del caso está en Cartagena: su departamento es BOLIVAR (13).' }); return; }
-                      if (previos.respaldo !== 'DOCUMENTO DE TRANSPORTE') { fallo({ tipo: 'error', texto: 'La mercancía llegó con un B/L: el respaldo es el documento de transporte.' }); return; }
-                      setEnc((x) => ({ ...x, imp_departamento: previos.departamento }));
-                      ir('encabezado');
+                      continuarPrevios();
                     }}>Continuar</button>
                   )}
                 </div>
@@ -438,7 +509,7 @@ export default function SigloXXII() {
 
             {paso === 'encabezado' && (
               <>
-                <Inventario />
+                <Inventario i={caso.inventario} />
                 <Encabezado v={enc} poner={ponerEnc} malos={malos} onSalvar={salvarEncabezado} onBuscar={buscar} />
               </>
             )}
@@ -548,26 +619,35 @@ export default function SigloXXII() {
 
             {paso === 'descripcion' && (
               <Descripcion texto={desc} poner={(t) => { setDesc(t); setMalos(new Map()); }} malos={malos} subpartida={sub.subpartida} radicacion={RADICACION}
-                onSalvar={() => salvarParte('descripcion', validarDescripcion(desc), 'Sigue con los totales.')} />
+                onSalvar={() => salvarParte('descripcion', validarDescripcion(desc, caso), 'Sigue con los totales.')} />
             )}
             {paso === 'totales' && liq && (
               <Totales t={tot} poner={ponerTot} malos={malos} liq={liq} onBuscar={buscar} radicacion={RADICACION}
-                onSalvar={() => salvarParte('totales', validarTotales(tot, liq), 'Sigue con los documentos soporte.')} />
+                tipo={P.tipo} anteriores={enCorreccion ? corr.anteriores : null}
+                onSalvar={() => (enCorreccion
+                  ? salvarYSeguir(validarTotales(tot, liq, caso, opTotales), 'informar', 'Los datos de su documento han sido almacenados con éxito. Revisa y confirma la corrección.')
+                  : salvarParte('totales', validarTotales(tot, liq, caso), 'Sigue con los documentos soporte.'))} />
             )}
             {paso === 'soporte' && (
-              <Soporte s={sop} poner={ponerSop} malos={malos} radicacion={RADICACION}
-                onSalvar={() => salvarParte('soporte', validarSoporte(sop), 'Los datos quedaron radicados.')} />
+              <Soporte s={sop} poner={ponerSop} malos={malos} radicacion={RADICACION} soportes={caso.soportes}
+                onSalvar={() => salvarParte('soporte', validarSoporte(sop, caso), 'Los datos quedaron radicados.')} />
             )}
             {paso === 'informar' && (
-              <Informar enc={enc} sub={sub} liq={liq} t={tot} radicacion={RADICACION} onVolver={() => ir('declaracion')} onConfirmar={() => ir('pago')} />
+              <Informar enc={enc} sub={sub} liq={liq} t={tot} radicacion={RADICACION} onVolver={() => ir(enCorreccion ? 'totales' : 'declaracion')} onConfirmar={() => ir(enCorreccion ? 'fin' : 'pago')} />
             )}
             {paso === 'pago' && (
               <Pago v={pago} poner={(k, val) => setPago((x) => ({ ...x, [k]: val }))} malos={malos} onBuscar={buscar}
-                onSalvar={() => salvarYSeguir(validarPago(pago, totalPagado(tot)), 'levante', 'El banco recibió el pago, puso el autoadhesivo en la declaración y transmitió el pago a la DIAN.')} />
+                onSalvar={() => salvarYSeguir(validarPago(pago, totalPagado(tot), caso), 'levante', 'El banco recibió el pago, puso el autoadhesivo en la declaración y transmitió el pago a la DIAN.')} />
             )}
             {paso === 'levante' && (
               <Levante v={lev} poner={(k, val) => setLev((x) => ({ ...x, [k]: val }))} malos={malos}
-                onSalvar={() => salvarYSeguir(validarLevante(lev), 'fin')} />
+                onSalvar={() => (caso.inspeccion === 'automatico'
+                  ? salvarYSeguir(validarLevante(lev), 'fin')
+                  : salvarYSeguir(validarLevante(lev), 'inspeccion', `El sistema seleccionó la declaración para ${TIPOS_INSPECCION[caso.inspeccion].toLowerCase()}. El levante lo autoriza el funcionario cuando termine.`))} />
+            )}
+            {paso === 'inspeccion' && (
+              <Inspeccion tipo={caso.inspeccion} hallazgos={caso.hallazgos} v={insp} poner={(k, val) => setInsp((x) => ({ ...x, [k]: val }))} malos={malos}
+                onSalvar={() => salvarYSeguir(validarInspeccion(insp, caso), 'fin')} />
             )}
             {paso === 'rop' && (
               <RopIngresar v={rop} poner={(k, val) => setRop((x) => ({ ...x, [k]: val }))} malos={malos}
@@ -603,6 +683,24 @@ export default function SigloXXII() {
               </div>
             )}
 
+            {paso === 'fin' && enCorreccion && (
+              <div className={css.tarjeta}>
+                <div className={css.exito} role="status"><span aria-hidden="true">✓</span> Declaración de corrección aceptada</div>
+                <div className={css.cifras}>
+                  <div><span>Aceptación de la corrección</span><strong data-testid="sx-aceptacion-correccion">{ACEPTACION_CORRECCION.numero}</strong><small>{ACEPTACION_CORRECCION.fecha}</small></div>
+                  <div><span>Mayor valor de tributos</span><strong>${pesos(corr.mayorValor)}</strong></div>
+                  <div><span>Sanción</span><strong>${pesos(corr.sancion)}</strong></div>
+                  <div className={css.destacada}><span>Total pagado con la corrección</span><strong>${pesos(totalPagado(tot))}</strong></div>
+                </div>
+                <p className={css.suave}>Corrige la declaración {ACEPTACION.numero}. El valor en aduana subió por el flete real, así que se pagó la diferencia de arancel e IVA más la sanción. La sanción del caso es un dato de práctica: la real depende del régimen sancionatorio vigente.</p>
+                <Registro tokenApi={tokenApi} registro={registro} conSolucion={conSolucion} errores={errores} />
+                <div className={css.acciones}>
+                  <button type="button" className={css.primario} onClick={otroCaso}>Practicar con otro caso</button>
+                  <button type="button" className={css.secundario} onClick={reiniciar}>Hacer la práctica otra vez</button>
+                </div>
+              </div>
+            )}
+
             {paso === 'fin' && practica === 'importacion' && (
               <div className={css.tarjeta}>
                 <div className={css.exito} role="status"><span aria-hidden="true">✓</span> Declaración guardada, pagada y con levante</div>
@@ -610,19 +708,20 @@ export default function SigloXXII() {
                   <div><span>80. Aceptación</span><strong data-testid="sx-aceptacion">{ACEPTACION.numero}</strong><small>{ACEPTACION.fecha}</small></div>
                   <div className={css.destacada}><span>81. Levante</span><strong data-testid="sx-levante">{LEVANTE.numero}</strong><small>{LEVANTE.fecha}</small></div>
                 </div>
-                <p className={css.suave}>Radicación {RADICACION}, aceptación y levante de práctica. Con el levante, la mercancía se puede retirar del depósito. En el borrador del formulario el número de formulario aparece «por generar»: en el sistema real lo asigna la DIAN.</p>
+                <p className={css.suave}>{caso.inspeccion === 'automatico' ? 'El sistema dio levante automático.' : `El levante lo autorizó el funcionario después de la ${TIPOS_INSPECCION[caso.inspeccion].toLowerCase()}.`} Radicación {RADICACION}, aceptación y levante de práctica. Con el levante, la mercancía se puede retirar del depósito. En el borrador del formulario el número de formulario aparece «por generar»: en el sistema real lo asigna la DIAN.</p>
                 <div className={css.cifras}>
                   <div><span>Valor en aduana</span><strong>USD {r.aduanaUSD?.toLocaleString('es-CO')}</strong></div>
                   <div><span>Arancel</span><strong>${pesos(r.arancel)}</strong></div>
                   <div><span>IVA</span><strong>${pesos(r.iva)}</strong></div>
                   <div className={css.destacada}><span>Total a pagar</span><strong>${pesos(r.total)}</strong></div>
                 </div>
-                <p>Resumen: {sub.cantidad} unidades de la subpartida {sub.subpartida}, modalidad {String(sub.modalidad).toUpperCase()}; total a pagar ${pesos(r.total)}.</p>
+                <p>Resumen: {sub.cantidad} {sub.unidad_comercial === 'M' ? 'metros' : 'unidades'} de la subpartida {sub.subpartida}, modalidad {String(sub.modalidad).toUpperCase()}; total a pagar ${pesos(r.total)}.</p>
                 <Registro tokenApi={tokenApi} registro={registro} conSolucion={conSolucion} errores={errores} />
                 <div className={css.acciones}>
                   <button type="button" className={css.primario} onClick={generarFormulario}>Generar el formulario 500 (PDF)</button>
                   <button type="button" className={css.secundario} onClick={reiniciar}>Hacer la práctica otra vez</button>
-                  <button type="button" className={css.secundario} onClick={() => cambiarPractica('rop')}>Ir a la práctica 2</button>
+                  <button type="button" className={css.secundario} onClick={otroCaso}>Practicar con otro caso</button>
+                  <button type="button" className={css.secundario} onClick={() => cambiarPractica('correccion')}>Ir a la práctica 3: corregirla</button>
                 </div>
               </div>
             )}
@@ -633,7 +732,7 @@ export default function SigloXXII() {
           <h3>Guía de la práctica</h3>
           <p className={css.ayuda}>
             {paso === 'login' && <>Tu usuario de práctica es <strong>{miUsuario}</strong> y la contraseña es <strong>{CREDENCIALES.clave}</strong>. {tokenApi ? 'Es solo tuyo: al terminar, la práctica queda registrada a tu nombre. ' : 'Como invitado usas el usuario de ejemplo y la práctica no queda registrada. '}</>}
-            {paso === 'menu' ? `Para ${practica === 'rop' ? 'ingresar un recibo oficial de pago' : 'abrir una declaración nueva'} sigue esta ruta: ${P.ruta.join(' → ')}.` : AYUDA[paso]}
+            {paso === 'menu' ? `Para ${practica === 'rop' ? 'ingresar un recibo oficial de pago' : 'abrir una declaración'} sigue esta ruta: ${P.ruta.join(' → ')}.` : AYUDA[`${paso}_${practica}`] ?? AYUDA[paso]}
           </p>
           {CON_SOLUCION.includes(paso) && (
             <>
@@ -649,12 +748,13 @@ export default function SigloXXII() {
           </div>
           <h3>Documentos del caso</h3>
           <p className={css.ayuda}>
-            Como en la agencia, trabaja con los documentos abiertos al lado. <a href="#/formularios/001?caso=1" target="_blank" rel="noopener noreferrer">Abrir el RUT del importador (formulario 001)</a> en otra pestaña.
+            Como en la agencia, trabaja con los documentos abiertos al lado. <a href={`#/formularios/001?caso=1${semilla && practica !== 'rop' ? `&semilla=${semilla}` : ''}`} target="_blank" rel="noopener noreferrer">Abrir el RUT del importador (formulario 001)</a> en otra pestaña.
           </p>
           <p className={css.ayuda}>{practica === 'rop'
             ? 'HidroColombia presentó una declaración de sellos y empaques y solo pagó el arancel: ahora paga el IVA pendiente con sus intereses de mora.'
-            : 'HidroColombia importa 500 bombas de engranajes de Shanghái a Cartagena (caso del módulo 1 de la Ruta).'}</p>
-          {P.documentos.map((d) => (
+            : `${enCorreccion ? 'Ya se declaró, se pagó y tuvo levante. ' : ''}${caso.resumen}`}</p>
+          {practica !== 'rop' && <p className={css.ayuda} data-testid="sx-caso">Caso No. {semilla}{!semilla ? ' (caso de ejemplo)' : tokenApi ? ' (es solo tuyo)' : ' (caso de práctica)'}</p>}
+          {P.documentos(caso).map((d) => (
             <details key={d.titulo} className={css.doc}>
               <summary>{d.titulo}</summary>
               <dl>{d.datos.map(([k, val]) => [<dt key={`${k}t`}>{k}</dt>, <dd key={`${k}d`}>{val}</dd>])}</dl>
@@ -680,8 +780,7 @@ function Registro({ tokenApi, registro, conSolucion, errores }) {
 }
 
 // Consulta de inventario por documento de transporte: con qué peso y bultos cuenta la carga en el depósito
-function Inventario() {
-  const i = CASO.inventario;
+function Inventario({ i }) {
   return (
     <details className={css.inventario} open>
       <summary>Consulta de inventario por documento de transporte</summary>
@@ -695,7 +794,7 @@ function Inventario() {
         <div><dt>6. Incluye prórroga</dt><dd>{i.prorroga}</dd></div>
         <div><dt>7. Ubicación</dt><dd>{i.ubicacion}</dd></div>
         <div><dt>8. Peso disponible</dt><dd>{i.peso.toLocaleString('es-CO', { minimumFractionDigits: 2 })} kg</dd></div>
-        <div><dt>9. Cantidad disponible</dt><dd>{i.cantidad.toLocaleString('es-CO', { minimumFractionDigits: 2 })} (PK)</dd></div>
+        <div><dt>9. Cantidad disponible</dt><dd>{i.cantidad.toLocaleString('es-CO', { minimumFractionDigits: 2 })} ({i.embalaje})</dd></div>
       </dl>
       <p className={css.suave}>La consulta trae los nombres; los códigos del depósito y del transportador se buscan en las tablas. La declaración no puede amparar más peso ni más bultos de los disponibles.</p>
     </details>

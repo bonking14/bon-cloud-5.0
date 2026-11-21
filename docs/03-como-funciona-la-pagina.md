@@ -94,10 +94,19 @@ nota y la fecha, sin necesidad de cuenta.
   parámetros previos, encabezado, ítem con autoliquidación, descripción, totales, documentos
   soporte e informar. El sistema valida cada pantalla
   contra los documentos del caso y dice qué falta o qué no coincide. Es un simulador: no se
-  conecta con la DIAN. Tiene dos prácticas, que se eligen arriba de los pasos: la declaración de
-  importación completa y el recibo oficial de pago. Cada
+  conecta con la DIAN. Tiene tres prácticas, que se eligen arriba de los pasos: la declaración de
+  importación completa, el recibo oficial de pago y la declaración de corrección. Cada
   cuenta tiene su propio usuario de práctica (por ejemplo `A000042`); al terminar, la práctica
   queda registrada a su nombre. El invitado usa un usuario de ejemplo y no se le registra.
+
+  **Cada cuenta tiene su propio caso** (el número de caso es el de la cuenta y se ve en la guía):
+  cambian la mercancía (bombas, rodamientos, válvulas, cadenas, reductores o estanterías, con su
+  subpartida y su arancel reales), el importador y su ciudad, el proveedor y su país, el puerto
+  de llegada (Cartagena o Buenaventura), las cantidades, los valores, los pesos, los números de
+  los documentos, el banco y el cheque. Así los estudiantes no se pueden copiar las respuestas.
+  El invitado practica con el caso de ejemplo (las bombas de HidroColombia, el de la Ruta). Al
+  terminar, «Practicar con otro caso» da un caso nuevo. El RUT que se abre desde la guía es el
+  del importador del caso.
   Los documentos del caso traen nombres (Cartagena, Panamá, marítimo) y no códigos: el
   estudiante busca cada código con «Buscar código» junto al campo o en las tablas de códigos
   (administraciones, lugares de ingreso, depósitos, países, departamentos, ciudades, modos de
@@ -119,15 +128,28 @@ nota y la fecha, sin necesidad de cuenta.
     el sistema da el número de aceptación.
   - **Pago:** en el banco se registra la aceptación, el banco, el valor (debe ser el total de la
     casilla 73) y el cheque; el banco pone el autoadhesivo.
-  - **Levante:** con la aceptación y el autoadhesivo (números y fechas) se pide el levante, y el
-    sistema lo da en la casilla 81.
+  - **Levante:** con la aceptación y el autoadhesivo (números y fechas) se pide el levante. Según
+    el caso, el sistema da levante automático o selecciona la declaración para **inspección**:
+    en la documental, el estudiante le presenta al funcionario solo los documentos soporte; en la
+    física, además revisa dato por dato el acta de lo que el funcionario encontró en la
+    mercancía. Al terminar, el levante sale en la casilla 81.
 
   La **práctica 2, recibo oficial de pago**, se entra por el menú «Recibo Oficial Pago» →
   «Ingresar». El caso es una declaración anterior en la que solo se pagó el arancel: el
   estudiante paga el IVA pendiente con sus intereses de mora (sin volver a pagar el arancel),
   guarda el recibo, recibe un número de radicación y lo preinforma para obtener el número de
-  aceptación del recibo. «Árbol de Documentos» y «ROP Declaración Especial» aparecen en el menú
-  pero todavía no tienen práctica.
+  aceptación del recibo.
+
+  La **práctica 3, declaración de corrección**, parte de la declaración del caso ya aceptada,
+  pagada y con levante: después se supo que el flete real fue mayor. El estudiante elige el tipo
+  «Corrección» con respaldo en la declaración anterior (su número de aceptación y su fecha), el
+  sistema trae el ítem anterior y el estudiante corrige el flete y vuelve a autoliquidar. En los
+  totales, la casilla 67 trae lo ya pagado y se paga solo la diferencia más la sanción, en
+  efectivo. La sanción del caso es un dato de práctica (10 % del mayor valor), y así lo dice la
+  pantalla: la real depende del régimen sancionatorio vigente.
+
+  «Árbol de Documentos» y «ROP Declaración Especial» aparecen en el menú pero todavía no tienen
+  práctica.
 
   Al final, «Generar el formulario 500 (PDF)» abre el formulario 500 con la declaración (incluida
   la descripción que escribió el estudiante) para imprimirlo o guardarlo en PDF. Desde la guía

@@ -1,6 +1,7 @@
 import { useState } from 'react';
 import { sumaCapital } from '../../../lib/formularios.js';
 import { digitoVerificacion } from '../../../lib/nit.js';
+import { rutDelCaso } from '../../../lib/casosSiglo.js';
 import { useCampos } from '../kit/contexto.js';
 import HojaOficial, { SelectorHojas } from '../kit/HojaOficial.jsx';
 import { soloDigitos } from '../kit/formato.js';
@@ -163,8 +164,11 @@ export default {
   // Caso de la Ruta de Aprendizaje: HidroColombia S.A.S. (datos ficticios)
   caso: {
     boton: 'Cargar caso de la Ruta de Aprendizaje',
-    mensaje: 'Se cargó el RUT de HidroColombia, la empresa del caso: responsabilidad 10 (obligado aduanero) y, en la casilla 54, el código 23 (importador). El DV del NIT 900123456 es 8.',
-    valores: () => ({
+    mensaje: (semilla) => (semilla
+      ? `Se cargó el RUT del importador de tu caso de SIGLO XXII: responsabilidad 10 (obligado aduanero) y, en la casilla 54, el código 23 (importador). El DV del NIT ${rutDelCaso(semilla).nit} es ${digitoVerificacion(rutDelCaso(semilla).nit)}.`
+      : 'Se cargó el RUT de HidroColombia, la empresa del caso: responsabilidad 10 (obligado aduanero) y, en la casilla 54, el código 23 (importador). El DV del NIT 900123456 es 8.'),
+    // Con semilla, el importador del caso que SIGLO XXII le asignó al estudiante
+    valores: (semilla) => (semilla ? rutDelCaso(semilla) : {
       concepto: '02', nit: '900123456', seccional: 'Impuestos y Aduanas de Cartagena',
       tipo_contribuyente: '1', tipo_doc: '31', num_id: '900123456',
       razon_social: 'HidroColombia S.A.S. (empresa ficticia)', nombre_comercial: 'HidroColombia',

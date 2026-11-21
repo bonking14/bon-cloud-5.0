@@ -1,6 +1,7 @@
 import { describe, it, expect, vi, afterEach } from 'vitest';
 import { render, screen, fireEvent, cleanup } from '@testing-library/react';
 import { MemoryRouter } from 'react-router-dom';
+import { generarCaso } from '../../lib/casosSiglo.js';
 import EditorFormulario from './EditorFormulario.jsx';
 import { formularios } from './catalogo.js';
 import { digitoVerificacion } from '../../lib/nit.js';
@@ -51,6 +52,14 @@ describe('formularios DIAN en React', () => {
     abrir('001', '/formularios/001?caso=1');
     expect(await screen.findByText(/Se cargó el RUT de HidroColombia/, {}, ESPERA)).toBeTruthy();
     expect(screen.getByLabelText('Número de Identificación Tributaria (NIT)').value).toBe('900123456');
+  });
+
+  it('001: con &semilla abre el RUT del importador del caso que SIGLO XXII le dio al estudiante', async () => {
+    const { nit } = generarCaso(42).importador;
+    abrir('001', '/formularios/001?caso=1&semilla=42');
+    expect(await screen.findByText(/importador de tu caso de SIGLO XXII/, {}, ESPERA)).toBeTruthy();
+    expect(screen.getByLabelText('Número de Identificación Tributaria (NIT)').value).toBe(nit);
+    expect(nit).not.toBe('900123456');
   });
 
   it('500: abre con la declaración que deja SIGLO XXII y avisa cómo guardarla en PDF', async () => {
